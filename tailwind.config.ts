@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -25,8 +26,12 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#6366f1',
+					foreground: '#ffffff',
+					50: '#eef2ff',
+					100: '#e0e7ff',
+					500: '#6366f1',
+					600: '#4f46e5'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -61,6 +66,43 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Petbnb colors
+				petbnb: {
+					50: '#f0f9ff',
+					100: '#e0f2fe',
+					200: '#bae6fd',
+					300: '#7dd3fc',
+					400: '#38bdf8',
+					500: '#0ea5e9',
+					600: '#0284c7',
+					700: '#0369a1',
+					800: '#075985',
+					900: '#0c4a6e'
+				},
+				warm: {
+					50: '#fefdf2',
+					100: '#fef7cd',
+					200: '#fef08a',
+					300: '#fde047',
+					400: '#facc15',
+					500: '#eab308',
+					600: '#ca8a04',
+					700: '#a16207',
+					800: '#854d0e',
+					900: '#713f12'
+				},
+				sage: {
+					50: '#f6f7f6',
+					100: '#e3e7e3',
+					200: '#c7d2c7',
+					300: '#a3b4a3',
+					400: '#7d957d',
+					500: '#627862',
+					600: '#4d5f4d',
+					700: '#404f40',
+					800: '#374137',
+					900: '#2f372f'
 				}
 			},
 			borderRadius: {
@@ -84,11 +126,37 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'scale-in': {
+					'0%': {
+						transform: 'scale(0.95)',
+						opacity: '0'
+					},
+					'100%': {
+						transform: 'scale(1)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'scale-in': 'scale-in 0.2s ease-out'
+			},
+			fontFamily: {
+				sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+				nunito: ['Nunito', 'ui-sans-serif', 'system-ui']
 			}
 		}
 	},
