@@ -14,9 +14,9 @@ import { toast } from 'sonner';
 
 const Adoption = () => {
   const [searchLocation, setSearchLocation] = useState('');
-  const [petTypeFilter, setPetTypeFilter] = useState('');
-  const [sizeFilter, setSizeFilter] = useState('');
-  const [ageFilter, setAgeFilter] = useState('');
+  const [petTypeFilter, setPetTypeFilter] = useState('all');
+  const [sizeFilter, setSizeFilter] = useState('all');
+  const [ageFilter, setAgeFilter] = useState('all');
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -27,9 +27,9 @@ const Adoption = () => {
     queryKey: ['pets', searchLocation, petTypeFilter, sizeFilter, ageFilter],
     queryFn: () => getPets({
       location: searchLocation || undefined,
-      type: petTypeFilter || undefined,
-      size: sizeFilter || undefined,
-      age: ageFilter || undefined,
+      type: petTypeFilter === 'all' ? undefined : petTypeFilter,
+      size: sizeFilter === 'all' ? undefined : sizeFilter,
+      age: ageFilter === 'all' ? undefined : ageFilter,
     }),
   });
 
@@ -130,7 +130,7 @@ const Adoption = () => {
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="Perro">Perros</SelectItem>
                 <SelectItem value="Gato">Gatos</SelectItem>
                 <SelectItem value="Ave">Aves</SelectItem>
@@ -148,7 +148,7 @@ const Adoption = () => {
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="Pequeño">Pequeño</SelectItem>
                 <SelectItem value="Mediano">Mediano</SelectItem>
                 <SelectItem value="Grande">Grande</SelectItem>
@@ -164,7 +164,7 @@ const Adoption = () => {
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="Cachorro">Cachorro</SelectItem>
                 <SelectItem value="Joven">Joven</SelectItem>
                 <SelectItem value="Adulto">Adulto</SelectItem>
@@ -176,9 +176,9 @@ const Adoption = () => {
             <Button 
               onClick={() => {
                 setSearchLocation('');
-                setPetTypeFilter('');
-                setSizeFilter('');
-                setAgeFilter('');
+                setPetTypeFilter('all');
+                setSizeFilter('all');
+                setAgeFilter('all');
               }}
               variant="outline" 
               className="w-full"

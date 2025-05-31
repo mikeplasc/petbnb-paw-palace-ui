@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,8 +31,8 @@ const FiltersModal = ({ isOpen, onClose, filters, onApplyFilters, onResetFilters
 
   const handleReset = () => {
     const resetFilters = {
-      type: '',
-      size: '',
+      type: 'all',
+      size: 'all',
       location: '',
       urgent: false
     };
@@ -66,7 +67,7 @@ const FiltersModal = ({ isOpen, onClose, filters, onApplyFilters, onResetFilters
                 <SelectValue placeholder="Selecciona el tipo" />
               </SelectTrigger>
               <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="">Todos los tipos</SelectItem>
+                <SelectItem value="all">Todos los tipos</SelectItem>
                 <SelectItem value="Perro">Perros</SelectItem>
                 <SelectItem value="Gato">Gatos</SelectItem>
                 <SelectItem value="Ave">Aves</SelectItem>
@@ -87,7 +88,7 @@ const FiltersModal = ({ isOpen, onClose, filters, onApplyFilters, onResetFilters
                 <SelectValue placeholder="Selecciona el tamaño" />
               </SelectTrigger>
               <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="">Todos los tamaños</SelectItem>
+                <SelectItem value="all">Todos los tamaños</SelectItem>
                 <SelectItem value="Pequeño">Pequeño</SelectItem>
                 <SelectItem value="Mediano">Mediano</SelectItem>
                 <SelectItem value="Grande">Grande</SelectItem>
@@ -121,12 +122,12 @@ const FiltersModal = ({ isOpen, onClose, filters, onApplyFilters, onResetFilters
           <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-xs font-medium text-gray-600 mb-2">Filtros activos:</p>
             <div className="flex flex-wrap gap-1">
-              {localFilters.type && (
+              {localFilters.type && localFilters.type !== 'all' && (
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                   Tipo: {localFilters.type}
                 </span>
               )}
-              {localFilters.size && (
+              {localFilters.size && localFilters.size !== 'all' && (
                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
                   Tamaño: {localFilters.size}
                 </span>
@@ -141,7 +142,9 @@ const FiltersModal = ({ isOpen, onClose, filters, onApplyFilters, onResetFilters
                   Urgentes
                 </span>
               )}
-              {!localFilters.type && !localFilters.size && !localFilters.location && !localFilters.urgent && (
+              {(!localFilters.type || localFilters.type === 'all') && 
+               (!localFilters.size || localFilters.size === 'all') && 
+               !localFilters.location && !localFilters.urgent && (
                 <span className="text-gray-500 text-xs">Ningún filtro activo</span>
               )}
             </div>
