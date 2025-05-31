@@ -45,11 +45,25 @@ const Auth = () => {
             variant: "destructive",
           });
         } else {
-          toast({
-            title: "¡Cuenta creada!",
-            description: "Revisa tu email para confirmar tu cuenta",
-          });
-          setMode('login');
+          // Verificar si el usuario ya está autenticado (login automático)
+          // Si no, mostrar mensaje de confirmación de email
+          setTimeout(() => {
+            // Dar tiempo para que el AuthContext se actualice
+            const currentUser = JSON.parse(localStorage.getItem('sb-dcfhncdeurerzzvmlxuf-auth-token') || '{}');
+            if (currentUser?.user) {
+              toast({
+                title: "¡Bienvenido!",
+                description: "Tu cuenta ha sido creada exitosamente",
+              });
+              navigate('/');
+            } else {
+              toast({
+                title: "¡Cuenta creada!",
+                description: "Revisa tu email para confirmar tu cuenta",
+              });
+              setMode('login');
+            }
+          }, 1000);
         }
       } else if (mode === 'login') {
         const { error } = await signIn(email, password);
