@@ -1,4 +1,3 @@
-
 import { faker } from '@faker-js/faker';
 
 // Types
@@ -18,6 +17,8 @@ export interface Host {
   certifications: string[];
   specialties?: string[];
   acceptedPets?: string[];
+  availability?: boolean;
+  experience?: string;
 }
 
 export interface Review {
@@ -27,16 +28,17 @@ export interface Review {
   rating: number;
   comment: string;
   date: string;
+  petName: string;
 }
 
-// Pet types for search functionality
+// Pet types for search functionality - simplified to just strings
 export const petTypes = [
-  { id: 'dog', name: 'Perros', icon: '🐕' },
-  { id: 'cat', name: 'Gatos', icon: '🐱' },
-  { id: 'bird', name: 'Aves', icon: '🐦' },
-  { id: 'rabbit', name: 'Conejos', icon: '🐰' },
-  { id: 'fish', name: 'Peces', icon: '🐠' },
-  { id: 'hamster', name: 'Hámsters', icon: '🐹' }
+  'Perros',
+  'Gatos', 
+  'Aves',
+  'Conejos',
+  'Peces',
+  'Hámsters'
 ];
 
 // Mock reviews for testimonials
@@ -47,7 +49,8 @@ export const mockReviews: Review[] = [
     userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b15c?w=60&h=60&fit=crop&crop=face',
     rating: 5,
     comment: 'Excelente servicio, mi perro Max estuvo muy bien cuidado.',
-    date: '2024-01-15'
+    date: '2024-01-15',
+    petName: 'Max'
   },
   {
     id: '2', 
@@ -55,7 +58,8 @@ export const mockReviews: Review[] = [
     userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face',
     rating: 5,
     comment: 'Muy profesional y confiable. Recomiendo totalmente.',
-    date: '2024-01-12'
+    date: '2024-01-12',
+    petName: 'Rocco'
   },
   {
     id: '3',
@@ -63,31 +67,14 @@ export const mockReviews: Review[] = [
     userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face',
     rating: 4,
     comment: 'Buen servicio, mi gata Luna se sintió como en casa.',
-    date: '2024-01-08'
+    date: '2024-01-08',
+    petName: 'Luna'
   }
 ];
 
-// Function to generate a random pet type
-const getRandomPetType = () => {
-  const types = ['dog', 'cat', 'bird', 'rabbit', 'hamster', 'turtle'];
-  return types[Math.floor(Math.random() * types.length)];
-};
-
-// Function to generate a random service
-const getRandomService = () => {
-  const services = ['Grooming', 'Training', 'Walking', 'Sitting', 'Boarding', 'Daycare'];
-  return services[Math.floor(Math.random() * services.length)];
-};
-
-// Function to generate a random city
-const getRandomCity = () => {
-  const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'];
-  return cities[Math.floor(Math.random() * cities.length)];
-};
-
-// Function to generate a random rating
+// Function to generate a random rating - fixed precision parameter
 const getRandomRating = () => {
-  return faker.number.float({ min: 3, max: 5, precision: 0.1 });
+  return faker.number.float({ min: 3, max: 5, fractionDigits: 1 });
 };
 
 // Function to generate a random price per night
@@ -149,13 +136,19 @@ const getRandomImage = () => {
   return faker.image.urlPicsumPhotos();
 };
 
+// Function to generate random experience
+const getRandomExperience = () => {
+  const experiences = ['2+ años', '5+ años', '10+ años'];
+  return experiences[Math.floor(Math.random() * experiences.length)];
+};
+
 export const mockHosts: Host[] = [
   {
     id: '1',
     name: faker.company.name(),
     type: 'sitter' as const,
     location: faker.location.streetAddress(),
-    city: getRandomCity(),
+    city: 'Ciudad de México',
     pricePerNight: getRandomPricePerNight(),
     rating: getRandomRating(),
     reviewCount: getRandomReviewCount(),
@@ -169,13 +162,15 @@ export const mockHosts: Host[] = [
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
     acceptedPets: getRandomAcceptedPets(),
+    availability: true,
+    experience: getRandomExperience()
   },
   {
     id: '2',
     name: faker.company.name(),
     type: 'sitter' as const,
     location: faker.location.streetAddress(),
-    city: getRandomCity(),
+    city: 'Guadalajara',
     pricePerNight: getRandomPricePerNight(),
     rating: getRandomRating(),
     reviewCount: getRandomReviewCount(),
@@ -189,13 +184,15 @@ export const mockHosts: Host[] = [
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
     acceptedPets: getRandomAcceptedPets(),
+    availability: true,
+    experience: getRandomExperience()
   },
   {
     id: '3',
     name: faker.company.name(),
     type: 'sitter' as const,
     location: faker.location.streetAddress(),
-    city: getRandomCity(),
+    city: 'Monterrey',
     pricePerNight: getRandomPricePerNight(),
     rating: getRandomRating(),
     reviewCount: getRandomReviewCount(),
@@ -209,13 +206,15 @@ export const mockHosts: Host[] = [
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
     acceptedPets: getRandomAcceptedPets(),
+    availability: false,
+    experience: getRandomExperience()
   },
   {
     id: '4',
     name: faker.company.name(),
     type: 'sitter' as const,
     location: faker.location.streetAddress(),
-    city: getRandomCity(),
+    city: 'Puebla',
     pricePerNight: getRandomPricePerNight(),
     rating: getRandomRating(),
     reviewCount: getRandomReviewCount(),
@@ -229,13 +228,15 @@ export const mockHosts: Host[] = [
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
     acceptedPets: getRandomAcceptedPets(),
+    availability: true,
+    experience: getRandomExperience()
   },
   {
     id: '5',
     name: faker.company.name(),
     type: 'sitter' as const,
     location: faker.location.streetAddress(),
-    city: getRandomCity(),
+    city: 'Tijuana',
     pricePerNight: getRandomPricePerNight(),
     rating: getRandomRating(),
     reviewCount: getRandomReviewCount(),
@@ -249,6 +250,8 @@ export const mockHosts: Host[] = [
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
     acceptedPets: getRandomAcceptedPets(),
+    availability: true,
+    experience: getRandomExperience()
   },
   {
     id: 'vet-1',
@@ -267,7 +270,9 @@ export const mockHosts: Host[] = [
     services: ['Consulta', 'Vacunación', 'Cirugía', 'Estética', 'Laboratorio'],
     responseTime: '20 minutos',
     certifications: ['CVMCDMX'],
-    specialties: ['Medicina interna', 'Cirugía general']
+    specialties: ['Medicina interna', 'Cirugía general'],
+    availability: true,
+    experience: '15+ años'
   },
   {
     id: 'vet-2',
@@ -286,7 +291,9 @@ export const mockHosts: Host[] = [
     services: ['Urgencias 24h', 'Hospitalización', 'Laboratorio', 'Rayos X', 'Ultrasonido'],
     responseTime: '10 minutos',
     certifications: ['AAHA', 'AVMA'],
-    specialties: ['Cardiología', 'Neurología']
+    specialties: ['Cardiología', 'Neurología'],
+    availability: true,
+    experience: '20+ años'
   },
   {
     id: 'vet-3',
@@ -305,7 +312,9 @@ export const mockHosts: Host[] = [
     services: ['Medicina preventiva', 'Planes de salud', 'Nutrición', 'Homeopatía', 'Acupuntura'],
     responseTime: '30 minutos',
     certifications: ['AMMVEE'],
-    specialties: ['Medicina preventiva', 'Nutrición clínica']
+    specialties: ['Medicina preventiva', 'Nutrición clínica'],
+    availability: true,
+    experience: '12+ años'
   },
   {
     id: 'vet-4',
@@ -324,7 +333,9 @@ export const mockHosts: Host[] = [
     services: ['Veterinaria', 'Estética', 'Pensión', 'Adiestramiento', 'Guardería'],
     responseTime: '15 minutos',
     certifications: ['CMPV'],
-    specialties: ['Dermatología', 'Etología']
+    specialties: ['Dermatología', 'Etología'],
+    availability: true,
+    experience: '18+ años'
   },
   {
     id: 'vet-5',
@@ -343,7 +354,9 @@ export const mockHosts: Host[] = [
     services: ['Consulta', 'Desparasitación', 'Esterilización', 'Alimentos', 'Accesorios'],
     responseTime: '25 minutos',
     certifications: ['SEDESA'],
-    specialties: ['Medicina general', 'Salud pública']
+    specialties: ['Medicina general', 'Salud pública'],
+    availability: false,
+    experience: '8+ años'
   },
   {
     id: 'vet-6',
@@ -362,7 +375,9 @@ export const mockHosts: Host[] = [
     services: ['Cirugía especializada', 'Cardiología', 'Oncología', 'Imagenología', 'Laboratorio'],
     responseTime: '15 minutos',
     certifications: ['AAHA', 'AVMA'],
-    specialties: ['Cirugía cardiovascular', 'Oncología']
+    specialties: ['Cirugía cardiovascular', 'Oncología'],
+    availability: true,
+    experience: '25+ años'
   },
   {
     id: 'vet-7',
@@ -381,7 +396,9 @@ export const mockHosts: Host[] = [
     services: ['Consulta general', 'Vacunación', 'Esterilización', 'Radiografías', 'Análisis clínicos'],
     responseTime: '30 minutos',
     certifications: ['CVMJ'],
-    specialties: ['Medicina preventiva', 'Pequeñas especies']
+    specialties: ['Medicina preventiva', 'Pequeñas especies'],
+    availability: true,
+    experience: '20+ años'
   },
   {
     id: 'vet-8',
@@ -400,7 +417,9 @@ export const mockHosts: Host[] = [
     services: ['Medicina exótica', 'Hospitalización', 'Grooming', 'Fisioterapia', 'Nutrición'],
     responseTime: '10 minutos',
     certifications: ['AEMVE', 'CVMQR'],
-    specialties: ['Animales exóticos', 'Fisioterapia veterinaria']
+    specialties: ['Animales exóticos', 'Fisioterapia veterinaria'],
+    availability: true,
+    experience: '10+ años'
   },
   {
     id: 'vet-9',
@@ -419,7 +438,9 @@ export const mockHosts: Host[] = [
     services: ['Neurología', 'Oftalmología', 'Dermatología', 'Endoscopia', 'Terapia intensiva'],
     responseTime: '20 minutos',
     certifications: ['CVMNL', 'AAHA'],
-    specialties: ['Neurología veterinaria', 'Oftalmología']
+    specialties: ['Neurología veterinaria', 'Oftalmología'],
+    availability: true,
+    experience: '22+ años'
   },
   {
     id: 'vet-10',
@@ -438,7 +459,9 @@ export const mockHosts: Host[] = [
     services: ['Consulta general', 'Vacunación', 'Desparasitación', 'Cirugía menor', 'Urgencias'],
     responseTime: '25 minutos',
     certifications: ['CVMP'],
-    specialties: ['Medicina preventiva', 'Atención familiar']
+    specialties: ['Medicina preventiva', 'Atención familiar'],
+    availability: true,
+    experience: '14+ años'
   },
   {
     id: 'vet-11',
@@ -457,7 +480,9 @@ export const mockHosts: Host[] = [
     services: ['Resonancia magnética', 'Tomografía', 'Quimioterapia', 'Cirugía robótica', 'Trasplantes'],
     responseTime: '5 minutos',
     certifications: ['AAHA', 'AVMA', 'ECVS'],
-    specialties: ['Cirugía robótica', 'Medicina nuclear']
+    specialties: ['Cirugía robótica', 'Medicina nuclear'],
+    availability: true,
+    experience: '30+ años'
   }
 ];
 
