@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -9,17 +9,39 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Calendar, Settings, Menu, Stethoscope, Heart } from 'lucide-react';
+import { User, Calendar, Settings, Menu, Stethoscope, Heart, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { signOut, user } = useAuth();
+  const { toast } = useToast();
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
     if (path !== '/' && location.pathname.startsWith(path)) return true;
     return false;
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión exitosamente",
+      });
+      navigate('/auth');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo cerrar la sesión",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -136,7 +158,11 @@ const Navbar = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer hover:bg-gray-50 text-red-600">
+              <DropdownMenuItem 
+                className="cursor-pointer hover:bg-gray-50 text-red-600"
+                onClick={handleSignOut}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
                 <span>Cerrar sesión</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
