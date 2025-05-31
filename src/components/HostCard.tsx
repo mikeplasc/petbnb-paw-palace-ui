@@ -36,7 +36,7 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'individual':
-        return 'Cuidador';
+        return 'Cuidador'; // Changed from 'Cuidador individual'
       case 'veterinary':
         return 'Veterinaria';
       default:

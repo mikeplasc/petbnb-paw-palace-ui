@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SearchBar, { SearchFilters } from '@/components/SearchBar';
@@ -73,6 +74,14 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
     ? supabaseHost.images as string[]
     : [];
 
+  const certifications = Array.isArray(supabaseHost.certifications)
+    ? supabaseHost.certifications as string[]
+    : [];
+
+  const specialties = Array.isArray(supabaseHost.specialties)
+    ? supabaseHost.specialties as string[]
+    : [];
+
   // Map database type values to expected ComponentHost type values, excluding family
   const mapHostType = (dbType: string): "veterinary" | "individual" => {
     switch (dbType) {
@@ -103,12 +112,8 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
     responseTime: supabaseHost.response_time,
     experience: supabaseHost.experience || '',
     description: supabaseHost.description,
-    certifications: Array.isArray(supabaseHost.certifications) 
-      ? supabaseHost.certifications as string[]
-      : [],
-    specialties: Array.isArray(supabaseHost.specialties)
-      ? supabaseHost.specialties as string[]
-      : []
+    certifications: certifications,
+    specialties: specialties
   };
 };
 
@@ -252,7 +257,7 @@ const SearchResults = () => {
 
   const getHostTypeLabel = (type: string) => {
     switch (type) {
-      case 'individual': return 'Cuidadores';
+      case 'individual': return 'Cuidadores'; // Changed from 'Cuidadores individuales'
       case 'veterinary': return 'Veterinaria';
       default: return type;
     }
