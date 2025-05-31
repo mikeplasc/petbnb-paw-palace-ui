@@ -508,7 +508,7 @@ const SearchResults = () => {
                   {filteredAndSortedHosts.map((host) => (
                     <HostCard
                       key={host.id}
-                      host={host}
+                      host={{...host, availability: host.availability === 'Disponible'}}
                       onViewDetails={handleViewDetails}
                       onToggleFavorite={handleToggleFavorite}
                       isFavorite={favorites.includes(host.id)}
@@ -532,7 +532,7 @@ const SearchResults = () => {
 
       {/* Host Details Modal */}
       <HostDetailsModal
-        host={selectedHost}
+        host={{...selectedHost, type: selectedHost.type === 'sitter' ? 'individual' : selectedHost.type} : null}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onToggleFavorite={handleToggleFavorite}
