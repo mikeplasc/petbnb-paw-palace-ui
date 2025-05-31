@@ -14,6 +14,47 @@ import { useQuery } from '@tanstack/react-query';
 import { getHosts } from '@/services/hostService';
 import { petTypes, cities } from '@/data/mockData';
 import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
+import type { Host as MockHost } from '@/data/mockData';
+import type { Host as SupabaseHost } from '@/services/hostService';
+
+// Helper function to convert Supabase host to MockHost format
+const convertSupabaseHostToMockHost = (supabaseHost: SupabaseHost): MockHost => {
+  const acceptedPets = Array.isArray(supabaseHost.accepted_pets) 
+    ? supabaseHost.accepted_pets as string[]
+    : [];
+  
+  const services = Array.isArray(supabaseHost.services)
+    ? supabaseHost.services as string[]
+    : [];
+
+  const images = Array.isArray(supabaseHost.images)
+    ? supabaseHost.images as string[]
+    : [];
+
+  return {
+    id: supabaseHost.id,
+    name: supabaseHost.name,
+    type: supabaseHost.type,
+    location: supabaseHost.location,
+    city: supabaseHost.city,
+    rating: Number(supabaseHost.rating),
+    reviewCount: supabaseHost.review_count,
+    pricePerNight: supabaseHost.price_per_night,
+    images: images,
+    services: services,
+    acceptedPets: acceptedPets,
+    availability: supabaseHost.availability,
+    responseTime: supabaseHost.response_time,
+    experience: supabaseHost.experience || '',
+    description: supabaseHost.description,
+    certifications: Array.isArray(supabaseHost.certifications) 
+      ? supabaseHost.certifications as string[]
+      : [],
+    specialties: Array.isArray(supabaseHost.specialties)
+      ? supabaseHost.specialties as string[]
+      : []
+  };
+};
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +62,7 @@ const SearchResults = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedHost, setSelectedHost] = useState<any>(null);
+  const [selectedHost, setSelectedHost] = useState<MockHost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filters state
@@ -38,13 +79,16 @@ const SearchResults = () => {
   const endDateParam = searchParams.get('endDate') || '';
 
   // Fetch hosts from Supabase
-  const { data: hosts = [], isLoading, error } = useQuery({
+  const { data: supabaseHosts = [], isLoading, error } = useQuery({
     queryKey: ['hosts', locationParam, petTypeParam],
     queryFn: () => getHosts({
       location: locationParam,
       petType: petTypeParam
     }),
   });
+
+  // Convert Supabase hosts to MockHost format
+  const hosts = supabaseHosts.map(convertSupabaseHostToMockHost);
 
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);
@@ -81,17 +125,17 @@ const SearchResults = () => {
       }
       
       // Pet type filter
-      if (petTypeParam && host.accepted_pets && Array.isArray(host.accepted_pets) && 
-          !host.accepted_pets.some(pet => 
+      if (petTypeParam && host.acceptedPets && Array.isArray(host.acceptedPets) && 
+          !host.acceptedPets.some(pet => 
             pet.toLowerCase().includes(petTypeParam.toLowerCase())
           )) {
         return false;
       }
 
       // Pet types filter
-      if (selectedPetTypes.length > 0 && host.accepted_pets && Array.isArray(host.accepted_pets) &&
+      if (selectedPetTypes.length > 0 && host.acceptedPets && Array.isArray(host.acceptedPets) &&
           !selectedPetTypes.some(petType =>
-            host.accepted_pets.includes(petType)
+            host.acceptedPets.includes(petType)
           )) {
         return false;
       }
@@ -110,7 +154,7 @@ const SearchResults = () => {
       }
 
       // Price filter
-      if (host.price_per_night < priceRange[0] || host.price_per_night > priceRange[1]) {
+      if (host.pricePerNight < priceRange[0] || host.pricePerNight > priceRange[1]) {
         return false;
       }
 
@@ -124,13 +168,13 @@ const SearchResults = () => {
     .sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
-          return a.price_per_night - b.price_per_night;
+          return a.pricePerNight - b.pricePerNight;
         case 'price-high':
-          return b.price_per_night - a.price_per_night;
+          return b.pricePerNight - a.pricePerNight;
         case 'rating':
           return b.rating - a.rating;
         case 'reviews':
-          return b.review_count - a.review_count;
+          return b.reviewCount - a.reviewCount;
         default:
           return 0;
       }
