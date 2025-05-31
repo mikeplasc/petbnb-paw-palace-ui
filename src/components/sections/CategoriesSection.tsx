@@ -1,9 +1,13 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { getHosts, getVeterinaries } from '@/services/hostService';
 
 const CategoriesSection = () => {
+  const navigate = useNavigate();
+
   const { data: veterinaries = [] } = useQuery({
     queryKey: ['veterinaries'],
     queryFn: () => getVeterinaries(),
@@ -11,8 +15,16 @@ const CategoriesSection = () => {
 
   const { data: caregivers = [] } = useQuery({
     queryKey: ['caregivers'],
-    queryFn: () => getHosts({ type: 'sitter' }),
+    queryFn: () => getHosts({ type: 'individual' }),
   });
+
+  const handleCategoryClick = (categoryType: string) => {
+    if (categoryType === 'veterinary') {
+      navigate('/search?hostType=veterinary');
+    } else if (categoryType === 'individual') {
+      navigate('/search?hostType=individual');
+    }
+  };
 
   const categories = [
     {
@@ -20,14 +32,16 @@ const CategoriesSection = () => {
       description: 'Cuidado médico profesional 24/7',
       icon: '🏥',
       count: `${veterinaries.length}+ clínicas`,
-      color: 'from-petbnb-400 to-petbnb-500'
+      color: 'from-petbnb-400 to-petbnb-500',
+      type: 'veterinary'
     },
     {
       title: 'Cuidadores',
       description: 'Atención personalizada uno a uno',
       icon: '👨‍⚕️',
       count: `${caregivers.length}+ cuidadores`,
-      color: 'from-sage-400 to-sage-500'
+      color: 'from-sage-400 to-sage-500',
+      type: 'individual'
     }
   ];
 
@@ -45,7 +59,11 @@ const CategoriesSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {categories.map((category, index) => (
-            <Card key={index} className="group cursor-pointer border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <Card 
+              key={index} 
+              className="group cursor-pointer border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              onClick={() => handleCategoryClick(category.type)}
+            >
               <CardContent className="p-8 text-center">
                 <div className={`w-16 h-16 bg-gradient-to-br ${category.color} rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
                   {category.icon}
