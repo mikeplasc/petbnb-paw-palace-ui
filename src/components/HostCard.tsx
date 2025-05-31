@@ -6,7 +6,7 @@ import { Heart, Star, MapPin, Clock, CheckCircle } from 'lucide-react';
 interface Host {
   id: string;
   name: string;
-  type: "veterinary" | "individual" | "host";
+  type: "veterinary" | "host";
   location: string;
   city: string;
   rating: number;

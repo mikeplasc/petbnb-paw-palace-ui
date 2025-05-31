@@ -106,12 +106,14 @@ const HostDetailsModal = ({
       });
       setShowChat(true);
       
+      // Clean up the form
+      setMessageContent('');
+      setShowMessageForm(false);
+      
       toast({
         title: "¡Mensaje enviado!",
         description: `${host.name} respondió: "${message.response.substring(0, 50)}..."`,
       });
-      setMessageContent('');
-      setShowMessageForm(false);
       onClose(); // Close the modal when chat opens
     } catch (error) {
       toast({
@@ -124,9 +126,16 @@ const HostDetailsModal = ({
     }
   };
 
+  // Add cleanup when modal closes
+  const handleClose = () => {
+    setMessageContent('');
+    setShowMessageForm(false);
+    onClose();
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-gray-900">

@@ -20,7 +20,7 @@ import { submitHostApplication } from '@/services/hostApplicationService';
 
 const BecomeHost = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     name: '',
     email: '',
     type: '',
@@ -32,8 +32,9 @@ const BecomeHost = () => {
     services: [] as string[],
     pricePerNight: '',
     photos: [] as string[]
-  });
+  };
 
+  const [formData, setFormData] = useState(initialFormData);
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -213,6 +214,8 @@ const BecomeHost = () => {
         photos: formData.photos,
       });
 
+      // Reset form data to initial state
+      setFormData(initialFormData);
       setCurrentStep(4);
       
       toast({
@@ -229,6 +232,12 @@ const BecomeHost = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Add reset functionality to the "Volver al inicio" button in success screen
+  const handleReset = () => {
+    setFormData(initialFormData);
+    setCurrentStep(1);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -271,7 +280,7 @@ const BecomeHost = () => {
             <p className="text-sm text-gray-500 mb-8">
               Hemos enviado un correo electrónico a <strong>{formData.email}</strong> con información detallada sobre los próximos pasos.
             </p>
-            <Button onClick={() => setCurrentStep(1)} className="w-full bg-petbnb-600 hover:bg-petbnb-700">
+            <Button onClick={handleReset} className="w-full bg-petbnb-600 hover:bg-petbnb-700">
               Volver al inicio
             </Button>
           </CardContent>
