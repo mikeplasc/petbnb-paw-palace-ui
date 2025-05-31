@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -257,6 +258,8 @@ const Index = () => {
                 variant="outline"
                 onClick={() => handleNavigation('become-host')}
                 className="border-white text-white hover:bg-white hover:text-petbnb-600 px-8 py-3 text-lg font-semibold"
+              >
+                Convertirse en cuidador
               </Button>
             </div>
           </div>
