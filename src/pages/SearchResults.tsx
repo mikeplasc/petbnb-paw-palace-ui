@@ -14,11 +14,32 @@ import { useQuery } from '@tanstack/react-query';
 import { getHosts } from '@/services/hostService';
 import { petTypes, cities } from '@/data/mockData';
 import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
-import type { Host as MockHost } from '@/data/mockData';
 import type { Host as SupabaseHost } from '@/services/hostService';
 
-// Helper function to convert Supabase host to MockHost format
-const convertSupabaseHostToMockHost = (supabaseHost: SupabaseHost): MockHost => {
+// Define the expected Host type for the component based on what HostCard expects
+interface ComponentHost {
+  id: string;
+  name: string;
+  type: "family" | "individual" | "veterinary";
+  location: string;
+  city: string;
+  rating: number;
+  reviewCount: number;
+  pricePerNight: number;
+  image: string;
+  images: string[];
+  services: string[];
+  acceptedPets: string[];
+  availability: boolean;
+  responseTime: string;
+  experience: string;
+  description: string;
+  certifications: string[];
+  specialties: string[];
+}
+
+// Helper function to convert Supabase host to ComponentHost format
+const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): ComponentHost => {
   const acceptedPets = Array.isArray(supabaseHost.accepted_pets) 
     ? supabaseHost.accepted_pets as string[]
     : [];
@@ -31,7 +52,7 @@ const convertSupabaseHostToMockHost = (supabaseHost: SupabaseHost): MockHost => 
     ? supabaseHost.images as string[]
     : [];
 
-  // Map database type values to expected MockHost type values
+  // Map database type values to expected ComponentHost type values
   const mapHostType = (dbType: string): "family" | "individual" | "veterinary" => {
     switch (dbType) {
       case 'veterinary':
@@ -78,7 +99,7 @@ const SearchResults = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedHost, setSelectedHost] = useState<MockHost | null>(null);
+  const [selectedHost, setSelectedHost] = useState<ComponentHost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filters state
@@ -103,8 +124,8 @@ const SearchResults = () => {
     }),
   });
 
-  // Convert Supabase hosts to MockHost format
-  const hosts = supabaseHosts.map(convertSupabaseHostToMockHost);
+  // Convert Supabase hosts to ComponentHost format
+  const hosts = supabaseHosts.map(convertSupabaseHostToComponentHost);
 
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);
