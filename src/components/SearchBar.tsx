@@ -1,30 +1,30 @@
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { CalendarIcon, Search } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { CalendarIcon, Search } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
-import { cities, petTypes } from '@/data/mockData';
+} from "@/components/ui/select";
+import { cities, petTypes } from "@/data/mockData";
+
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { es } from "date-fns/locale";
+import { format } from "date-fns";
+import { useState } from "react";
 
 interface SearchBarProps {
   onSearch?: (filters: SearchFilters) => void;
-  variant?: 'hero' | 'compact';
+  variant?: "hero" | "compact";
 }
 
 export interface SearchFilters {
@@ -34,9 +34,9 @@ export interface SearchFilters {
   endDate: Date | undefined;
 }
 
-const SearchBar = ({ onSearch, variant = 'hero' }: SearchBarProps) => {
-  const [location, setLocation] = useState('');
-  const [petType, setPetType] = useState('');
+const SearchBar = ({ onSearch, variant = "hero" }: SearchBarProps) => {
+  const [location, setLocation] = useState("");
+  const [petType, setPetType] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
 
@@ -51,7 +51,7 @@ const SearchBar = ({ onSearch, variant = 'hero' }: SearchBarProps) => {
     }
   };
 
-  if (variant === 'compact') {
+  if (variant === "compact") {
     return (
       <div className="bg-white rounded-full shadow-lg border border-gray-200 p-2 flex items-center space-x-2 max-w-2xl mx-auto">
         <div className="flex-1 px-4">
@@ -70,7 +70,11 @@ const SearchBar = ({ onSearch, variant = 'hero' }: SearchBarProps) => {
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-200 shadow-lg">
               {petTypes.map((type) => (
-                <SelectItem key={type} value={type} className="hover:bg-gray-50">
+                <SelectItem
+                  key={type}
+                  value={type}
+                  className="hover:bg-gray-50"
+                >
                   {type}
                 </SelectItem>
               ))}
@@ -93,26 +97,25 @@ const SearchBar = ({ onSearch, variant = 'hero' }: SearchBarProps) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Location */}
         <div className="space-y-2">
-          <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+          <Label
+            htmlFor="location"
+            className="text-sm font-medium text-gray-700"
+          >
             Ubicación
           </Label>
-          <Select value={location} onValueChange={setLocation}>
-            <SelectTrigger className="h-12 border-gray-300 focus:ring-2 focus:ring-petbnb-500 focus:border-transparent">
-              <SelectValue placeholder="Selecciona una ciudad" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border border-gray-200 shadow-lg">
-              {cities.map((city) => (
-                <SelectItem key={city} value={city} className="hover:bg-gray-50">
-                  {city}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            placeholder="Ciudad o región"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
         </div>
 
         {/* Pet Type */}
         <div className="space-y-2">
-          <Label htmlFor="petType" className="text-sm font-medium text-gray-700">
+          <Label
+            htmlFor="petType"
+            className="text-sm font-medium text-gray-700"
+          >
             Tipo de mascota
           </Label>
           <Select value={petType} onValueChange={setPetType}>
@@ -121,7 +124,11 @@ const SearchBar = ({ onSearch, variant = 'hero' }: SearchBarProps) => {
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-200 shadow-lg">
               {petTypes.map((type) => (
-                <SelectItem key={type} value={type} className="hover:bg-gray-50">
+                <SelectItem
+                  key={type}
+                  value={type}
+                  className="hover:bg-gray-50"
+                >
                   {type}
                 </SelectItem>
               ))}
@@ -144,10 +151,17 @@ const SearchBar = ({ onSearch, variant = 'hero' }: SearchBarProps) => {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {startDate ? format(startDate, "PPP", { locale: es }) : <span>Selecciona fecha</span>}
+                {startDate ? (
+                  format(startDate, "PPP", { locale: es })
+                ) : (
+                  <span>Selecciona fecha</span>
+                )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-white border border-gray-200 shadow-lg" align="start">
+            <PopoverContent
+              className="w-auto p-0 bg-white border border-gray-200 shadow-lg"
+              align="start"
+            >
               <Calendar
                 mode="single"
                 selected={startDate}
@@ -175,15 +189,24 @@ const SearchBar = ({ onSearch, variant = 'hero' }: SearchBarProps) => {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {endDate ? format(endDate, "PPP", { locale: es }) : <span>Selecciona fecha</span>}
+                {endDate ? (
+                  format(endDate, "PPP", { locale: es })
+                ) : (
+                  <span>Selecciona fecha</span>
+                )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-white border border-gray-200 shadow-lg" align="start">
+            <PopoverContent
+              className="w-auto p-0 bg-white border border-gray-200 shadow-lg"
+              align="start"
+            >
               <Calendar
                 mode="single"
                 selected={endDate}
                 onSelect={setEndDate}
-                disabled={(date) => date < new Date() || (startDate && date <= startDate)}
+                disabled={(date) =>
+                  date < new Date() || (startDate && date <= startDate)
+                }
                 initialFocus
                 className="pointer-events-auto"
               />
