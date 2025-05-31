@@ -1,8 +1,25 @@
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { getUserProfile } from '@/services/profileService';
+import {
+  AlertTriangle,
+  Calendar,
+  Heart,
+  Home,
+  LogOut,
+  MapPin,
+  PawPrint,
+  Settings,
+  Stethoscope,
+  User,
+  Users,
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -14,29 +31,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { 
-  Home, 
-  Users,
-  Stethoscope,
-  Heart,
-  MapPin,
-  AlertTriangle,
-  User,
-  Calendar,
-  Settings,
-  LogOut,
-  PawPrint
-} from 'lucide-react';
+} from "@/components/ui/sidebar";
+
+import { Button } from "@/components/ui/button";
+import { getUserProfile } from "@/services/profileService";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 export function AppSidebar() {
   const { user, signOut } = useAuth();
@@ -44,14 +45,14 @@ export function AppSidebar() {
   const location = useLocation();
 
   const { data: profile } = useQuery({
-    queryKey: ['profile'],
+    queryKey: ["profile"],
     queryFn: getUserProfile,
-    enabled: !!user
+    enabled: !!user,
   });
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate("/auth");
   };
 
   const isActivePath = (path: string) => {
@@ -59,27 +60,29 @@ export function AppSidebar() {
   };
 
   const navigationItems = [
-    { path: '/', label: 'Inicio', icon: Home },
-    { path: '/hosts', label: 'Cuidadores', icon: Users },
-    { path: '/veterinaries', label: 'Veterinarias', icon: Stethoscope },
-    { path: '/adoption', label: 'Adopción', icon: Heart },
-    { path: '/pet-tracking', label: 'Rastreo', icon: MapPin },
-    { path: '/lost-pets', label: 'Perdidas', icon: AlertTriangle },
+    { path: "/", label: "Inicio", icon: Home },
+    { path: "/hosts", label: "Cuidadores", icon: Users },
+    { path: "/veterinaries", label: "Veterinarias", icon: Stethoscope },
+    { path: "/adoption", label: "Adopción", icon: Heart },
+    { path: "/pet-tracking", label: "Factor MIAU", icon: MapPin },
+    { path: "/lost-pets", label: "Factor WOW", icon: AlertTriangle },
   ];
 
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center space-x-2 p-2">
-          <img 
-            src="/lovable-uploads/ad028fa8-9730-49d1-bbe6-f8185a05a757.png" 
-            alt="PetBnb Logo" 
+          <img
+            src="/lovable-uploads/ad028fa8-9730-49d1-bbe6-f8185a05a757.png"
+            alt="PetBnb Logo"
             className="w-8 h-8 object-contain"
           />
-          <span className="text-xl font-bold text-sidebar-foreground">PetBnb</span>
+          <span className="text-xl font-bold text-sidebar-foreground">
+            PetBnb
+          </span>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -109,14 +112,20 @@ export function AppSidebar() {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={profile?.avatar_url || "/placeholder-user.jpg"} alt={profile?.full_name || user?.email} />
+                    <AvatarImage
+                      src={profile?.avatar_url || "/placeholder-user.jpg"}
+                      alt={profile?.full_name || user?.email}
+                    />
                     <AvatarFallback className="rounded-lg">
                       <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-
-                    <span className="truncate font-semibold">{profile?.full_name || user?.email?.split('@')[0] || 'Usuario'}</span>
+                    <span className="truncate font-semibold">
+                      {profile?.full_name ||
+                        user?.email?.split("@")[0] ||
+                        "Usuario"}
+                    </span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                 </SidebarMenuButton>

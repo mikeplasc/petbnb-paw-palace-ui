@@ -175,6 +175,10 @@ const SearchResults = () => {
                 <SelectItem value="4.0">4.0+ ⭐</SelectItem>
                 <SelectItem value="3.5">3.5+ ⭐</SelectItem>
                 <SelectItem value="3.0">3.0+ ⭐</SelectItem>
+                <SelectItem value="2.5">2.5+ ⭐</SelectItem>
+                <SelectItem value="2.0">2.0+ ⭐</SelectItem>
+                <SelectItem value="1.5">1.5+ ⭐</SelectItem>
+                <SelectItem value="1.0">1.0+ ⭐</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -185,7 +189,7 @@ const SearchResults = () => {
             </label>
             <Input
               type="number"
-              placeholder="€ por noche"
+              placeholder="Precio por noche"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
             />
