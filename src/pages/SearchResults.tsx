@@ -1,426 +1,240 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import SearchBar, { SearchFilters } from '@/components/SearchBar';
-import HostCard from '@/components/HostCard';
-import HostDetailsModal from '@/components/HostDetailsModal';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { mockHosts, petTypes, cities } from '@/data/mockData';
-import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Calendar } from 'lucide-react';
+import { DateRange } from "react-day-picker";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils";
+import { addDays, format } from "date-fns";
+import { Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Host } from '@/data/mockData';
+import HostCard from '@/components/HostCard';
+import VeterinaryProfileModal from '@/components/VeterinaryProfileModal';
+import { mockHosts, cities } from '@/data/mockData';
+import { toast } from '@/hooks/use-toast';
+
+interface SearchParams {
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  guests?: string;
+}
 
 const SearchResults = () => {
-  const [searchParams] = useSearchParams();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState('rating');
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedHost, setSelectedHost] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [location, setLocation] = useState<string>('');
+  const [guests, setGuests] = useState<number>(1);
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 7),
+  });
+  const [hosts, setHosts] = useState<Host[]>(mockHosts);
+  const [selectedHost, setSelectedHost] = useState<Host | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const navigate = useNavigate();
   
-  // Filters state
-  const [selectedPetTypes, setSelectedPetTypes] = useState<string[]>([]);
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [selectedHostTypes, setSelectedHostTypes] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([0, 2000]);
-  const [minRating, setMinRating] = useState(0);
+  // Add favorites state
+  const [hostFavorites, setHostFavorites] = useState<string[]>([]);
 
-  // Get search parameters
-  const locationParam = searchParams.get('location') || '';
-  const petTypeParam = searchParams.get('petType') || '';
-  const startDateParam = searchParams.get('startDate') || '';
-  const endDateParam = searchParams.get('endDate') || '';
+  // Add useEffect to load favorites from localStorage
+  useEffect(() => {
+    const savedHostFavorites = JSON.parse(localStorage.getItem('hostFavorites') || '[]');
+    setHostFavorites(savedHostFavorites);
+  }, []);
 
-  const handleSearch = (filters: SearchFilters) => {
-    console.log('Nueva búsqueda:', filters);
-    // Here you would update the search results based on new filters
+  // Add function to toggle host favorites
+  const toggleHostFavorite = (hostId: string) => {
+    const updatedFavorites = hostFavorites.includes(hostId)
+      ? hostFavorites.filter(id => id !== hostId)
+      : [...hostFavorites, hostId];
+    
+    setHostFavorites(updatedFavorites);
+    localStorage.setItem('hostFavorites', JSON.stringify(updatedFavorites));
+    
+    toast({
+      title: hostFavorites.includes(hostId) ? "Eliminado de favoritos" : "Añadido a favoritos",
+      description: hostFavorites.includes(hostId) 
+        ? "El cuidador se eliminó de tus favoritos" 
+        : "El cuidador se añadió a tus favoritos",
+    });
   };
 
-  const handleToggleFavorite = (hostId: string) => {
-    setFavorites(prev => 
-      prev.includes(hostId) 
-        ? prev.filter(id => id !== hostId)
-        : [...prev, hostId]
-    );
+  const handleSearch = () => {
+    const searchParams: SearchParams = {
+      location,
+      startDate: date?.from?.toISOString(),
+      endDate: date?.to?.toISOString(),
+      guests: guests.toString(),
+    };
+
+    const queryParams = new URLSearchParams();
+    for (const key in searchParams) {
+      if (searchParams[key]) {
+        queryParams.append(key, searchParams[key]!);
+      }
+    }
+
+    navigate(`/search?${queryParams.toString()}`);
   };
 
   const handleViewDetails = (hostId: string) => {
-    const host = mockHosts.find(h => h.id === hostId);
-    if (host) {
-      setSelectedHost(host);
-      setIsModalOpen(true);
-    }
+    const host = hosts.find((host) => host.id === hostId);
+    setSelectedHost(host);
+    setIsProfileModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedHost(null);
-  };
-
-  // Filter and sort hosts
-  const filteredAndSortedHosts = mockHosts
-    .filter(host => {
-      // Location filter
-      if (locationParam && !host.location.toLowerCase().includes(locationParam.toLowerCase())) {
-        return false;
-      }
-      
-      // Pet type filter
-      if (petTypeParam && !host.acceptedPets.some(pet => 
-        pet.toLowerCase().includes(petTypeParam.toLowerCase())
-      )) {
-        return false;
-      }
-
-      // Pet types filter
-      if (selectedPetTypes.length > 0 && !selectedPetTypes.some(petType =>
-        host.acceptedPets.includes(petType)
-      )) {
-        return false;
-      }
-
-      // Services filter
-      if (selectedServices.length > 0 && !selectedServices.some(service =>
-        host.services.includes(service)
-      )) {
-        return false;
-      }
-
-      // Host type filter
-      if (selectedHostTypes.length > 0 && !selectedHostTypes.includes(host.type)) {
-        return false;
-      }
-
-      // Price filter
-      if (host.pricePerNight < priceRange[0] || host.pricePerNight > priceRange[1]) {
-        return false;
-      }
-
-      // Rating filter
-      if (host.rating < minRating) {
-        return false;
-      }
-
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return a.pricePerNight - b.pricePerNight;
-        case 'price-high':
-          return b.pricePerNight - a.pricePerNight;
-        case 'rating':
-          return b.rating - a.rating;
-        case 'reviews':
-          return b.reviewCount - a.reviewCount;
-        default:
-          return 0;
-      }
-    });
-
-  const services = ['Paseos', 'Alimentación', 'Medicación', 'Juegos', 'Cuidado nocturno', 'Baño'];
-  const hostTypes = ['family', 'individual', 'veterinary'];
-
-  const getHostTypeLabel = (type: string) => {
-    switch (type) {
-      case 'family': return 'Familia';
-      case 'individual': return 'Cuidador individual';
-      case 'veterinary': return 'Veterinaria';
-      default: return type;
-    }
-  };
+  const filteredHosts = hosts.filter(host =>
+    host.location.toLowerCase().includes(location.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Search Bar */}
-      <div className="bg-white shadow-sm border-b border-gray-200 py-4">
-        <div className="container mx-auto px-4">
-          <SearchBar onSearch={handleSearch} variant="compact" />
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-petbnb-500 to-primary-600 text-white py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Encuentra el cuidador perfecto
+          </h1>
+          <p className="text-lg md:text-xl opacity-80">
+            Reserva cuidadores de confianza para tus mascotas
+          </p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Results Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {locationParam ? `Cuidadores en ${locationParam}` : 'Resultados de búsqueda'}
-            </h1>
-            <p className="text-gray-600">
-              {filteredAndSortedHosts.length} cuidadores encontrados
-              {petTypeParam && ` para ${petTypeParam.toLowerCase()}`}
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-4 mt-4 lg:mt-0">
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-white rounded-lg border border-gray-300 p-1">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="px-3"
-              >
-                <Grid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="px-3"
-              >
-                <List className="w-4 h-4" />
-              </Button>
+      {/* Search and Filters */}
+      <section className="bg-white py-12 px-4">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Location Input */}
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="location">
+                Ubicación
+              </label>
+              <Input
+                type="text"
+                id="location"
+                placeholder="¿A dónde quieres ir?"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
             </div>
 
-            {/* Sort By */}
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-48 bg-white">
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                <SelectItem value="rating">Mejor calificación</SelectItem>
-                <SelectItem value="price-low">Precio: menor a mayor</SelectItem>
-                <SelectItem value="price-high">Precio: mayor a menor</SelectItem>
-                <SelectItem value="reviews">Más reseñas</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Date Range Picker */}
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="dates">
+                Fechas
+              </label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                      date.to ? (
+                        `${format(date.from, "LLL dd, y")} - ${format(date.to, "LLL dd, y")}`
+                      ) : (
+                        format(date.from, "LLL dd, y")
+                      )
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="center">
+                  <Calendar
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                    pagedNavigation
+                    className="border-none shadow-md"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-            {/* Filters Toggle */}
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="bg-white border-gray-300"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros
+            {/* Guests Select */}
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="guests">
+                Huéspedes
+              </label>
+              <Input
+                type="number"
+                id="guests"
+                placeholder="Número de huéspedes"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                value={guests}
+                onChange={(e) => setGuests(parseInt(e.target.value))}
+              />
+            </div>
+          </div>
+
+          {/* Search Button */}
+          <div className="mt-6">
+            <Button className="w-full bg-petbnb-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onClick={handleSearch}>
+              <Search className="mr-2 h-4 w-4" />
+              Buscar
             </Button>
           </div>
         </div>
+      </section>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
-          {showFilters && (
-            <div className="lg:w-80">
-              <Card className="bg-white border border-gray-200 shadow-sm">
-                <CardContent className="p-6 space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
+      {/* Results */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Resultados para {location}
+          </h2>
 
-                  {/* Pet Types */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Tipo de mascota</h4>
-                    <div className="space-y-2">
-                      {petTypes.map((petType) => (
-                        <div key={petType} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`pet-${petType}`}
-                            checked={selectedPetTypes.includes(petType)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedPetTypes([...selectedPetTypes, petType]);
-                              } else {
-                                setSelectedPetTypes(selectedPetTypes.filter(p => p !== petType));
-                              }
-                            }}
-                          />
-                          <label htmlFor={`pet-${petType}`} className="text-sm text-gray-700">
-                            {petType}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredHosts.map((host) => (
+              <HostCard
+                key={host.id}
+                host={host}
+                isFavorite={hostFavorites.includes(host.id)}
+                onToggleFavorite={toggleHostFavorite}
+                onViewDetails={handleViewDetails}
+              />
+            ))}
+          </div>
 
-                  {/* Services */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Servicios</h4>
-                    <div className="space-y-2">
-                      {services.map((service) => (
-                        <div key={service} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`service-${service}`}
-                            checked={selectedServices.includes(service)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedServices([...selectedServices, service]);
-                              } else {
-                                setSelectedServices(selectedServices.filter(s => s !== service));
-                              }
-                            }}
-                          />
-                          <label htmlFor={`service-${service}`} className="text-sm text-gray-700">
-                            {service}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Host Type */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Tipo de cuidador</h4>
-                    <div className="space-y-2">
-                      {hostTypes.map((hostType) => (
-                        <div key={hostType} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`host-${hostType}`}
-                            checked={selectedHostTypes.includes(hostType)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedHostTypes([...selectedHostTypes, hostType]);
-                              } else {
-                                setSelectedHostTypes(selectedHostTypes.filter(h => h !== hostType));
-                              }
-                            }}
-                          />
-                          <label htmlFor={`host-${hostType}`} className="text-sm text-gray-700">
-                            {getHostTypeLabel(hostType)}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Price Range */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Precio por noche</h4>
-                    <div className="px-2">
-                      <Slider
-                        value={priceRange}
-                        onValueChange={setPriceRange}
-                        max={2000}
-                        min={0}
-                        step={50}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-sm text-gray-600 mt-2">
-                        <span>${priceRange[0]}</span>
-                        <span>${priceRange[1]}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Rating */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Calificación mínima</h4>
-                    <div className="space-y-2">
-                      {[4, 3, 2, 1, 0].map((rating) => (
-                        <div key={rating} className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            id={`rating-${rating}`}
-                            name="rating"
-                            checked={minRating === rating}
-                            onChange={() => setMinRating(rating)}
-                            className="text-primary-600 focus:ring-primary-500"
-                          />
-                          <label htmlFor={`rating-${rating}`} className="flex items-center text-sm text-gray-700">
-                            <div className="flex items-center mr-2">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-4 h-4 ${
-                                    i < Math.max(rating, 1) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            {rating > 0 ? `${rating}+ estrellas` : 'Cualquier calificación'}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Clear Filters */}
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedPetTypes([]);
-                      setSelectedServices([]);
-                      setSelectedHostTypes([]);
-                      setPriceRange([0, 2000]);
-                      setMinRating(0);
-                    }}
-                    className="w-full"
-                  >
-                    Limpiar filtros
-                  </Button>
-                </CardContent>
-              </Card>
+          {filteredHosts.length === 0 && (
+            <div className="text-center py-12">
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No se encontraron cuidadores
+              </h3>
+              <p className="text-gray-500">
+                Intenta ajustar tus criterios de búsqueda
+              </p>
             </div>
           )}
-
-          {/* Results Grid/List */}
-          <div className="flex-1">
-            {filteredAndSortedHosts.length === 0 ? (
-              <Card className="bg-white border border-gray-200 shadow-sm">
-                <CardContent className="p-12 text-center">
-                  <div className="text-gray-400 mb-4">
-                    <MapPin className="w-12 h-12 mx-auto" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No se encontraron cuidadores
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    Intenta ajustar tus filtros o buscar en otra ubicación
-                  </p>
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedPetTypes([]);
-                      setSelectedServices([]);
-                      setSelectedHostTypes([]);
-                      setPriceRange([0, 2000]);
-                      setMinRating(0);
-                    }}
-                  >
-                    Limpiar filtros
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                <div className={viewMode === 'grid' 
-                  ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' 
-                  : 'space-y-4'
-                }>
-                  {filteredAndSortedHosts.map((host) => (
-                    <HostCard
-                      key={host.id}
-                      host={host}
-                      onViewDetails={handleViewDetails}
-                      onToggleFavorite={handleToggleFavorite}
-                      isFavorite={favorites.includes(host.id)}
-                    />
-                  ))}
-                </div>
-
-                {/* Load More Button - Only show if there are results */}
-                {filteredAndSortedHosts.length > 0 && (
-                  <div className="text-center mt-12">
-                    <Button variant="outline" className="px-8">
-                      Cargar más resultados
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Host Details Modal */}
-      <HostDetailsModal
-        host={selectedHost}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onToggleFavorite={handleToggleFavorite}
-        isFavorite={selectedHost ? favorites.includes(selectedHost.id) : false}
-      />
+      {/* Veterinary Profile Modal */}
+      {selectedHost && (
+        <VeterinaryProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          veterinary={selectedHost}
+          onBooking={() => console.log('Booking')}
+        />
+      )}
     </div>
   );
 };

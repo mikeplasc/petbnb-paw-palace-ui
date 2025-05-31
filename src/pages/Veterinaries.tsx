@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { Star, MapPin, Clock, Shield, Stethoscope, Search } from 'lucide-react';
 import { mockHosts, cities } from '@/data/mockData';
 import VeterinaryProfileModal from '@/components/VeterinaryProfileModal';
 import VeterinaryBookingModal from '@/components/VeterinaryBookingModal';
+import { toast } from '@/hooks/use-toast';
 
 const Veterinaries = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,9 +23,35 @@ const Veterinaries = () => {
   const [selectedVeterinary, setSelectedVeterinary] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  
+  // Add favorites state
+  const [veterinaryFavorites, setVeterinaryFavorites] = useState<string[]>([]);
 
   // Filter only veterinary hosts
   const veterinaries = mockHosts.filter(host => host.type === 'veterinary');
+
+  // Add useEffect to load favorites from localStorage
+  useEffect(() => {
+    const savedVetFavorites = JSON.parse(localStorage.getItem('veterinaryFavorites') || '[]');
+    setVeterinaryFavorites(savedVetFavorites);
+  }, []);
+
+  // Add function to toggle veterinary favorites
+  const toggleVeterinaryFavorite = (vetId: string) => {
+    const updatedFavorites = veterinaryFavorites.includes(vetId)
+      ? veterinaryFavorites.filter(id => id !== vetId)
+      : [...veterinaryFavorites, vetId];
+    
+    setVeterinaryFavorites(updatedFavorites);
+    localStorage.setItem('veterinaryFavorites', JSON.stringify(updatedFavorites));
+    
+    toast({
+      title: veterinaryFavorites.includes(vetId) ? "Eliminado de favoritos" : "Añadido a favoritos",
+      description: veterinaryFavorites.includes(vetId) 
+        ? "La veterinaria se eliminó de tus favoritos" 
+        : "La veterinaria se añadió a tus favoritos",
+    });
+  };
 
   const filteredVeterinaries = veterinaries
     .filter(vet => {
@@ -154,12 +181,22 @@ const Veterinaries = () => {
             {filteredVeterinaries.map((vet) => (
               <Card key={vet.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 <div className="md:flex">
-                  <div className="md:w-1/3">
+                  <div className="md:w-1/3 relative">
                     <img
                       src={vet.images[0]}
                       alt={vet.name}
                       className="w-full h-48 md:h-full object-cover"
                     />
+                    <button
+                      onClick={() => toggleVeterinaryFavorite(vet.id)}
+                      className="absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
+                    >
+                      <Heart
+                        className={`w-4 h-4 transition-colors ${
+                          veterinaryFavorites.includes(vet.id) ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
+                        }`}
+                      />
+                    </button>
                   </div>
                   
                   <div className="md:w-2/3">
@@ -325,6 +362,8 @@ const Veterinaries = () => {
         onClose={() => setIsProfileModalOpen(false)}
         veterinary={selectedVeterinary}
         onBooking={handleBookingFromProfile}
+        isFavorite={selectedVeterinary ? veterinaryFavorites.includes(selectedVeterinary.id) : false}
+        onToggleFavorite={toggleVeterinaryFavorite}
       />
 
       <VeterinaryBookingModal
