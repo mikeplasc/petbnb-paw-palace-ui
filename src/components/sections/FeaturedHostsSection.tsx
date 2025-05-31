@@ -22,7 +22,7 @@ const FeaturedHostsSection = ({
 }: FeaturedHostsSectionProps) => {
   const { data: hosts = [], isLoading, error } = useQuery({
     queryKey: ['hosts', 'featured'],
-    queryFn: () => getHosts({ type: 'sitter' }),
+    queryFn: () => getHosts({ type: 'host' }),
   });
 
   const featuredHosts = hosts.slice(0, 3);
