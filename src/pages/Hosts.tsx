@@ -11,14 +11,14 @@ import { getHosts, Host } from '@/services/hostService';
 
 const Hosts = () => {
   const [searchLocation, setSearchLocation] = useState('');
-  const [petType, setPetType] = useState('');
+  const [petType, setPetType] = useState('all');
   const [favorites, setFavorites] = useState<string[]>([]);
 
   const { data: hosts = [], isLoading, error } = useQuery({
     queryKey: ['hosts', searchLocation, petType],
     queryFn: () => getHosts({
       location: searchLocation || undefined,
-      petType: petType || undefined,
+      petType: petType === 'all' ? undefined : petType,
       type: 'sitter'
     }),
   });
@@ -78,7 +78,7 @@ const Hosts = () => {
                 <SelectValue placeholder="Seleccionar tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="Perros">Perros</SelectItem>
                 <SelectItem value="Gatos">Gatos</SelectItem>
                 <SelectItem value="Aves">Aves</SelectItem>
@@ -90,7 +90,7 @@ const Hosts = () => {
             <Button 
               onClick={() => {
                 setSearchLocation('');
-                setPetType('');
+                setPetType('all');
               }}
               variant="outline" 
               className="w-full"
