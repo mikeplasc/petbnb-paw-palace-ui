@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,11 +12,16 @@ import {
 } from '@/components/ui/select';
 import { Star, MapPin, Clock, Shield, Stethoscope, Search } from 'lucide-react';
 import { mockHosts, cities } from '@/data/mockData';
+import VeterinaryProfileModal from '@/components/VeterinaryProfileModal';
+import VeterinaryBookingModal from '@/components/VeterinaryBookingModal';
 
 const Veterinaries = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
+  const [selectedVeterinary, setSelectedVeterinary] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   // Filter only veterinary hosts
   const veterinaries = mockHosts.filter(host => host.type === 'veterinary');
@@ -42,12 +46,21 @@ const Veterinaries = () => {
       }
     });
 
-  const handleViewDetails = (vetId: string) => {
-    console.log('Ver detalles de veterinaria:', vetId);
+  const handleViewDetails = (vet: any) => {
+    console.log('Ver detalles de veterinaria:', vet.id);
+    setSelectedVeterinary(vet);
+    setIsProfileModalOpen(true);
   };
 
-  const handleBooking = (vetId: string) => {
-    console.log('Reservar en veterinaria:', vetId);
+  const handleBooking = (vet: any) => {
+    console.log('Reservar en veterinaria:', vet.id);
+    setSelectedVeterinary(vet);
+    setIsBookingModalOpen(true);
+  };
+
+  const handleBookingFromProfile = () => {
+    setIsProfileModalOpen(false);
+    setIsBookingModalOpen(true);
   };
 
   return (
@@ -220,13 +233,13 @@ const Veterinaries = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleViewDetails(vet.id)}
+                            onClick={() => handleViewDetails(vet)}
                           >
                             Ver perfil
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleBooking(vet.id)}
+                            onClick={() => handleBooking(vet)}
                             className="bg-petbnb-600 hover:bg-petbnb-700"
                           >
                             Reservar
@@ -305,6 +318,20 @@ const Veterinaries = () => {
           </div>
         </div>
       </section>
+
+      {/* Modals */}
+      <VeterinaryProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        veterinary={selectedVeterinary}
+        onBooking={handleBookingFromProfile}
+      />
+
+      <VeterinaryBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        veterinary={selectedVeterinary}
+      />
     </div>
   );
 };

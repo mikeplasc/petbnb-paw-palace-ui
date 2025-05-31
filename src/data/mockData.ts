@@ -1,307 +1,382 @@
-export interface Host {
-  id: string;
-  name: string;
-  type: 'family' | 'individual' | 'veterinary';
-  location: string;
-  city: string;
-  rating: number;
-  reviewCount: number;
-  pricePerNight: number;
-  images: string[];
-  description: string;
-  services: string[];
-  acceptedPets: string[];
-  certifications?: string[];
-  availability: boolean;
-  experience: string;
-  responseTime: string;
-}
+import { faker } from '@faker-js/faker';
 
-export interface Pet {
-  id: string;
-  name: string;
-  species: string;
-  breed: string;
-  age: number;
-  weight: number;
-  specialNeeds: string[];
-  sociability: 'low' | 'medium' | 'high';
-  image: string;
-  ownerId: string;
-}
+// Function to generate a random pet type
+const getRandomPetType = () => {
+  const petTypes = ['dog', 'cat', 'bird', 'rabbit', 'hamster', 'turtle'];
+  return petTypes[Math.floor(Math.random() * petTypes.length)];
+};
 
-export interface Review {
-  id: string;
-  hostId: string;
-  userName: string;
-  rating: number;
-  comment: string;
-  date: string;
-  petName: string;
-}
+// Function to generate a random service
+const getRandomService = () => {
+  const services = ['Grooming', 'Training', 'Walking', 'Sitting', 'Boarding', 'Daycare'];
+  return services[Math.floor(Math.random() * services.length)];
+};
 
-export interface Booking {
-  id: string;
-  hostId: string;
-  petId: string;
-  startDate: string;
-  endDate: string;
-  status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
-  totalPrice: number;
-}
+// Function to generate a random city
+const getRandomCity = () => {
+  const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'];
+  return cities[Math.floor(Math.random() * cities.length)];
+};
 
-export const mockHosts: Host[] = [
+// Function to generate a random rating
+const getRandomRating = () => {
+  return faker.number.float({ min: 3, max: 5, precision: 0.1 });
+};
+
+// Function to generate a random price per night
+const getRandomPricePerNight = () => {
+  return faker.number.int({ min: 20, max: 150 });
+};
+
+// Function to generate a random number of reviews
+const getRandomReviewCount = () => {
+  return faker.number.int({ min: 0, max: 500 });
+};
+
+// Function to generate a random response time
+const getRandomResponseTime = () => {
+  const responseTimes = ['within an hour', 'within a few hours', 'within a day'];
+  return responseTimes[Math.floor(Math.random() * responseTimes.length)];
+};
+
+// Function to generate a random number of certifications
+const getRandomCertifications = () => {
+  const certifications = ['Certified Pet Sitter', 'Certified Dog Walker', 'Pet First Aid & CPR', 'Fear Free Certified'];
+  const numberOfCertifications = faker.number.int({ min: 0, max: certifications.length });
+  const randomCertifications = [];
+  for (let i = 0; i < numberOfCertifications; i++) {
+    randomCertifications.push(certifications[i]);
+  }
+  return randomCertifications;
+};
+
+// Function to generate a random number of services
+const getRandomServices = () => {
+  const services = ['Grooming', 'Training', 'Walking', 'Sitting', 'Boarding', 'Daycare', 'Bathing', 'Nail Trimming', 'Teeth Cleaning'];
+  const numberOfServices = faker.number.int({ min: 1, max: services.length });
+  const randomServices = [];
+  for (let i = 0; i < numberOfServices; i++) {
+    randomServices.push(services[i]);
+  }
+  return randomServices;
+};
+
+// Function to generate a random description
+const getRandomDescription = () => {
+  return faker.lorem.paragraph();
+};
+
+// Function to generate a random image
+const getRandomImage = () => {
+  return faker.image.urlPicsumPhotos();
+};
+
+export const mockHosts = [
   {
     id: '1',
-    name: 'Casa de María Elena',
-    type: 'family',
-    location: 'Roma Norte, CDMX',
-    city: 'Ciudad de México',
-    rating: 4.9,
-    reviewCount: 127,
-    pricePerNight: 350,
-    images: ['https://images.unsplash.com/photo-1721322800607-8c38375eef04'],
-    description: 'Familia amorosa con amplio jardín y más de 10 años cuidando mascotas. Tenemos dos perros propios que son muy sociables.',
-    services: ['Paseos diarios', 'Alimentación personalizada', 'Juegos', 'Fotos diarias', 'Administración de medicamentos'],
-    acceptedPets: ['Perros', 'Gatos'],
-    availability: true,
-    experience: '10+ años',
-    responseTime: '2 horas'
+    name: faker.company.name(),
+    type: 'sitter' as const,
+    location: faker.location.streetAddress(),
+    city: getRandomCity(),
+    pricePerNight: getRandomPricePerNight(),
+    rating: getRandomRating(),
+    reviewCount: getRandomReviewCount(),
+    images: [
+      getRandomImage(),
+      getRandomImage(),
+      getRandomImage()
+    ],
+    description: getRandomDescription(),
+    services: getRandomServices(),
+    responseTime: getRandomResponseTime(),
+    certifications: getRandomCertifications(),
   },
   {
     id: '2',
-    name: 'Clínica Veterinaria San Ángel',
-    type: 'veterinary',
-    location: 'San Ángel, CDMX',
-    city: 'Ciudad de México',
-    rating: 4.8,
-    reviewCount: 89,
-    pricePerNight: 650,
-    images: ['https://images.unsplash.com/photo-1485833077593-4278bba3f11f'],
-    description: 'Clínica veterinaria certificada con servicio de hospedaje 24/7. Personal médico especializado.',
-    services: ['Monitoreo médico 24/7', 'Administración de medicamentos', 'Emergencias', 'Consultas incluidas'],
-    acceptedPets: ['Perros', 'Gatos', 'Aves', 'Conejos'],
-    certifications: ['SENASICA', 'Colegio de Médicos Veterinarios'],
-    availability: true,
-    experience: '15+ años',
-    responseTime: '30 minutos'
+    name: faker.company.name(),
+    type: 'sitter' as const,
+    location: faker.location.streetAddress(),
+    city: getRandomCity(),
+    pricePerNight: getRandomPricePerNight(),
+    rating: getRandomRating(),
+    reviewCount: getRandomReviewCount(),
+    images: [
+      getRandomImage(),
+      getRandomImage(),
+      getRandomImage()
+    ],
+    description: getRandomDescription(),
+    services: getRandomServices(),
+    responseTime: getRandomResponseTime(),
+    certifications: getRandomCertifications(),
   },
   {
     id: '3',
-    name: 'Roberto y Luna',
-    type: 'individual',
-    location: 'Providencia, Guadalajara',
-    city: 'Guadalajara',
-    rating: 4.7,
-    reviewCount: 56,
-    pricePerNight: 280,
-    images: ['https://images.unsplash.com/photo-1535268647677-300dbf3d78d1'],
-    description: 'Cuidador individual con mucha experiencia. Vivo solo con mi perra Luna, muy tranquila y sociable.',
-    services: ['Paseos matutinos', 'Compañía constante', 'Entrenamiento básico', 'Fotos diarias'],
-    acceptedPets: ['Perros pequeños y medianos'],
-    availability: true,
-    experience: '5+ años',
-    responseTime: '1 hora'
+    name: faker.company.name(),
+    type: 'sitter' as const,
+    location: faker.location.streetAddress(),
+    city: getRandomCity(),
+    pricePerNight: getRandomPricePerNight(),
+    rating: getRandomRating(),
+    reviewCount: getRandomReviewCount(),
+    images: [
+      getRandomImage(),
+      getRandomImage(),
+      getRandomImage()
+    ],
+    description: getRandomDescription(),
+    services: getRandomServices(),
+    responseTime: getRandomResponseTime(),
+    certifications: getRandomCertifications(),
   },
   {
     id: '4',
-    name: 'Familia Hernández',
-    type: 'family',
-    location: 'Satelite, Estado de México',
-    city: 'Estado de México',
-    rating: 4.6,
-    reviewCount: 73,
-    pricePerNight: 300,
-    images: ['https://images.unsplash.com/photo-1452378174528-3090a4bba7b2'],
-    description: 'Familia con dos hijos adolescentes que adoran las mascotas. Casa con patio grande y muchos juguetes.',
-    services: ['Juegos con niños', 'Paseos en grupo', 'Actividades recreativas', 'Cuidado nocturno'],
-    acceptedPets: ['Perros', 'Gatos', 'Conejos'],
-    availability: true,
-    experience: '7+ años',
-    responseTime: '3 horas'
+    name: faker.company.name(),
+    type: 'sitter' as const,
+    location: faker.location.streetAddress(),
+    city: getRandomCity(),
+    pricePerNight: getRandomPricePerNight(),
+    rating: getRandomRating(),
+    reviewCount: getRandomReviewCount(),
+    images: [
+      getRandomImage(),
+      getRandomImage(),
+      getRandomImage()
+    ],
+    description: getRandomDescription(),
+    services: getRandomServices(),
+    responseTime: getRandomResponseTime(),
+    certifications: getRandomCertifications(),
   },
   {
     id: '5',
-    name: 'Ana Sofía Pet Care',
-    type: 'individual',
-    location: 'Del Valle, CDMX',
-    city: 'Ciudad de México',
-    rating: 4.8,
-    reviewCount: 94,
-    pricePerNight: 400,
-    images: ['https://images.unsplash.com/photo-1721322800607-8c38375eef04'],
-    description: 'Veterinaria retirada que ofrece cuidado especializado. Departamento amplio con área de juegos.',
-    services: ['Cuidado médico', 'Administración de medicamentos', 'Fisioterapia', 'Grooming básico'],
-    acceptedPets: ['Perros', 'Gatos'],
-    availability: true,
-    experience: '20+ años',
-    responseTime: '1 hora'
+    name: faker.company.name(),
+    type: 'sitter' as const,
+    location: faker.location.streetAddress(),
+    city: getRandomCity(),
+    pricePerNight: getRandomPricePerNight(),
+    rating: getRandomRating(),
+    reviewCount: getRandomReviewCount(),
+    images: [
+      getRandomImage(),
+      getRandomImage(),
+      getRandomImage()
+    ],
+    description: getRandomDescription(),
+    services: getRandomServices(),
+    responseTime: getRandomResponseTime(),
+    certifications: getRandomCertifications(),
   },
   {
-    id: '6',
-    name: 'Centro Veterinario Polanco',
-    type: 'veterinary',
-    location: 'Polanco, CDMX',
+    id: 'vet-1',
+    name: 'Clínica Veterinaria Roma',
+    type: 'veterinary' as const,
+    location: 'Calle Chihuahua 123, Roma Norte',
     city: 'Ciudad de México',
+    pricePerNight: 550,
+    rating: 4.7,
+    reviewCount: 120,
+    images: [
+      'https://images.unsplash.com/photo-1581888227599-779811939961?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1617814912600-b2a94648addb?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Clínica veterinaria con servicios de consulta, vacunación, cirugía y estética canina y felina.',
+    services: ['Consulta', 'Vacunación', 'Cirugía', 'Estética', 'Laboratorio'],
+    responseTime: '20 minutos',
+    certifications: ['CVMCDMX'],
+    specialties: ['Medicina interna', 'Cirugía general']
+  },
+  {
+    id: 'vet-2',
+    name: 'Hospital Veterinario Satélite',
+    type: 'veterinary' as const,
+    location: 'Circuito Médicos 789, Ciudad Satélite',
+    city: 'Naucalpan',
+    pricePerNight: 800,
+    rating: 4.9,
+    reviewCount: 250,
+    images: [
+      'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1591604314364-924997a43555?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Hospital veterinario con atención las 24 horas, servicio de urgencias, laboratorio y hospitalización.',
+    services: ['Urgencias 24h', 'Hospitalización', 'Laboratorio', 'Rayos X', 'Ultrasonido'],
+    responseTime: '10 minutos',
+    certifications: ['AAHA', 'AVMA'],
+    specialties: ['Cardiología', 'Neurología']
+  },
+  {
+    id: 'vet-3',
+    name: 'Clínica Veterinaria Condesa',
+    type: 'veterinary' as const,
+    location: 'Avenida Amsterdam 45, Hipódromo Condesa',
+    city: 'Ciudad de México',
+    pricePerNight: 600,
+    rating: 4.6,
+    reviewCount: 95,
+    images: [
+      'https://images.unsplash.com/photo-1672496448770-99c599e5bc5b?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1629410344212-48199989461a?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Clínica veterinaria con enfoque en medicina preventiva, planes de salud y nutrición para mascotas.',
+    services: ['Medicina preventiva', 'Planes de salud', 'Nutrición', 'Homeopatía', 'Acupuntura'],
+    responseTime: '30 minutos',
+    certifications: ['AMMVEE'],
+    specialties: ['Medicina preventiva', 'Nutrición clínica']
+  },
+  {
+    id: 'vet-4',
+    name: 'Pet Care Center Polanco',
+    type: 'veterinary' as const,
+    location: 'Luis Pasteur 98, Polanco',
+    city: 'Ciudad de México',
+    pricePerNight: 700,
+    rating: 4.8,
+    reviewCount: 180,
+    images: [
+      'https://images.unsplash.com/photo-1573878792447-097043589965?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1629410343972-8c77aa4367ca?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Centro de cuidado integral para mascotas con servicios de veterinaria, estética, pensión y adiestramiento.',
+    services: ['Veterinaria', 'Estética', 'Pensión', 'Adiestramiento', 'Guardería'],
+    responseTime: '15 minutos',
+    certifications: ['CMPV'],
+    specialties: ['Dermatología', 'Etología']
+  },
+  {
+    id: 'vet-5',
+    name: 'Unidad Veterinaria Narvarte',
+    type: 'veterinary' as const,
+    location: 'Eje Central Lázaro Cárdenas 1000, Narvarte',
+    city: 'Ciudad de México',
+    pricePerNight: 500,
+    rating: 4.5,
+    reviewCount: 75,
+    images: [
+      'https://images.unsplash.com/photo-1616624364808-99466801592f?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1591604304944-4f99c5a93990?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Unidad veterinaria con servicios de consulta, desparasitación, esterilización y venta de alimentos y accesorios.',
+    services: ['Consulta', 'Desparasitación', 'Esterilización', 'Alimentos', 'Accesorios'],
+    responseTime: '25 minutos',
+    certifications: ['SEDESA'],
+    specialties: ['Medicina general', 'Salud pública']
+  },
+  
+  // Adding more veterinary records with different images
+  {
+    id: 'vet-6',
+    name: 'Hospital Veterinario San Rafael',
+    type: 'veterinary' as const,
+    location: 'Av. Reforma 456, Roma Norte',
+    city: 'Ciudad de México',
+    pricePerNight: 800,
     rating: 4.9,
     reviewCount: 156,
-    pricePerNight: 780,
-    images: ['https://images.unsplash.com/photo-1485833077593-4278bba3f11f'],
-    description: 'Centro veterinario de lujo con instalaciones de última generación. Servicio premium 24/7.',
-    services: ['Hospital completo', 'UCI veterinaria', 'Cirugías', 'Laboratorio', 'Rayos X'],
-    acceptedPets: ['Perros', 'Gatos', 'Aves', 'Conejos', 'Otros'],
-    certifications: ['SENASICA', 'Certificación Internacional', 'ISO 9001'],
-    availability: true,
-    experience: '25+ años',
-    responseTime: '15 minutos'
+    images: [
+      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Hospital veterinario de alta especialidad con tecnología de vanguardia y atención 24/7. Especialistas en cirugía, cardiología y oncología veterinaria.',
+    services: ['Cirugía especializada', 'Cardiología', 'Oncología', 'Imagenología', 'Laboratorio'],
+    responseTime: '15 minutos',
+    certifications: ['AAHA', 'AVMA'],
+    specialties: ['Cirugía cardiovascular', 'Oncología']
   },
   {
-    id: '7',
-    name: 'Casa Zapopan Pet Lodge',
-    type: 'family',
-    location: 'Zapopan, Guadalajara',
+    id: 'vet-7',
+    name: 'Clínica Veterinaria Integral',
+    type: 'veterinary' as const,
+    location: 'Calle Hidalgo 789, Centro Histórico',
     city: 'Guadalajara',
-    rating: 4.5,
-    reviewCount: 41,
-    pricePerNight: 250,
-    images: ['https://images.unsplash.com/photo-1452378174528-3090a4bba7b2'],
-    description: 'Familia joven con casa grande y patio. Experiencia cuidando mascotas de familiares y amigos.',
-    services: ['Paseos diarios', 'Juegos', 'Cuidado nocturno', 'Alimentación'],
-    acceptedPets: ['Perros', 'Gatos'],
-    availability: true,
-    experience: '3+ años',
-    responseTime: '4 horas'
-  },
-  {
-    id: '8',
-    name: 'Dr. Carlos Mendoza - Veterinario a domicilio',
-    type: 'individual',
-    location: 'Lindavista, CDMX',
-    city: 'Ciudad de México',
-    rating: 4.7,
-    reviewCount: 68,
-    pricePerNight: 500,
-    images: ['https://images.unsplash.com/photo-1535268647677-300dbf3d78d1'],
-    description: 'Veterinario con consulta móvil. Ofrece cuidado especializado en su hogar adaptado para mascotas.',
-    services: ['Consultas veterinarias', 'Vacunación', 'Administración de medicamentos', 'Emergencias'],
-    acceptedPets: ['Perros', 'Gatos', 'Aves'],
-    certifications: ['Cédula profesional veterinaria', 'Especialidad en medicina interna'],
-    availability: true,
-    experience: '12+ años',
-    responseTime: '2 horas'
-  },
-  {
-    id: '9',
-    name: 'Pet Paradise Monterrey',
-    type: 'family',
-    location: 'San Pedro, Monterrey',
-    city: 'Monterrey',
+    pricePerNight: 450,
     rating: 4.6,
-    reviewCount: 82,
-    pricePerNight: 320,
-    images: ['https://images.unsplash.com/photo-1721322800607-8c38375eef04'],
-    description: 'Familia con amplia experiencia en cuidado de mascotas. Casa con jardín y área de juegos.',
-    services: ['Paseos', 'Entrenamiento', 'Socialización', 'Grooming básico'],
-    acceptedPets: ['Perros', 'Gatos'],
-    availability: true,
-    experience: '8+ años',
-    responseTime: '2 horas'
+    reviewCount: 89,
+    images: [
+      'https://images.unsplash.com/photo-1551601651-2a8555f1a136?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Clínica veterinaria familiar con más de 20 años de experiencia. Ofrecemos servicios integrales de medicina preventiva y curativa.',
+    services: ['Consulta general', 'Vacunación', 'Esterilización', 'Radiografías', 'Análisis clínicos'],
+    responseTime: '30 minutos',
+    certifications: ['CVMJ'],
+    specialties: ['Medicina preventiva', 'Pequeñas especies']
   },
   {
-    id: '10',
-    name: 'Clínica Veterinaria Guadalajara Centro',
-    type: 'veterinary',
-    location: 'Centro Histórico, Guadalajara',
-    city: 'Guadalajara',
-    rating: 4.4,
-    reviewCount: 37,
-    pricePerNight: 580,
-    images: ['https://images.unsplash.com/photo-1485833077593-4278bba3f11f'],
-    description: 'Clínica veterinaria establecida con más de 30 años de experiencia. Instalaciones renovadas.',
-    services: ['Hospitalización', 'Cirugías menores', 'Laboratorio', 'Radiografías'],
-    acceptedPets: ['Perros', 'Gatos', 'Aves', 'Conejos'],
-    certifications: ['SENASICA', 'Registro sanitario'],
-    availability: true,
-    experience: '30+ años',
-    responseTime: '1 hora'
-  }
-];
-
-export const mockPets: Pet[] = [
-  {
-    id: '1',
-    name: 'Max',
-    species: 'Perro',
-    breed: 'Golden Retriever',
-    age: 3,
-    weight: 28,
-    specialNeeds: ['Medicamento para artritis'],
-    sociability: 'high',
-    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d',
-    ownerId: 'user1'
+    id: 'vet-8',
+    name: 'Centro Veterinario Especializado',
+    type: 'veterinary' as const,
+    location: 'Blvd. Kukulcán Km 14, Zona Hotelera',
+    city: 'Cancún',
+    pricePerNight: 950,
+    rating: 4.8,
+    reviewCount: 134,
+    images: [
+      'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Centro veterinario moderno especializado en medicina de animales exóticos y mascotas tradicionales. Instalaciones de lujo con personal bilingüe.',
+    services: ['Medicina exótica', 'Hospitalización', 'Grooming', 'Fisioterapia', 'Nutrición'],
+    responseTime: '10 minutos',
+    certifications: ['AEMVE', 'CVMQR'],
+    specialties: ['Animales exóticos', 'Fisioterapia veterinaria']
   },
   {
-    id: '2',
-    name: 'Mimi',
-    species: 'Gato',
-    breed: 'Siamés',
-    age: 2,
-    weight: 4,
-    specialNeeds: [],
-    sociability: 'medium',
-    image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901',
-    ownerId: 'user1'
-  }
-];
-
-export const mockReviews: Review[] = [
-  {
-    id: '1',
-    hostId: '1',
-    userName: 'Carlos M.',
-    rating: 5,
-    comment: 'Excelente cuidado para mi perro Bruno. María Elena es muy cariñosa y profesional. Recibí fotos todos los días.',
-    date: '2024-03-15',
-    petName: 'Bruno'
+    id: 'vet-9',
+    name: 'Hospital Veterinario del Norte',
+    type: 'veterinary' as const,
+    location: 'Av. Universidad 321, San Nicolás',
+    city: 'Monterrey',
+    pricePerNight: 600,
+    rating: 4.7,
+    reviewCount: 98,
+    images: [
+      'https://images.unsplash.com/photo-1666214280557-f1b5022eb634?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1581888227599-779811939961?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Hospital veterinario regional con equipo médico especializado y tecnología avanzada. Referente en el norte del país para casos complejos.',
+    services: ['Neurología', 'Oftalmología', 'Dermatología', 'Endoscopia', 'Terapia intensiva'],
+    responseTime: '20 minutos',
+    certifications: ['CVMNL', 'AAHA'],
+    specialties: ['Neurología veterinaria', 'Oftalmología']
   },
   {
-    id: '2',
-    hostId: '1',
-    userName: 'Ana L.',
-    rating: 5,
-    comment: 'Mi gata Luna se sintió como en casa. El jardín es perfecto para que los animales jueguen y se relajen.',
-    date: '2024-03-10',
-    petName: 'Luna'
+    id: 'vet-10',
+    name: 'Clínica Veterinaria Familiar Puebla',
+    type: 'veterinary' as const,
+    location: 'Av. Juárez 567, Centro',
+    city: 'Puebla',
+    pricePerNight: 380,
+    rating: 4.5,
+    reviewCount: 76,
+    images: [
+      'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1551601651-2a8555f1a136?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Clínica veterinaria de tradición familiar que brinda atención personalizada y cálida. Especializada en medicina preventiva y cuidados básicos.',
+    services: ['Consulta general', 'Vacunación', 'Desparasitación', 'Cirugía menor', 'Urgencias'],
+    responseTime: '25 minutos',
+    certifications: ['CVMP'],
+    specialties: ['Medicina preventiva', 'Atención familiar']
   },
   {
-    id: '3',
-    hostId: '2',
-    userName: 'Roberto S.',
-    rating: 5,
-    comment: 'Perfecto para mascotas con necesidades médicas especiales. Personal muy preparado y atención 24/7.',
-    date: '2024-03-08',
-    petName: 'Rocky'
-  }
-];
-
-export const mockBookings: Booking[] = [
-  {
-    id: '1',
-    hostId: '1',
-    petId: '1',
-    startDate: '2024-04-15',
-    endDate: '2024-04-20',
-    status: 'confirmed',
-    totalPrice: 1750
-  },
-  {
-    id: '2',
-    hostId: '2',
-    petId: '2',
-    startDate: '2024-03-28',
-    endDate: '2024-03-30',
-    status: 'completed',
-    totalPrice: 1300
+    id: 'vet-11',
+    name: 'Centro de Especialidades Veterinarias',
+    type: 'veterinary' as const,
+    location: 'Calzada del Valle 890, Del Valle',
+    city: 'Ciudad de México',
+    pricePerNight: 1200,
+    rating: 4.9,
+    reviewCount: 203,
+    images: [
+      'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80'
+    ],
+    description: 'Centro de alta especialidad veterinaria con las últimas tecnologías en diagnóstico y tratamiento. Referencia nacional en medicina veterinaria.',
+    services: ['Resonancia magnética', 'Tomografía', 'Quimioterapia', 'Cirugía robótica', 'Trasplantes'],
+    responseTime: '5 minutos',
+    certifications: ['AAHA', 'AVMA', 'ECVS'],
+    specialties: ['Cirugía robótica', 'Medicina nuclear']
   }
 ];
 
@@ -312,18 +387,8 @@ export const cities = [
   'Puebla',
   'Tijuana',
   'León',
+  'Zapopan',
   'Juárez',
-  'Torreón',
-  'Querétaro',
+  'Mérida',
   'San Luis Potosí'
-];
-
-export const petTypes = [
-  'Perros',
-  'Gatos', 
-  'Aves',
-  'Conejos',
-  'Peces',
-  'Hámsters',
-  'Otros'
 ];
