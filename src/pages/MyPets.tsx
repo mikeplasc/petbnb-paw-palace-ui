@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,193 +8,192 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit2, Trash2, Camera, Heart, Activity } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface Pet {
-  id: number;
-  name: string;
-  type: string;
-  breed: string;
-  age: number;
-  weight: number;
-  image: string;
-  description: string;
-  vaccinated: boolean;
-  neutered: boolean;
-  microchip: string;
-  emergencyContact: string;
-}
+import { toast } from 'sonner';
+import { getMyPets, createMyPet, updateMyPet, deleteMyPet, Pet } from '@/services/petService';
 
 const MyPets = () => {
-  const { toast } = useToast();
-  const [pets, setPets] = useState<Pet[]>([
-    {
-      id: 1,
-      name: 'Luna',
-      type: 'Perro',
-      breed: 'Golden Retriever',
-      age: 3,
-      weight: 28,
-      image: '/placeholder-pet.jpg',
-      description: 'Luna es una perrita muy cariñosa y juguetona. Le encanta correr en el parque.',
-      vaccinated: true,
-      neutered: true,
-      microchip: '123456789012345',
-      emergencyContact: 'Dr. Veterinario - 612 345 678'
-    },
-    {
-      id: 2,
-      name: 'Max',
-      type: 'Gato',
-      breed: 'Siamés',
-      age: 2,
-      weight: 4.5,
-      image: '/placeholder-pet.jpg',
-      description: 'Max es un gato independiente pero muy cariñoso cuando quiere atención.',
-      vaccinated: true,
-      neutered: false,
-      microchip: '987654321098765',
-      emergencyContact: 'Clínica Felina - 678 901 234'
-    }
-  ]);
-
+  const queryClient = useQueryClient();
   const [isAddingPet, setIsAddingPet] = useState(false);
-  const [editingPet, setEditingPet] = useState<number | null>(null);
+  const [editingPet, setEditingPet] = useState<Pet | null>(null);
 
-  const addPet = (petData: Omit<Pet, 'id'>) => {
-    const newPet: Pet = {
-      ...petData,
-      id: Math.max(...pets.map(p => p.id), 0) + 1
-    };
-    setPets([...pets, newPet]);
-    toast({
-      title: "Mascota agregada",
-      description: `${petData.name} ha sido agregada exitosamente.`,
-    });
-    setIsAddingPet(false);
+  const { data: pets = [], isLoading } = useQuery({
+    queryKey: ['my-pets'],
+    queryFn: getMyPets,
+  });
+
+  const createPetMutation = useMutation({
+    mutationFn: createMyPet,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-pets'] });
+      toast.success('Mascota agregada exitosamente');
+      setIsAddingPet(false);
+    },
+    onError: (error) => {
+      console.error('Error creating pet:', error);
+      toast.error('Error al agregar la mascota');
+    },
+  });
+
+  const updatePetMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Pet> }) => updateMyPet(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-pets'] });
+      toast.success('Mascota actualizada exitosamente');
+      setEditingPet(null);
+    },
+    onError: (error) => {
+      console.error('Error updating pet:', error);
+      toast.error('Error al actualizar la mascota');
+    },
+  });
+
+  const deletePetMutation = useMutation({
+    mutationFn: deleteMyPet,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-pets'] });
+      toast.success('Mascota eliminada exitosamente');
+    },
+    onError: (error) => {
+      console.error('Error deleting pet:', error);
+      toast.error('Error al eliminar la mascota');
+    },
+  });
+
+  const handleAddPet = (petData: any) => {
+    createPetMutation.mutate(petData);
   };
 
-  const updatePet = (petData: Pet) => {
-    setPets(pets.map(pet => pet.id === petData.id ? petData : pet));
-    toast({
-      title: "Mascota actualizada",
-      description: `Los datos de ${petData.name} han sido actualizados.`,
-    });
-    setEditingPet(null);
+  const handleUpdatePet = (petData: Pet) => {
+    if (editingPet) {
+      updatePetMutation.mutate({ id: editingPet.id, data: petData });
+    }
   };
 
-  const deletePet = (petId: number) => {
-    const pet = pets.find(p => p.id === petId);
-    setPets(pets.filter(pet => pet.id !== petId));
-    toast({
-      title: "Mascota eliminada",
-      description: `${pet?.name} ha sido eliminada de tu lista.`,
-      variant: "destructive",
-    });
+  const handleDeletePet = (petId: string) => {
+    if (confirm('¿Estás seguro de que quieres eliminar esta mascota?')) {
+      deletePetMutation.mutate(petId);
+    }
   };
 
-  const PetCard = ({ pet }: { pet: Pet }) => (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="relative">
-        <div className="h-48 bg-gradient-to-br from-petbnb-100 to-primary-100 flex items-center justify-center">
-          <div className="text-6xl">
-            {pet.type === 'Perro' ? '🐕' : '🐱'}
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, index) => (
+              <Card key={index}>
+                <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm"
-        >
-          <Camera className="h-4 w-4" />
-        </Button>
       </div>
-      
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-xl">{pet.name}</CardTitle>
-            <CardDescription>{pet.breed} • {pet.age} años</CardDescription>
-          </div>
-          <div className="flex gap-1">
-            <Button size="sm" variant="ghost" onClick={() => setEditingPet(pet.id)}>
-              <Edit2 className="h-4 w-4" />
-            </Button>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="text-red-600"
-              onClick={() => deletePet(pet.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="space-y-3">
-          <p className="text-sm text-gray-600">{pet.description}</p>
-          
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div className="flex items-center gap-1">
-              <Activity className="h-4 w-4 text-gray-500" />
-              <span>{pet.weight} kg</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-500">Tipo:</span>
-              <span>{pet.type}</span>
-            </div>
-          </div>
-          
-          <div className="flex gap-1 flex-wrap">
-            {pet.vaccinated && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
-                Vacunado
-              </Badge>
-            )}
-            {pet.neutered && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                Esterilizado
-              </Badge>
-            )}
-            <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-              Microchip
-            </Badge>
-          </div>
+    );
+  }
 
-          <div className="pt-2 border-t text-xs text-gray-500">
-            <p><strong>Contacto emergencia:</strong> {pet.emergencyContact}</p>
-            <p><strong>Microchip:</strong> {pet.microchip}</p>
-          </div>
+  const PetCard = ({ pet }: { pet: Pet }) => {
+    const characteristics = Array.isArray(pet.characteristics) ? pet.characteristics as string[] : [];
+    
+    return (
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+        <div className="relative">
+          <img
+            src={pet.image}
+            alt={pet.name}
+            className="w-full h-48 object-cover"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm"
+          >
+            <Camera className="h-4 w-4" />
+          </Button>
         </div>
-      </CardContent>
-    </Card>
-  );
+        
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-xl">{pet.name}</CardTitle>
+              <CardDescription>{pet.breed} • {pet.age}</CardDescription>
+            </div>
+            <div className="flex gap-1">
+              <Button size="sm" variant="ghost" onClick={() => setEditingPet(pet)}>
+                <Edit2 className="h-4 w-4" />
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="text-red-600"
+                onClick={() => handleDeletePet(pet.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">{pet.description}</p>
+            
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="flex items-center gap-1">
+                <Activity className="h-4 w-4 text-gray-500" />
+                <span>{pet.size}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-500">Género:</span>
+                <span>{pet.gender}</span>
+              </div>
+            </div>
+            
+            <div className="flex gap-1 flex-wrap">
+              {pet.vaccinated && (
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  Vacunado
+                </Badge>
+              )}
+              {pet.sterilized && (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  Esterilizado
+                </Badge>
+              )}
+              {characteristics.slice(0, 2).map((char, index) => (
+                <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800">
+                  {char}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   const PetForm = ({ pet, onSave, onCancel }: { pet?: Pet, onSave: (petData: any) => void, onCancel: () => void }) => {
     const [formData, setFormData] = useState(pet || {
       name: '',
       type: 'Perro',
       breed: '',
-      age: 0,
-      weight: 0,
+      age: '',
+      size: 'Mediano',
+      gender: 'Macho',
       description: '',
       vaccinated: false,
-      neutered: false,
-      microchip: '',
-      emergencyContact: '',
-      image: '/placeholder-pet.jpg'
+      sterilized: false,
+      characteristics: []
     });
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      if (!formData.name || !formData.breed || !formData.age || !formData.weight) {
-        toast({
-          title: "Error",
-          description: "Por favor completa todos los campos obligatorios.",
-          variant: "destructive",
-        });
+      if (!formData.name || !formData.breed || !formData.age) {
+        toast.error('Por favor completa todos los campos obligatorios.');
         return;
       }
       onSave(formData);
@@ -223,7 +223,9 @@ const MyPets = () => {
             >
               <option value="Perro">Perro</option>
               <option value="Gato">Gato</option>
-              <option value="Otro">Otro</option>
+              <option value="Ave">Ave</option>
+              <option value="Conejo">Conejo</option>
+              <option value="Hámster">Hámster</option>
             </select>
           </div>
         </div>
@@ -240,52 +242,45 @@ const MyPets = () => {
             />
           </div>
           <div>
-            <Label htmlFor="age">Edad (años) *</Label>
+            <Label htmlFor="age">Edad *</Label>
             <Input
               id="age"
-              type="number"
               value={formData.age}
-              onChange={(e) => setFormData({...formData, age: parseInt(e.target.value) || 0})}
-              placeholder="Edad"
+              onChange={(e) => setFormData({...formData, age: e.target.value})}
+              placeholder="Ej: 2 años, 6 meses"
               required
-              min="0"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="weight">Peso (kg) *</Label>
-            <Input
-              id="weight"
-              type="number"
-              step="0.1"
-              value={formData.weight}
-              onChange={(e) => setFormData({...formData, weight: parseFloat(e.target.value) || 0})}
-              placeholder="Peso"
+            <Label htmlFor="size">Tamaño *</Label>
+            <select 
+              id="size"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={formData.size}
+              onChange={(e) => setFormData({...formData, size: e.target.value})}
               required
-              min="0"
-            />
+            >
+              <option value="Pequeño">Pequeño</option>
+              <option value="Mediano">Mediano</option>
+              <option value="Grande">Grande</option>
+            </select>
           </div>
           <div>
-            <Label htmlFor="microchip">Microchip</Label>
-            <Input
-              id="microchip"
-              value={formData.microchip}
-              onChange={(e) => setFormData({...formData, microchip: e.target.value})}
-              placeholder="Número de microchip"
-            />
+            <Label htmlFor="gender">Género *</Label>
+            <select 
+              id="gender"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={formData.gender}
+              onChange={(e) => setFormData({...formData, gender: e.target.value})}
+              required
+            >
+              <option value="Macho">Macho</option>
+              <option value="Hembra">Hembra</option>
+            </select>
           </div>
-        </div>
-
-        <div>
-          <Label htmlFor="emergencyContact">Contacto de emergencia</Label>
-          <Input
-            id="emergencyContact"
-            value={formData.emergencyContact}
-            onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
-            placeholder="Veterinario o contacto de emergencia"
-          />
         </div>
 
         <div>
@@ -313,12 +308,12 @@ const MyPets = () => {
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
-              id="neutered"
-              checked={formData.neutered}
-              onChange={(e) => setFormData({...formData, neutered: e.target.checked})}
+              id="sterilized"
+              checked={formData.sterilized}
+              onChange={(e) => setFormData({...formData, sterilized: e.target.checked})}
               className="h-4 w-4"
             />
-            <Label htmlFor="neutered">Esterilizado</Label>
+            <Label htmlFor="sterilized">Esterilizado</Label>
           </div>
         </div>
 
@@ -326,15 +321,13 @@ const MyPets = () => {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">
+          <Button type="submit" disabled={createPetMutation.isPending || updatePetMutation.isPending}>
             {pet ? 'Actualizar' : 'Agregar'} Mascota
           </Button>
         </div>
       </form>
     );
   };
-
-  const editingPetData = pets.find(pet => pet.id === editingPet);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -352,11 +345,11 @@ const MyPets = () => {
             <DialogHeader>
               <DialogTitle>Agregar Nueva Mascota</DialogTitle>
               <DialogDescription>
-                Agrega la información de tu mascota para que los cuidadores puedan conocerla mejor.
+                Agrega la información de tu mascota para llevar un registro completo.
               </DialogDescription>
             </DialogHeader>
             <PetForm 
-              onSave={addPet}
+              onSave={handleAddPet}
               onCancel={() => setIsAddingPet(false)}
             />
           </DialogContent>
@@ -372,10 +365,10 @@ const MyPets = () => {
               Actualiza la información de tu mascota.
             </DialogDescription>
           </DialogHeader>
-          {editingPetData && (
+          {editingPet && (
             <PetForm 
-              pet={editingPetData}
-              onSave={updatePet}
+              pet={editingPet}
+              onSave={handleUpdatePet}
               onCancel={() => setEditingPet(null)}
             />
           )}
@@ -396,7 +389,7 @@ const MyPets = () => {
               No tienes mascotas registradas
             </h3>
             <p className="text-gray-600 mb-4">
-              Agrega información sobre tus mascotas para que los cuidadores puedan conocerlas mejor.
+              Agrega información sobre tus mascotas para llevar un registro completo.
             </p>
             <Button onClick={() => setIsAddingPet(true)}>
               Agregar mi primera mascota

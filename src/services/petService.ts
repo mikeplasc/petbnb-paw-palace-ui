@@ -10,7 +10,7 @@ export const getPets = async (filters?: {
   size?: string;
   age?: string;
 }) => {
-  let query = supabase.from('pets').select('*');
+  let query = supabase.from('pets').select('*').eq('pet_category', 'adoption');
 
   if (filters?.location) {
     query = query.ilike('location', `%${filters.location}%`);
@@ -36,6 +36,94 @@ export const getPets = async (filters?: {
   }
 
   return data || [];
+};
+
+export const getMyPets = async () => {
+  const { data, error } = await supabase
+    .from('pets')
+    .select('*')
+    .eq('pet_category', 'personal')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching my pets:', error);
+    throw error;
+  }
+
+  return data || [];
+};
+
+export const createMyPet = async (petData: {
+  name: string;
+  type: string;
+  breed: string;
+  age: string;
+  size: string;
+  gender: string;
+  description: string;
+  vaccinated: boolean;
+  sterilized: boolean;
+  characteristics: string[];
+  image?: string;
+}) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  const { data, error } = await supabase
+    .from('pets')
+    .insert({
+      ...petData,
+      pet_category: 'personal',
+      owner_id: user.id,
+      location: 'Mi hogar',
+      shelter_name: 'Personal',
+      shelter_contact: user.email || '',
+      adoption_fee: 0,
+      urgent: false,
+      image: petData.image || 'https://images.unsplash.com/photo-1415369629372-26f2fe60c467?w=400&h=300&fit=crop'
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating pet:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+export const updateMyPet = async (id: string, petData: Partial<Pet>) => {
+  const { data, error } = await supabase
+    .from('pets')
+    .update(petData)
+    .eq('id', id)
+    .eq('pet_category', 'personal')
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating pet:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+export const deleteMyPet = async (id: string) => {
+  const { error } = await supabase
+    .from('pets')
+    .delete()
+    .eq('id', id)
+    .eq('pet_category', 'personal');
+
+  if (error) {
+    console.error('Error deleting pet:', error);
+    throw error;
+  }
 };
 
 export const getPetById = async (id: string) => {

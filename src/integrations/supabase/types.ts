@@ -210,6 +210,8 @@ export type Database = {
           image: string
           location: string
           name: string
+          owner_id: string | null
+          pet_category: string
           shelter_contact: string
           shelter_name: string
           size: string
@@ -232,6 +234,8 @@ export type Database = {
           image: string
           location: string
           name: string
+          owner_id?: string | null
+          pet_category?: string
           shelter_contact: string
           shelter_name: string
           size: string
@@ -254,6 +258,8 @@ export type Database = {
           image?: string
           location?: string
           name?: string
+          owner_id?: string | null
+          pet_category?: string
           shelter_contact?: string
           shelter_name?: string
           size?: string
