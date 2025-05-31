@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -68,13 +67,24 @@ const Adoption = () => {
     setIsModalOpen(true);
   };
 
-  const handleAdoptConfirm = () => {
+  const handleAdoptConfirm = (petId: string, userInfo: any) => {
     setIsModalOpen(false);
     setIsConfirmModalOpen(true);
+    toast({
+      title: "¡Solicitud enviada!",
+      description: "Tu solicitud de adopción ha sido enviada al refugio.",
+    });
   };
 
   const cities = [...new Set(pets.map(pet => pet.location.split(',')[0].trim()))];
   const species = [...new Set(pets.map(pet => pet.type))];
+
+  // Mock current user data
+  const currentUser = {
+    name: "Usuario Demo",
+    email: "usuario@ejemplo.com", 
+    phone: "+34 123 456 789"
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -263,7 +273,10 @@ const Adoption = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         pet={selectedPet}
-        onAdopt={handleAdoptConfirm}
+        onSubmitAdoption={handleAdoptConfirm}
+        onToggleFavorite={() => selectedPet && togglePetFavorite(selectedPet.id)}
+        isFavorite={selectedPet ? petFavorites.includes(selectedPet.id) : false}
+        currentUser={currentUser}
       />
 
       <AdoptionConfirmModal
