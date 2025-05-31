@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { DateRange } from "react-day-picker";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -155,13 +156,12 @@ const SearchResults = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="center">
-                  <Calendar
+                  <CalendarComponent
                     mode="range"
                     defaultMonth={date?.from}
                     selected={date}
                     onSelect={setDate}
                     numberOfMonths={2}
-                    pagedNavigation
                     className="border-none shadow-md"
                   />
                 </PopoverContent>

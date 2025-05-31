@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Heart, MapPin, Search, Calendar, Shield } from 'lucide-react';
-import { AdoptionModal } from '@/components/AdoptionModal';
-import { AdoptionConfirmModal } from '@/components/AdoptionConfirmModal';
+import AdoptionModal from '@/components/AdoptionModal';
+import AdoptionConfirmModal from '@/components/AdoptionConfirmModal';
 import { mockPets } from '@/data/mockPets';
 import { Pet } from '@/types/adoption';
 import { toast } from '@/hooks/use-toast';
@@ -56,8 +56,8 @@ const Adoption = () => {
   const filteredPets = pets.filter(pet => {
     const matchesSearch = pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecies = selectedSpecies === 'all' || pet.species === selectedSpecies;
-    const matchesAge = selectedAge === 'all' || pet.ageCategory === selectedAge;
+    const matchesSpecies = selectedSpecies === 'all' || pet.type.toLowerCase() === selectedSpecies;
+    const matchesAge = selectedAge === 'all' || pet.age === selectedAge;
     const matchesCity = selectedCity === 'all' || pet.location.includes(selectedCity);
     
     return matchesSearch && matchesSpecies && matchesAge && matchesCity;
@@ -74,7 +74,7 @@ const Adoption = () => {
   };
 
   const cities = [...new Set(pets.map(pet => pet.location.split(',')[0].trim()))];
-  const species = [...new Set(pets.map(pet => pet.species))];
+  const species = [...new Set(pets.map(pet => pet.type))];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -125,9 +125,9 @@ const Adoption = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las especies</SelectItem>
-                {species.map((species) => (
-                  <SelectItem key={species} value={species}>
-                    {species === 'dog' ? 'Perros' : species === 'cat' ? 'Gatos' : 'Otros'}
+                {species.map((type) => (
+                  <SelectItem key={type} value={type.toLowerCase()}>
+                    {type}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -139,10 +139,9 @@ const Adoption = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las edades</SelectItem>
-                <SelectItem value="puppy">Cachorro</SelectItem>
-                <SelectItem value="young">Joven</SelectItem>
-                <SelectItem value="adult">Adulto</SelectItem>
-                <SelectItem value="senior">Senior</SelectItem>
+                <SelectItem value="1 año">Cachorro</SelectItem>
+                <SelectItem value="2 años">Joven</SelectItem>
+                <SelectItem value="3 años">Adulto</SelectItem>
               </SelectContent>
             </Select>
 
@@ -192,7 +191,7 @@ const Adoption = () => {
               <Card key={pet.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
                 <div className="relative">
                   <img
-                    src={pet.images[0]}
+                    src={pet.image}
                     alt={pet.name}
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
@@ -207,9 +206,9 @@ const Adoption = () => {
                     />
                   </button>
                   <Badge className="absolute top-2 left-2 bg-blue-500/90 text-white">
-                    {pet.ageInMonths < 12 ? `${pet.ageInMonths}m` : `${Math.floor(pet.ageInMonths / 12)}a`}
+                    {pet.age}
                   </Badge>
-                  {pet.isUrgent && (
+                  {pet.urgent && (
                     <Badge className="absolute top-10 left-2 bg-red-500/90 text-white">
                       Urgente
                     </Badge>
@@ -220,7 +219,7 @@ const Adoption = () => {
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold text-gray-900">{pet.name}</h3>
                     <Badge variant="secondary" className="text-xs">
-                      {pet.gender === 'male' ? 'Macho' : 'Hembra'}
+                      {pet.gender}
                     </Badge>
                   </div>
                   <p className="text-gray-600 text-sm mb-2">{pet.breed}</p>
@@ -271,6 +270,13 @@ const Adoption = () => {
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         pet={selectedPet}
+        onConfirm={() => {
+          setIsConfirmModalOpen(false);
+          toast({
+            title: "¡Solicitud enviada!",
+            description: "Tu solicitud de adopción ha sido enviada al refugio.",
+          });
+        }}
       />
     </div>
   );

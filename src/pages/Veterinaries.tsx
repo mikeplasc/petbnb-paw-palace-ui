@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, MapPin, Star, Clock, Phone, Heart } from 'lucide-react';
-import { VeterinaryProfileModal } from '@/components/VeterinaryProfileModal';
-import { VeterinaryBookingModal } from '@/components/VeterinaryBookingModal';
+import VeterinaryProfileModal from '@/components/VeterinaryProfileModal';
+import VeterinaryBookingModal from '@/components/VeterinaryBookingModal';
 import { mockHosts } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 
