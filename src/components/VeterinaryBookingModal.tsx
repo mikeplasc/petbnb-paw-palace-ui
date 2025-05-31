@@ -59,12 +59,47 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
   // Simular obtener las mascotas del usuario desde localStorage o una API
   useEffect(() => {
     if (isOpen) {
+      // Simular datos de mascotas del usuario para testing
+      const mockUserPets: Pet[] = [
+        {
+          id: 1,
+          name: "Max",
+          type: "Perro",
+          breed: "Golden Retriever",
+          age: 3,
+          weight: 25,
+          image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face",
+          description: "Perro muy cariñoso y juguetón",
+          vaccinated: true,
+          neutered: true,
+          microchip: "123456789",
+          emergencyContact: "555-0123"
+        },
+        {
+          id: 2,
+          name: "Luna",
+          type: "Gato",
+          breed: "Persa",
+          age: 2,
+          weight: 4,
+          image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop&crop=face",
+          description: "Gata muy tranquila y elegante",
+          vaccinated: true,
+          neutered: false,
+          microchip: "987654321",
+          emergencyContact: "555-0124"
+        }
+      ];
+
       // En una aplicación real, esto vendría de un contexto global o API
       const savedPets = localStorage.getItem('userPets');
       if (savedPets) {
-        setUserPets(JSON.parse(savedPets));
+        const parsedPets = JSON.parse(savedPets);
+        setUserPets(parsedPets.length > 0 ? parsedPets : mockUserPets);
       } else {
-        setUserPets([]);
+        setUserPets(mockUserPets);
+        // Guardar las mascotas mock en localStorage para persistencia
+        localStorage.setItem('userPets', JSON.stringify(mockUserPets));
       }
     }
   }, [isOpen]);
@@ -214,9 +249,16 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
                 <SelectContent>
                   {userPets.map((pet) => (
                     <SelectItem key={pet.id} value={pet.id.toString()}>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg">{pet.type === 'Perro' ? '🐕' : '🐱'}</span>
-                        <span>{pet.name} - {pet.breed} ({pet.age} años)</span>
+                      <div className="flex items-center space-x-3">
+                        <img 
+                          src={pet.image} 
+                          alt={pet.name}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-medium">{pet.name}</span>
+                          <span className="text-sm text-gray-500">{pet.breed} - {pet.age} años</span>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
@@ -300,8 +342,8 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
             />
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end space-x-4 pt-4">
+          {/* Submit Button with padding */}
+          <div className="flex justify-end space-x-4 pt-6 pb-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
