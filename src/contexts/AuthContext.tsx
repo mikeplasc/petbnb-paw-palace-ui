@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -100,27 +99,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
         },
       },
     });
 
-    // Si el signup fue exitoso y no requiere confirmación de email, hacer login automático
-    if (data.user && !error && data.user.email_confirmed_at) {
-      // Usuario ya confirmado, hacer login automático
+    // Si hay error, retornarlo
+    if (error) {
+      return { error };
+    }
+
+    // Si el usuario fue creado exitosamente, intentar hacer login automático
+    if (data.user) {
+      console.log('Usuario creado:', data.user);
+      
+      // Intentar hacer login inmediatamente
       const loginResult = await signIn(email, password);
       return loginResult;
     }
 
-    return { error };
+    return { error: null };
   };
 
   const signOut = async () => {
