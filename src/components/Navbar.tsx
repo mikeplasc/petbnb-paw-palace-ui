@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Calendar, Settings, Menu, Stethoscope } from 'lucide-react';
+import { User, Calendar, Settings, Menu, Stethoscope, Heart } from 'lucide-react';
 import { useState } from 'react';
 
 const Navbar = () => {
@@ -120,6 +120,12 @@ const Navbar = () => {
                 <Link to="/my-veterinaries">
                   <Stethoscope className="mr-2 h-4 w-4" />
                   <span>Mis veterinarias</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
+                <Link to="/favorites">
+                  <Heart className="mr-2 h-4 w-4" />
+                  <span>Favoritos</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
