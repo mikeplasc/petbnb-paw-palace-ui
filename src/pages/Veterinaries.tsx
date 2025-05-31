@@ -120,10 +120,6 @@ const Veterinaries = () => {
                     target.src = logo;
                   }}
                 />
-                <Badge className="absolute top-4 left-4 bg-blue-500 text-white">
-                  <Stethoscope className="h-3 w-3 mr-1" />
-                  Veterinaria
-                </Badge>
               </div>
 
               <CardHeader>
@@ -146,34 +142,31 @@ const Veterinaries = () => {
               </CardHeader>
 
               <CardContent className="flex-1">
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {specialties.slice(0, 3).map((specialty, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {specialty}
-                    </Badge>
-                  ))}
-                </div>
-
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                   {vet.description}
                 </p>
 
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {services.slice(0, 3).map((service, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {service}
-                    </Badge>
-                  ))}
-                  {services.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{services.length - 3}
-                    </Badge>
+                <div className="text-sm text-gray-600 space-y-2">
+                  {specialties.length > 0 && (
+                    <div>
+                      <span className="font-medium">Especialidades:</span>{" "}
+                      {specialties.slice(0, 3).join(", ")}
+                      {specialties.length > 3 && " y más"}
+                    </div>
                   )}
-                </div>
+                  
+                  {services.length > 0 && (
+                    <div>
+                      <span className="font-medium">Servicios:</span>{" "}
+                      {services.slice(0, 3).join(", ")}
+                      {services.length > 3 && ` y ${services.length - 3} más`}
+                    </div>
+                  )}
 
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Clock className="h-4 w-4" />
-                  <span>Responde en {vet.response_time}</span>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>Responde en {vet.response_time}</span>
+                  </div>
                 </div>
               </CardContent>
 
