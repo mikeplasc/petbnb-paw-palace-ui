@@ -50,7 +50,7 @@ const Navbar = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
           <img 
-            src="/lovable-uploads/8ce9ae46-8233-4060-a032-afdcc9bd5d24.png" 
+            src="/lovable-uploads/bb2c3452-303e-4f9f-add6-c37afcaa7cd8.png" 
             alt="Petbnb Logo" 
             className="w-10 h-10 object-contain"
           />

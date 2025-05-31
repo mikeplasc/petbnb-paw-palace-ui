@@ -6,9 +6,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-petbnb-400 to-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🐾</span>
-              </div>
+              <img 
+                src="/lovable-uploads/bb2c3452-303e-4f9f-add6-c37afcaa7cd8.png" 
+                alt="Petbnb Logo" 
+                className="w-8 h-8 object-contain"
+              />
               <span className="text-xl font-bold">Petbnb</span>
             </div>
             <p className="text-gray-400 text-sm">
