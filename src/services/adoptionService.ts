@@ -5,11 +5,35 @@ import type { Database } from '@/integrations/supabase/types';
 export type Pet = Database['public']['Tables']['pets']['Row'];
 export type AdoptionRequest = Database['public']['Tables']['adoption_requests']['Row'];
 
-export const getPets = async (): Promise<Pet[]> => {
-  const { data, error } = await supabase
+export const getPets = async (filters?: {
+  location?: string;
+  type?: string;
+  size?: string;
+  age?: string;
+}): Promise<Pet[]> => {
+  let query = supabase
     .from('pets')
     .select('*')
+    .eq('pet_category', 'adoption')
     .order('created_at', { ascending: false });
+
+  if (filters?.location) {
+    query = query.ilike('location', `%${filters.location}%`);
+  }
+  
+  if (filters?.type && filters.type !== 'all') {
+    query = query.eq('type', filters.type);
+  }
+  
+  if (filters?.size && filters.size !== 'all') {
+    query = query.eq('size', filters.size);
+  }
+
+  if (filters?.age && filters.age !== 'all') {
+    query = query.eq('age', filters.age);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching pets:', error);
@@ -30,8 +54,8 @@ export const createAdoptionRequest = async (pet: Pet, userInfo: any): Promise<Ad
     user_id: user.id,
     pet_name: pet.name,
     pet_image: pet.image,
-    user_info: JSON.stringify(userInfo),
-    shelter_name: pet.shelter_name,
+    user_info: userInfo,
+    shelter_name: pet.shelter_name || 'Refugio',
     status: 'pending' as const
   };
 

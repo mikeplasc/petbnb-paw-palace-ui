@@ -8,8 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Heart, MapPin, Calendar, Shield, AlertTriangle } from 'lucide-react';
 import AdoptionModal from '@/components/AdoptionModal';
-import { getPets, Pet } from '@/services/petService';
-import { createAdoptionRequest } from '@/services/adoptionService';
+import { getPets, createAdoptionRequest, type Pet } from '@/services/adoptionService';
 import { toast } from 'sonner';
 
 const Adoption = () => {
@@ -199,7 +198,7 @@ const Adoption = () => {
             <Card key={pet.id} className="group hover:shadow-lg transition-shadow">
               <div className="relative">
                 <img
-                  src={pet.image}
+                  src={pet.image || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop'}
                   alt={pet.name}
                   className="w-full h-48 object-cover rounded-t-lg"
                 />
@@ -274,10 +273,10 @@ const Adoption = () => {
                 <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{pet.date_added}</span>
+                    <span>{new Date(pet.created_at || '').toLocaleDateString()}</span>
                   </div>
                   <div className="font-medium text-green-600">
-                    €{pet.adoption_fee}
+                    €{pet.adoption_fee || 0}
                   </div>
                 </div>
 

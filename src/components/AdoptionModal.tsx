@@ -7,8 +7,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Star, MapPin, Heart, Phone, Mail, Clock, Shield, Calendar, User } from 'lucide-react';
-import { Pet } from '@/services/petService';
+import { Heart, MapPin, Calendar, Shield, Clock, Mail, User } from 'lucide-react';
+import { Pet } from '@/services/adoptionService';
 
 interface AdoptionModalProps {
   pet: Pet | null;
@@ -81,7 +81,7 @@ const AdoptionModal = ({
             <div className="lg:w-1/2">
               <div className="relative">
                 <img
-                  src={pet.image}
+                  src={pet.image || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop'}
                   alt={pet.name}
                   className="w-full h-64 lg:h-80 object-cover rounded-lg"
                 />
@@ -129,7 +129,7 @@ const AdoptionModal = ({
               </div>
 
               <div className="text-2xl font-bold text-green-600">
-                €{pet.adoption_fee} cuota de adopción
+                €{pet.adoption_fee || 0} cuota de adopción
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -149,46 +149,54 @@ const AdoptionModal = ({
           </div>
 
           {/* Description */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Descripción</h3>
-              <p className="text-gray-700">{pet.description}</p>
-            </CardContent>
-          </Card>
+          {pet.description && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Descripción</h3>
+                <p className="text-gray-700">{pet.description}</p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Characteristics */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Características</h3>
-              <div className="flex flex-wrap gap-2">
-                {characteristics.map((characteristic, index) => (
-                  <Badge key={index} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                    {characteristic}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {characteristics.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">Características</h3>
+                <div className="flex flex-wrap gap-2">
+                  {characteristics.map((characteristic, index) => (
+                    <Badge key={index} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                      {characteristic}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Shelter Information */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Información del refugio</h3>
-              <div className="space-y-2">
-                <div className="flex items-center text-gray-700">
-                  <span className="font-medium">{pet.shelter_name}</span>
+          {pet.shelter_name && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">Información del refugio</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center text-gray-700">
+                    <span className="font-medium">{pet.shelter_name}</span>
+                  </div>
+                  {pet.shelter_contact && (
+                    <div className="flex items-center text-gray-700">
+                      <Mail className="w-4 h-4 mr-2" />
+                      <span>{pet.shelter_contact}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center text-gray-700">
+                    <Clock className="w-4 h-4 mr-2" />
+                    <span>Publicado el {new Date(pet.created_at || '').toLocaleDateString()}</span>
+                  </div>
                 </div>
-                <div className="flex items-center text-gray-700">
-                  <Mail className="w-4 h-4 mr-2" />
-                  <span>{pet.shelter_contact}</span>
-                </div>
-                <div className="flex items-center text-gray-700">
-                  <Clock className="w-4 h-4 mr-2" />
-                  <span>Publicado el {new Date(pet.date_added).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Adoption Form */}
           {showAdoptionForm && onSubmitAdoption && (
@@ -275,7 +283,7 @@ const AdoptionModal = ({
             <Button 
               variant="outline" 
               className="flex-1"
-              onClick={() => window.open(`mailto:${pet.shelter_contact}?subject=Consulta sobre ${pet.name}`)}
+              onClick={() => window.open(`mailto:${pet.shelter_contact || 'info@refugio.com'}?subject=Consulta sobre ${pet.name}`)}
             >
               Contactar refugio
             </Button>
