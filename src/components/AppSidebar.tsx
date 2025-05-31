@@ -59,6 +59,8 @@ export function AppSidebar() {
     { path: '/lost-pets', label: 'Perdidas', icon: AlertTriangle },
   ];
 
+  console.log('user', user);
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
