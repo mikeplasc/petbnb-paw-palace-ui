@@ -1,5 +1,4 @@
-
-import { Pet } from '@/types/adoption';
+import { Pet } from '@/services/adoptionService';
 import { mockPets } from '@/data/mockPets';
 
 const names = ['Buddy', 'Bella', 'Charlie', 'Daisy', 'Rocky', 'Molly', 'Jack', 'Maggie', 'Toby', 'Sophie', 'Coco', 'Lola', 'Oscar', 'Zoey', 'Teddy', 'Chloe', 'Duke', 'Penny', 'Zeus', 'Ruby', 'Milo', 'Sadie', 'Otis', 'Stella', 'Leo', 'Nala', 'Simba', 'Princess', 'Tiger', 'Angel'];
@@ -96,11 +95,14 @@ export const generatePets = (): Pet[] => {
       vaccinated: Math.random() > 0.2,
       sterilized: Math.random() > 0.3,
       urgent: Math.random() > 0.8,
-      shelterName: shelter,
-      shelterContact: `contacto@${shelter.toLowerCase().replace(/\s+/g, '')}.org`,
-      adoptionFee: Math.floor(Math.random() * 200) + 50,
-      dateAdded: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
-      characteristics: petCharacteristics
+      shelter_name: shelter,
+      shelter_contact: `contacto@${shelter.toLowerCase().replace(/\s+/g, '')}.org`,
+      adoption_fee: Math.floor(Math.random() * 200) + 50,
+      created_at: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
+      updated_at: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
+      characteristics: petCharacteristics,
+      pet_category: 'adoption',
+      owner_id: null
     };
 
     allPets.push(pet);

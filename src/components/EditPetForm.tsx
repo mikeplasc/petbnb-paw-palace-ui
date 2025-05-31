@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Pet } from '@/types/adoption';
+import { Pet } from '@/services/adoptionService';
 
 interface EditPetFormProps {
   pet: Pet;
@@ -32,7 +31,7 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!petData.name || !petData.breed || !petData.type || !petData.shelterName || !petData.shelterContact) {
+    if (!petData.name || !petData.breed || !petData.type || !petData.shelter_name || !petData.shelter_contact) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos obligatorios",
@@ -45,7 +44,7 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
     try {
       const updatedPet = {
         ...petData,
-        adoptionFee: typeof petData.adoptionFee === 'string' ? parseInt(petData.adoptionFee) || 0 : petData.adoptionFee,
+        adoption_fee: typeof petData.adoption_fee === 'string' ? parseInt(petData.adoption_fee) || 0 : petData.adoption_fee,
       };
 
       onUpdatePet(updatedPet);
@@ -290,8 +289,8 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
                   <Label htmlFor="shelterName">Nombre del refugio *</Label>
                   <Input
                     id="shelterName"
-                    value={petData.shelterName}
-                    onChange={(e) => setPetData(prev => ({ ...prev, shelterName: e.target.value }))}
+                    value={petData.shelter_name}
+                    onChange={(e) => setPetData(prev => ({ ...prev, shelter_name: e.target.value }))}
                     placeholder="Nombre del refugio"
                     required
                   />
@@ -302,8 +301,8 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
                   <Input
                     id="shelterContact"
                     type="email"
-                    value={petData.shelterContact}
-                    onChange={(e) => setPetData(prev => ({ ...prev, shelterContact: e.target.value }))}
+                    value={petData.shelter_contact}
+                    onChange={(e) => setPetData(prev => ({ ...prev, shelter_contact: e.target.value }))}
                     placeholder="contacto@refugio.com"
                     required
                   />
@@ -314,8 +313,8 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
                   <Input
                     id="adoptionFee"
                     type="number"
-                    value={petData.adoptionFee}
-                    onChange={(e) => setPetData(prev => ({ ...prev, adoptionFee: parseInt(e.target.value) || 0 }))}
+                    value={petData.adoption_fee}
+                    onChange={(e) => setPetData(prev => ({ ...prev, adoption_fee: parseInt(e.target.value) || 0 }))}
                     placeholder="150"
                     min="0"
                   />
