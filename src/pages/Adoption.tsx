@@ -10,6 +10,7 @@ import { getPets, Pet, createAdoptionRequest } from '@/services/adoptionService'
 import { toast } from '@/hooks/use-toast';
 import AdoptionModal from '@/components/AdoptionModal';
 import AdoptionConfirmModal from '@/components/AdoptionConfirmModal';
+import AddPetForm from '@/components/AddPetForm';
 
 const PETS_PER_PAGE = 12;
 
@@ -179,6 +180,14 @@ const Adoption = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleAddPet = (newPetData: any) => {
+    const updatedPets = [...pets, newPetData];
+    setPets(updatedPets);
+    setFilteredPets(updatedPets);
+    
+    console.log('New pet added:', newPetData);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -215,6 +224,11 @@ const Adoption = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Add Pet Form */}
+        <div className="mb-6 flex justify-end">
+          <AddPetForm onAddPet={handleAddPet} />
+        </div>
+
         {/* Filters */}
         {showFilters && (
           <Card className="mb-8">
