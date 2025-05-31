@@ -280,14 +280,20 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
                 <SelectValue placeholder="Selecciona el servicio" />
               </SelectTrigger>
               <SelectContent>
-                {veterinary.services && veterinary.services.filter((service: string) => service && service.trim()).map((service: string, index: number) => {
-                  const serviceValue = service.toLowerCase().replace(/\s+/g, '-');
-                  return (
-                    <SelectItem key={index} value={serviceValue || `service-${index}`}>
-                      {service}
-                    </SelectItem>
-                  );
-                })}
+                {veterinary.services && veterinary.services
+                  .filter((service: string) => service && typeof service === 'string' && service.trim())
+                  .map((service: string, index: number) => {
+                    // Create a safe, non-empty value
+                    const cleanService = service.trim();
+                    const serviceValue = cleanService.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                    const finalValue = serviceValue || `service-${index + 1}`;
+                    
+                    return (
+                      <SelectItem key={`${cleanService}-${index}`} value={finalValue}>
+                        {cleanService}
+                      </SelectItem>
+                    );
+                  })}
               </SelectContent>
             </Select>
           </div>
