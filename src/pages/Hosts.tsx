@@ -25,9 +25,9 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import HostProfileModal from "@/components/HostProfileModal";
+import { Input } from "@/components/ui/input";
 import logo from "@/assets/logo.jpeg";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -82,7 +82,7 @@ const Hosts = () => {
       }
 
       if (petType !== "all") {
-        filters.petType = petType;
+        filters.type = petType;
       }
 
       if (minRating !== "all") {
@@ -111,7 +111,7 @@ const Hosts = () => {
   };
 
   const handleSelectHost = (hostId: string) => {
-    const host = hosts.find(h => h.id === hostId);
+    const host = hosts.find((h) => h.id === hostId);
     if (host) {
       toast({
         title: "Cuidador seleccionado",
@@ -366,6 +366,11 @@ const Hosts = () => {
                       /noche
                     </span>
                   </div>
+
+                  <Button size="sm" onClick={() => handleViewProfile(host)}>
+                    Ver perfil
+                  </Button>
+
                 </div>
               </div>
             </Card>

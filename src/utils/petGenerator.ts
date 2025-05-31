@@ -1,97 +1,174 @@
-
 import { faker } from '@faker-js/faker';
 
-const petTypes = ['Perro', 'Gato', 'Conejo', 'Hámster', 'Pájaro'];
-const dogBreeds = ['Labrador', 'Golden Retriever', 'Bulldog', 'Pastor Alemán', 'Chihuahua', 'Beagle', 'Poodle', 'Rottweiler'];
-const catBreeds = ['Persa', 'Siamés', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Bengalí', 'Sphynx', 'Mestizo'];
+export type Pet = {
+  id: string;
+  name: string;
+  breed: string;
+  age: string;
+  size: string;
+  gender: string;
+  type: string;
+  description: string;
+  image: string;
+  location: string;
+  shelter_name: string;
+  shelter_contact: string;
+  characteristics: string[];
+  pet_category: string;
+  vaccinated: boolean;
+  sterilized: boolean;
+  urgent: boolean;
+  is_lost: boolean;
+  adoption_fee: number;
+  created_at: string;
+  updated_at: string;
+  owner_id: string | null;
+};
+
+const dogBreeds = [
+  'Labrador Retriever',
+  'German Shepherd',
+  'Golden Retriever',
+  'French Bulldog',
+  'Bulldog',
+  'Poodle',
+  'Beagle',
+  'Rottweiler',
+  'Dachshund',
+  'German Shorthaired Pointer',
+];
+
+const catBreeds = [
+  'Maine Coon',
+  'Ragdoll',
+  'British Shorthair',
+  'Persian',
+  'Siamese',
+  'Bengal',
+  'Sphynx',
+  'Abyssinian',
+  'Scottish Fold',
+  'Russian Blue',
+];
+
+const ages = ['Cachorro', 'Adulto', 'Senior'];
 const sizes = ['Pequeño', 'Mediano', 'Grande'];
 const genders = ['Macho', 'Hembra'];
-const ages = ['Cachorro', 'Joven', 'Adulto', 'Senior'];
+const petTypes = ['Adopción', 'Rescate', 'Encontrado', 'Extraviado'];
+const petCharacteristics = [
+  'Amigable',
+  'Juguetón',
+  'Tranquilo',
+  'Inteligente',
+  'Leal',
+  'Protector',
+  'Independiente',
+  'Cariñoso',
+  'Divertido',
+  'Paciente',
+];
 
-const getBreedByType = (type: string): string => {
-  switch (type) {
-    case 'Perro':
-      return faker.helpers.arrayElement(dogBreeds);
-    case 'Gato':
-      return faker.helpers.arrayElement(catBreeds);
-    default:
-      return 'Mestizo';
-  }
-};
+const dogImages = [
+  '/images/dogs/dog-1.jpg',
+  '/images/dogs/dog-2.jpg',
+  '/images/dogs/dog-3.jpg',
+  '/images/dogs/dog-4.jpg',
+  '/images/dogs/dog-5.jpg',
+  '/images/dogs/dog-6.jpg',
+  '/images/dogs/dog-7.jpg',
+  '/images/dogs/dog-8.jpg',
+  '/images/dogs/dog-9.jpg',
+  '/images/dogs/dog-10.jpg',
+];
 
-const getCharacteristics = (type: string): string[] => {
-  const commonCharacteristics = [
-    'Juguetón', 'Tranquilo', 'Sociable', 'Cariñoso', 'Activo', 'Inteligente',
-    'Obediente', 'Protector', 'Tímido', 'Energético', 'Amigable', 'Independiente'
-  ];
-  
-  const typeSpecific = {
-    'Perro': ['Leal', 'Guardián', 'Entrenado', 'Le gusta caminar'],
-    'Gato': ['Independiente', 'Limpio', 'Cazador', 'Le gusta dormir'],
-    'Conejo': ['Silencioso', 'Pequeño', 'Herbívoro'],
-    'Hámster': ['Nocturno', 'Pequeño', 'Fácil cuidado'],
-    'Pájaro': ['Cantarín', 'Colorido', 'Social']
-  };
+const catImages = [
+  '/images/cats/cat-1.jpg',
+  '/images/cats/cat-2.jpg',
+  '/images/cats/cat-3.jpg',
+  '/images/cats/cat-4.jpg',
+  '/images/cats/cat-5.jpg',
+  '/images/cats/cat-6.jpg',
+  '/images/cats/cat-7.jpg',
+  '/images/cats/cat-8.jpg',
+  '/images/cats/cat-9.jpg',
+  '/images/cats/cat-10.jpg',
+];
 
-    const pet: Pet = {
-      id: i.toString(),
-      name,
-      breed,
-      age,
-      size,
-      gender,
-      type,
-      description: `${name} es un${gender === 'Hembra' ? 'a' : ''} ${type.toLowerCase()} muy especial que busca una familia amorosa.`,
-      image: imageArray[Math.floor(Math.random() * imageArray.length)],
-      location: `${city}, España`,
-      vaccinated: Math.random() > 0.2,
-      sterilized: Math.random() > 0.3,
-      urgent: Math.random() > 0.8,
-      shelter_name: shelter,
-      shelter_contact: `contacto@${shelter.toLowerCase().replace(/\s+/g, '')}.org`,
-      adoption_fee: 0,
-      created_at: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
-      updated_at: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
-      characteristics: petCharacteristics,
-      pet_category: 'adoption',
-      owner_id: null
-    };
+const cities = [
+  'Buenos Aires',
+  'Córdoba',
+  'Rosario',
+  'Mendoza',
+  'La Plata',
+  'Mar del Plata',
+  'Tucumán',
+  'Salta',
+  'Santa Fe',
+  'Corrientes',
+];
 
-  const available = [...commonCharacteristics, ...(typeSpecific[type as keyof typeof typeSpecific] || [])];
-  return faker.helpers.arrayElements(available, { min: 2, max: 4 });
-};
+const shelters = [
+  'Huellitas Felices',
+  'Patitas al Rescate',
+  'Amores Peludos',
+  'Refugio Esperanza',
+  'El Arca de Noé',
+];
 
-export const generatePet = (petCategory: 'adoption' | 'personal' = 'adoption') => {
-  const type = faker.helpers.arrayElement(petTypes);
-  const breed = getBreedByType(type);
-  const characteristics = getCharacteristics(type);
-  
+const shelterContacts = [
+  'info@huellitasfelices.org',
+  'adopciones@patitasalrescate.com',
+  'contacto@amorespeludos.org',
+  'ayuda@refugioesperanza.org',
+  'salvaunavida@elarcadenoe.com',
+];
+
+export const generatePet = (i: number): Pet => {
+  const breed = faker.helpers.arrayElement(dogBreeds.concat(catBreeds));
+  const age = faker.helpers.arrayElement(ages);
+  const size = faker.helpers.arrayElement(sizes);
+  const gender = faker.helpers.arrayElement(genders);
+  const type = faker.helpers.arrayElement(['Perro', 'Gato']);
+  const imageArray = type === 'Perro' ? dogImages : catImages;
+  const image = faker.helpers.arrayElement(imageArray);
+  const city = faker.helpers.arrayElement(cities);
+  const petType = faker.helpers.arrayElement(petTypes);
+  const urgent = faker.datatype.boolean(0.2);
+  const shelter = faker.helpers.arrayElement(shelters);
+  const shelterContact = faker.helpers.arrayElement(shelterContacts);
+  const vaccinated = faker.datatype.boolean(0.8);
+  const sterilized = faker.datatype.boolean(0.7);
+  const characteristics = faker.helpers.arrayElements(
+    petCharacteristics,
+    faker.number.int({ min: 2, max: 4 })
+  );
+
   return {
-    id: faker.string.uuid(),
+    id: `pet-${i}`,
     name: faker.person.firstName(),
     breed,
-    age: faker.helpers.arrayElement(ages),
-    size: faker.helpers.arrayElement(sizes),
-    gender: faker.helpers.arrayElement(genders),
+    age,
+    size,
+    gender,
     type,
-    description: `${faker.lorem.sentence()} Es muy ${characteristics[0].toLowerCase()} y ${characteristics[1].toLowerCase()}.`,
-    image: `https://picsum.photos/400/300?random=${faker.number.int(1000)}`,
-    location: faker.location.city(),
-    vaccinated: faker.datatype.boolean(0.8),
-    sterilized: faker.datatype.boolean(0.6),
-    urgent: faker.datatype.boolean(0.2),
-    is_lost: false,
+    description: faker.lorem.sentences(2),
+    image,
+    location: city,
+    shelter_name: shelter,
+    shelter_contact: shelterContact,
     characteristics,
-    pet_category: petCategory,
+    pet_category: petType,
+    vaccinated,
+    sterilized,
+    urgent,
+    is_lost: false,
+    adoption_fee: faker.number.int({ min: 50, max: 500 }),
     created_at: faker.date.recent().toISOString(),
     updated_at: faker.date.recent().toISOString(),
-    adoption_fee: petCategory === 'adoption' ? faker.number.int({ min: 0, max: 500 }) : 0,
-    shelter_name: petCategory === 'adoption' ? faker.company.name() + ' Shelter' : null,
-    shelter_contact: petCategory === 'adoption' ? faker.phone.number() : null,
-    owner_id: petCategory === 'personal' ? faker.string.uuid() : null,
+    owner_id: null
   };
 };
 
-export const generatePets = (count: number, petCategory: 'adoption' | 'personal' = 'adoption') => {
-  return Array.from({ length: count }, () => generatePet(petCategory));
+export const generatePets = (count: number): Pet[] => {
+  return Array.from({ length: count }, (_, i) => generatePet(i));
 };
