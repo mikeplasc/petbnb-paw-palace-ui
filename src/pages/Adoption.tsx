@@ -13,6 +13,7 @@ import AdoptionModal from '@/components/AdoptionModal';
 import AdoptionConfirmModal from '@/components/AdoptionConfirmModal';
 import AddPetForm from '@/components/AddPetForm';
 import EditPetForm from '@/components/EditPetForm';
+import FiltersModal from '@/components/FiltersModal';
 
 const PETS_PER_PAGE = 12;
 const CURRENT_USER_EMAIL = 'juan.perez@email.com'; // Simular usuario actual
@@ -25,6 +26,7 @@ const Adoption = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [petToAdopt, setPetToAdopt] = useState<Pet | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,7 +37,6 @@ const Adoption = () => {
     location: '',
     urgent: false
   });
-  const [showFilters, setShowFilters] = useState(false);
   const { formatPrice } = useCurrency();
 
   // Mock user data - in real app this would come from authentication
@@ -165,6 +166,10 @@ const Adoption = () => {
     }
   };
 
+  const handleApplyFilters = (newFilters: any) => {
+    setFilters(newFilters);
+  };
+
   const resetFilters = () => {
     setFilters({
       type: '',
@@ -214,6 +219,11 @@ const Adoption = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Count active filters
+  const activeFiltersCount = Object.values(filters).filter(value => 
+    value !== '' && value !== false
+  ).length;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -238,11 +248,16 @@ const Adoption = () => {
               </div>
               <Button
                 variant="secondary"
-                onClick={() => setShowFilters(!showFilters)}
-                className="h-12 px-6"
+                onClick={() => setIsFiltersModalOpen(true)}
+                className="h-12 px-6 relative"
               >
                 <Filter className="w-5 h-5 mr-2" />
                 Filtros
+                {activeFiltersCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1 min-w-[1.25rem] h-5">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
               </Button>
             </div>
           </div>
@@ -254,62 +269,6 @@ const Adoption = () => {
         <div className="mb-6 flex justify-end">
           <AddPetForm onAddPet={handleAddPet} />
         </div>
-
-        {/* Filters */}
-        {showFilters && (
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tipo de mascota" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
-                    <SelectItem value="Perro">Perros</SelectItem>
-                    <SelectItem value="Gato">Gatos</SelectItem>
-                    <SelectItem value="Ave">Aves</SelectItem>
-                    <SelectItem value="Conejo">Conejos</SelectItem>
-                    <SelectItem value="Hámster">Hámsters</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={filters.size} onValueChange={(value) => setFilters(prev => ({ ...prev, size: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tamaño" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
-                    <SelectItem value="Pequeño">Pequeño</SelectItem>
-                    <SelectItem value="Mediano">Mediano</SelectItem>
-                    <SelectItem value="Grande">Grande</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  placeholder="Ubicación"
-                  value={filters.location}
-                  onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
-                />
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="urgent"
-                    checked={filters.urgent}
-                    onChange={(e) => setFilters(prev => ({ ...prev, urgent: e.target.checked }))}
-                    className="rounded"
-                  />
-                  <label htmlFor="urgent" className="text-sm font-medium">Solo urgentes</label>
-                </div>
-              </div>
-              
-              <Button onClick={resetFilters} variant="outline" size="sm">
-                Limpiar filtros
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Results Counter */}
         <div className="mb-6 flex justify-between items-center">
@@ -506,6 +465,15 @@ const Adoption = () => {
           setPetToAdopt(null);
         }}
         onConfirm={handleConfirmAdoption}
+      />
+
+      {/* Filters Modal */}
+      <FiltersModal
+        isOpen={isFiltersModalOpen}
+        onClose={() => setIsFiltersModalOpen(false)}
+        filters={filters}
+        onApplyFilters={handleApplyFilters}
+        onResetFilters={resetFilters}
       />
     </div>
   );
