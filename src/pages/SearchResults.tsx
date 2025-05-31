@@ -2,107 +2,50 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
+import SearchBar, { SearchFilters } from '@/components/SearchBar';
+import HostCard from '@/components/HostCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import HostCard from '@/components/HostCard';
-import SearchBar from '@/components/SearchBar';
-import { mockHosts, petTypes, Host } from '@/data/mockData';
-import { Filter, Grid, List, MapPin } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { mockHosts, petTypes, cities } from '@/data/mockData';
+import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
-  const [hosts] = useState<Host[]>(mockHosts);
-  const [filteredHosts, setFilteredHosts] = useState<Host[]>(mockHosts);
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState('search');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState('rating');
   const [showFilters, setShowFilters] = useState(false);
   
-  // Get search filters from URL
-  const locationParam = searchParams.get('location') || '';
-  const petTypeParam = searchParams.get('petType') || '';
-  
-  // Filters
-  const [sortBy, setSortBy] = useState('rating');
-  const [selectedHostTypes, setSelectedHostTypes] = useState<string[]>([]);
+  // Filters state
   const [selectedPetTypes, setSelectedPetTypes] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedHostTypes, setSelectedHostTypes] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState([0, 2000]);
   const [minRating, setMinRating] = useState(0);
 
-  const hostTypes = [
-    { value: 'family', label: 'Familia' },
-    { value: 'individual', label: 'Cuidador individual' },
-    { value: 'veterinary', label: 'Veterinaria' }
-  ];
+  // Get search parameters
+  const locationParam = searchParams.get('location') || '';
+  const petTypeParam = searchParams.get('petType') || '';
+  const startDateParam = searchParams.get('startDate') || '';
+  const endDateParam = searchParams.get('endDate') || '';
 
-  useEffect(() => {
-    let filtered = [...hosts];
+  const handleNavigation = (page: string) => {
+    setCurrentPage(page);
+  };
 
-    // Apply URL search filters
-    if (locationParam) {
-      filtered = filtered.filter(host =>
-        host.city.toLowerCase().includes(locationParam.toLowerCase()) ||
-        host.location.toLowerCase().includes(locationParam.toLowerCase())
-      );
-    }
-    if (petTypeParam) {
-      filtered = filtered.filter(host =>
-        host.acceptedPets.includes(petTypeParam)
-      );
-    }
-
-    // Apply additional filters
-    if (selectedHostTypes.length > 0) {
-      filtered = filtered.filter(host => selectedHostTypes.includes(host.type));
-    }
-
-    if (selectedPetTypes.length > 0) {
-      filtered = filtered.filter(host =>
-        selectedPetTypes.some(petType => host.acceptedPets.includes(petType))
-      );
-    }
-
-    if (priceRange.min > 0 || priceRange.max < 1000) {
-      filtered = filtered.filter(host =>
-        host.pricePerNight >= priceRange.min && host.pricePerNight <= priceRange.max
-      );
-    }
-
-    if (minRating > 0) {
-      filtered = filtered.filter(host => host.rating >= minRating);
-    }
-
-    // Sort results
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.rating - a.rating;
-        case 'price_low':
-          return a.pricePerNight - b.pricePerNight;
-        case 'price_high':
-          return b.pricePerNight - a.pricePerNight;
-        case 'reviews':
-          return b.reviewCount - a.reviewCount;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredHosts(filtered);
-  }, [hosts, locationParam, petTypeParam, selectedHostTypes, selectedPetTypes, priceRange, minRating, sortBy]);
+  const handleSearch = (filters: SearchFilters) => {
+    console.log('Nueva búsqueda:', filters);
+    // Here you would update the search results based on new filters
+  };
 
   const handleToggleFavorite = (hostId: string) => {
-    setFavorites(prev =>
-      prev.includes(hostId)
+    setFavorites(prev => 
+      prev.includes(hostId) 
         ? prev.filter(id => id !== hostId)
         : [...prev, hostId]
     );
@@ -112,256 +55,352 @@ const SearchResults = () => {
     console.log('Ver detalles del host:', hostId);
   };
 
-  const handleHostTypeChange = (hostType: string, checked: boolean) => {
-    if (checked) {
-      setSelectedHostTypes(prev => [...prev, hostType]);
-    } else {
-      setSelectedHostTypes(prev => prev.filter(type => type !== hostType));
-    }
-  };
+  // Filter and sort hosts
+  const filteredAndSortedHosts = mockHosts
+    .filter(host => {
+      // Location filter
+      if (locationParam && !host.location.toLowerCase().includes(locationParam.toLowerCase())) {
+        return false;
+      }
+      
+      // Pet type filter
+      if (petTypeParam && !host.acceptedPets.some(pet => 
+        pet.toLowerCase().includes(petTypeParam.toLowerCase())
+      )) {
+        return false;
+      }
 
-  const handlePetTypeChange = (petType: string, checked: boolean) => {
-    if (checked) {
-      setSelectedPetTypes(prev => [...prev, petType]);
-    } else {
-      setSelectedPetTypes(prev => prev.filter(type => type !== petType));
-    }
-  };
+      // Pet types filter
+      if (selectedPetTypes.length > 0 && !selectedPetTypes.some(petType =>
+        host.acceptedPets.includes(petType)
+      )) {
+        return false;
+      }
 
-  const clearFilters = () => {
-    setSelectedHostTypes([]);
-    setSelectedPetTypes([]);
-    setPriceRange({ min: 0, max: 1000 });
-    setMinRating(0);
+      // Services filter
+      if (selectedServices.length > 0 && !selectedServices.some(service =>
+        host.services.includes(service)
+      )) {
+        return false;
+      }
+
+      // Host type filter
+      if (selectedHostTypes.length > 0 && !selectedHostTypes.includes(host.type)) {
+        return false;
+      }
+
+      // Price filter
+      if (host.pricePerNight < priceRange[0] || host.pricePerNight > priceRange[1]) {
+        return false;
+      }
+
+      // Rating filter
+      if (host.rating < minRating) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price-low':
+          return a.pricePerNight - b.pricePerNight;
+        case 'price-high':
+          return b.pricePerNight - a.pricePerNight;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'reviews':
+          return b.reviewCount - a.reviewCount;
+        default:
+          return 0;
+      }
+    });
+
+  const services = ['Paseos', 'Alimentación', 'Medicación', 'Juegos', 'Cuidado nocturno', 'Baño'];
+  const hostTypes = ['family', 'individual', 'veterinary'];
+
+  const getHostTypeLabel = (type: string) => {
+    switch (type) {
+      case 'family': return 'Familia';
+      case 'individual': return 'Cuidador individual';
+      case 'veterinary': return 'Veterinaria';
+      default: return type;
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header currentPage={currentPage} onNavigate={handleNavigation} />
       
       {/* Search Bar */}
-      <div className="bg-white border-b border-gray-200 py-4 px-4">
-        <div className="container mx-auto">
-          <SearchBar variant="compact" />
+      <div className="bg-white shadow-sm border-b border-gray-200 py-4">
+        <div className="container mx-auto px-4">
+          <SearchBar onSearch={handleSearch} variant="compact" />
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-8">
+        {/* Results Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {locationParam ? `Cuidadores en ${locationParam}` : 'Resultados de búsqueda'}
+            </h1>
+            <p className="text-gray-600">
+              {filteredAndSortedHosts.length} cuidadores encontrados
+              {petTypeParam && ` para ${petTypeParam.toLowerCase()}`}
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-4 mt-4 lg:mt-0">
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-white rounded-lg border border-gray-300 p-1">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="px-3"
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="px-3"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Sort By */}
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-48 bg-white">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                <SelectItem value="rating">Mejor calificación</SelectItem>
+                <SelectItem value="price-low">Precio: menor a mayor</SelectItem>
+                <SelectItem value="price-high">Precio: mayor a menor</SelectItem>
+                <SelectItem value="reviews">Más reseñas</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Filters Toggle */}
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="bg-white border-gray-300"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+            </Button>
+          </div>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
-          <div className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-            <Card className="sticky top-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
+          {showFilters && (
+            <div className="lg:w-80">
+              <Card className="bg-white border border-gray-200 shadow-sm">
+                <CardContent className="p-6 space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-petbnb-600 hover:text-petbnb-700"
-                  >
-                    Limpiar
-                  </Button>
-                </div>
 
-                <div className="space-y-6">
-                  {/* Host Type Filter */}
+                  {/* Pet Types */}
                   <div>
-                    <Label className="text-base font-medium mb-3 block">Tipo de cuidador</Label>
-                    <div className="space-y-2">
-                      {hostTypes.map((type) => (
-                        <div key={type.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={type.value}
-                            checked={selectedHostTypes.includes(type.value)}
-                            onCheckedChange={(checked) => handleHostTypeChange(type.value, checked as boolean)}
-                          />
-                          <Label htmlFor={type.value} className="text-sm cursor-pointer">
-                            {type.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Pet Type Filter */}
-                  <div>
-                    <Label className="text-base font-medium mb-3 block">Mascotas aceptadas</Label>
+                    <h4 className="font-medium text-gray-900 mb-3">Tipo de mascota</h4>
                     <div className="space-y-2">
                       {petTypes.map((petType) => (
                         <div key={petType} className="flex items-center space-x-2">
                           <Checkbox
                             id={`pet-${petType}`}
                             checked={selectedPetTypes.includes(petType)}
-                            onCheckedChange={(checked) => handlePetTypeChange(petType, checked as boolean)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedPetTypes([...selectedPetTypes, petType]);
+                              } else {
+                                setSelectedPetTypes(selectedPetTypes.filter(p => p !== petType));
+                              }
+                            }}
                           />
-                          <Label htmlFor={`pet-${petType}`} className="text-sm cursor-pointer">
+                          <label htmlFor={`pet-${petType}`} className="text-sm text-gray-700">
                             {petType}
-                          </Label>
+                          </label>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Rating Filter */}
+                  {/* Services */}
                   <div>
-                    <Label className="text-base font-medium mb-3 block">Calificación mínima</Label>
-                    <Select value={minRating.toString()} onValueChange={(value) => setMinRating(parseInt(value))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Cualquier calificación" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">Cualquier calificación</SelectItem>
-                        <SelectItem value="3">3+ estrellas</SelectItem>
-                        <SelectItem value="4">4+ estrellas</SelectItem>
-                        <SelectItem value="4.5">4.5+ estrellas</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <h4 className="font-medium text-gray-900 mb-3">Servicios</h4>
+                    <div className="space-y-2">
+                      {services.map((service) => (
+                        <div key={service} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`service-${service}`}
+                            checked={selectedServices.includes(service)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedServices([...selectedServices, service]);
+                              } else {
+                                setSelectedServices(selectedServices.filter(s => s !== service));
+                              }
+                            }}
+                          />
+                          <label htmlFor={`service-${service}`} className="text-sm text-gray-700">
+                            {service}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Results */}
-          <div className="flex-1">
-            {/* Results Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {filteredHosts.length} cuidadores encontrados
-                </h2>
-                {locationParam && (
-                  <div className="flex items-center text-gray-600">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    <span>en {locationParam}</span>
+                  {/* Host Type */}
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Tipo de cuidador</h4>
+                    <div className="space-y-2">
+                      {hostTypes.map((hostType) => (
+                        <div key={hostType} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`host-${hostType}`}
+                            checked={selectedHostTypes.includes(hostType)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedHostTypes([...selectedHostTypes, hostType]);
+                              } else {
+                                setSelectedHostTypes(selectedHostTypes.filter(h => h !== hostType));
+                              }
+                            }}
+                          />
+                          <label htmlFor={`host-${hostType}`} className="text-sm text-gray-700">
+                            {getHostTypeLabel(hostType)}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="lg:hidden"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </Button>
+                  {/* Price Range */}
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Precio por noche</h4>
+                    <div className="px-2">
+                      <Slider
+                        value={priceRange}
+                        onValueChange={setPriceRange}
+                        max={2000}
+                        min={0}
+                        step={50}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-sm text-gray-600 mt-2">
+                        <span>${priceRange[0]}</span>
+                        <span>${priceRange[1]}</span>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="flex items-center space-x-2">
+                  {/* Rating */}
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Calificación mínima</h4>
+                    <div className="space-y-2">
+                      {[4, 3, 2, 1, 0].map((rating) => (
+                        <div key={rating} className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id={`rating-${rating}`}
+                            name="rating"
+                            checked={minRating === rating}
+                            onChange={() => setMinRating(rating)}
+                            className="text-primary-600 focus:ring-primary-500"
+                          />
+                          <label htmlFor={`rating-${rating}`} className="flex items-center text-sm text-gray-700">
+                            <div className="flex items-center mr-2">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < Math.max(rating, 1) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            {rating > 0 ? `${rating}+ estrellas` : 'Cualquier calificación'}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Clear Filters */}
                   <Button
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedPetTypes([]);
+                      setSelectedServices([]);
+                      setSelectedHostTypes([]);
+                      setPriceRange([0, 2000]);
+                      setMinRating(0);
+                    }}
+                    className="w-full"
                   >
-                    <Grid className="w-4 h-4" />
+                    Limpiar filtros
                   </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Ordenar por" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rating">Mejor calificación</SelectItem>
-                    <SelectItem value="price_low">Precio: menor a mayor</SelectItem>
-                    <SelectItem value="price_high">Precio: mayor a menor</SelectItem>
-                    <SelectItem value="reviews">Más reseñas</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                </CardContent>
+              </Card>
             </div>
+          )}
 
-            {/* Active Filters */}
-            {(selectedHostTypes.length > 0 || selectedPetTypes.length > 0 || minRating > 0 || locationParam || petTypeParam) && (
-              <div className="mb-6">
-                <div className="flex flex-wrap gap-2">
-                  {locationParam && (
-                    <Badge variant="outline" className="bg-petbnb-50 text-petbnb-700 border-petbnb-300">
-                      📍 {locationParam}
-                    </Badge>
-                  )}
-                  {petTypeParam && (
-                    <Badge variant="outline" className="bg-petbnb-50 text-petbnb-700 border-petbnb-300">
-                      🐾 {petTypeParam}
-                    </Badge>
-                  )}
-                  {selectedHostTypes.map((type) => (
-                    <Badge key={type} variant="secondary" className="cursor-pointer">
-                      {hostTypes.find(t => t.value === type)?.label}
-                      <button
-                        onClick={() => handleHostTypeChange(type, false)}
-                        className="ml-2 hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                  {selectedPetTypes.map((petType) => (
-                    <Badge key={petType} variant="secondary" className="cursor-pointer">
-                      {petType}
-                      <button
-                        onClick={() => handlePetTypeChange(petType, false)}
-                        className="ml-2 hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                  {minRating > 0 && (
-                    <Badge variant="secondary" className="cursor-pointer">
-                      {minRating}+ estrellas
-                      <button
-                        onClick={() => setMinRating(0)}
-                        className="ml-2 hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Results Grid/List */}
-            {filteredHosts.length > 0 ? (
+          {/* Results Grid/List */}
+          <div className="flex-1">
+            {filteredAndSortedHosts.length === 0 ? (
+              <Card className="bg-white border border-gray-200 shadow-sm">
+                <CardContent className="p-12 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <MapPin className="w-12 h-12 mx-auto" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No se encontraron cuidadores
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Intenta ajustar tus filtros o buscar en otra ubicación
+                  </p>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedPetTypes([]);
+                      setSelectedServices([]);
+                      setSelectedHostTypes([]);
+                      setPriceRange([0, 2000]);
+                      setMinRating(0);
+                    }}
+                  >
+                    Limpiar filtros
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
               <div className={viewMode === 'grid' 
                 ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' 
                 : 'space-y-4'
               }>
-                {filteredHosts.map((host) => (
+                {filteredAndSortedHosts.map((host) => (
                   <HostCard
                     key={host.id}
                     host={host}
                     onViewDetails={handleViewDetails}
                     onToggleFavorite={handleToggleFavorite}
                     isFavorite={favorites.includes(host.id)}
-                    variant={viewMode}
                   />
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                  No se encontraron cuidadores
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Intenta ajustar tus filtros de búsqueda o ampliar el área de búsqueda
-                </p>
-                <Button onClick={clearFilters} variant="outline">
-                  Limpiar filtros
+            )}
+
+            {/* Load More Button */}
+            {filteredAndSortedHosts.length > 0 && (
+              <div className="text-center mt-12">
+                <Button variant="outline" className="px-8">
+                  Cargar más resultados
                 </Button>
               </div>
             )}
