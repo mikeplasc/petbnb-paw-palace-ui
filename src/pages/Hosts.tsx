@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,22 +7,49 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Star, Heart, MapPin, Clock, Shield } from 'lucide-react';
-import { getHosts, Host } from '@/services/hostService';
+import { getHosts } from '@/services/hostService';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const Hosts = () => {
   const [searchLocation, setSearchLocation] = useState('');
   const [petType, setPetType] = useState('all');
+  const [hostType, setHostType] = useState('all');
+  const [minRating, setMinRating] = useState('all');
+  const [maxPrice, setMaxPrice] = useState('');
 
-  const { toggleFavorite, isFavorite } = useFavorites('host');
+  const debouncedSearchLocation = useDebounce(searchLocation, 1000);
+  const debouncedMaxPrice = useDebounce(maxPrice, 1000);
+
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   const { data: hosts = [], isLoading, error } = useQuery({
-    queryKey: ['hosts', searchLocation, petType],
-    queryFn: () => getHosts({
-      location: searchLocation || undefined,
-      petType: petType === 'all' ? undefined : petType,
-      type: 'sitter'
-    }),
+    queryKey: ['hosts', debouncedSearchLocation, petType, hostType, minRating, debouncedMaxPrice],
+    queryFn: () => {
+      const filters: any = {};
+      
+      if (debouncedSearchLocation) {
+        filters.location = debouncedSearchLocation;
+      }
+      
+      if (petType !== 'all') {
+        filters.petType = petType;
+      }
+      
+      if (hostType !== 'all') {
+        filters.type = hostType;
+      }
+      
+      if (minRating !== 'all') {
+        filters.minRating = parseFloat(minRating);
+      }
+      
+      if (debouncedMaxPrice) {
+        filters.maxPrice = parseFloat(debouncedMaxPrice);
+      }
+
+      return getHosts(filters);
+    },
   });
 
   const handleToggleFavorite = (hostId: string) => {
@@ -55,7 +83,7 @@ const Hosts = () => {
 
       {/* Filtros */}
       <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Ubicación
@@ -66,6 +94,7 @@ const Hosts = () => {
               onChange={(e) => setSearchLocation(e.target.value)}
             />
           </div>
+          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tipo de mascota
@@ -83,22 +112,80 @@ const Hosts = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-end">
-            <Button 
-              onClick={() => {
-                setSearchLocation('');
-                setPetType('all');
-              }}
-              variant="outline" 
-              className="w-full"
-            >
-              Limpiar filtros
-            </Button>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo de servicio
+            </label>
+            <Select value={hostType} onValueChange={setHostType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de servicio" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="sitter">Cuidador</SelectItem>
+                <SelectItem value="daycare">Guardería</SelectItem>
+                <SelectItem value="walker">Paseador</SelectItem>
+                <SelectItem value="boarding">Pensión</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Valoración mínima
+            </label>
+            <Select value={minRating} onValueChange={setMinRating}>
+              <SelectTrigger>
+                <SelectValue placeholder="Valoración" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="4.5">4.5+ ⭐</SelectItem>
+                <SelectItem value="4.0">4.0+ ⭐</SelectItem>
+                <SelectItem value="3.5">3.5+ ⭐</SelectItem>
+                <SelectItem value="3.0">3.0+ ⭐</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Precio máximo
+            </label>
+            <Input
+              type="number"
+              placeholder="€ por noche"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <Button 
+            onClick={() => {
+              setSearchLocation('');
+              setPetType('all');
+              setHostType('all');
+              setMinRating('all');
+              setMaxPrice('');
+            }}
+            variant="outline"
+          >
+            Limpiar filtros
+          </Button>
         </div>
       </div>
 
-      {/* Lista de cuidadores */}
+      {/* Resultados */}
+      <div className="mb-6">
+        <p className="text-gray-600">
+          {hosts.length} {hosts.length === 1 ? 'cuidador encontrado' : 'cuidadores encontrados'}
+        </p>
+      </div>
+
+      {/* Lista de hosts */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {hosts.map((host) => {
           const images = Array.isArray(host.images) ? host.images as string[] : [];
@@ -185,6 +272,7 @@ const Hosts = () => {
       {hosts.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <p className="text-gray-600">No se encontraron cuidadores con los filtros aplicados.</p>
+          <p className="text-sm text-gray-500 mt-2">Intenta ajustar los filtros o búsqueda.</p>
         </div>
       )}
     </div>
