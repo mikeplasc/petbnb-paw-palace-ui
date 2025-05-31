@@ -14,10 +14,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Star, Shield, Heart, CheckCircle } from 'lucide-react';
+import { Upload, Star, Shield, Heart, CheckCircle, AlertCircle } from 'lucide-react';
 import { cities, petTypes } from '@/data/mockData';
+import { useToast } from '@/hooks/use-toast';
 
 const BecomeHost = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     type: '',
@@ -32,6 +34,7 @@ const BecomeHost = () => {
   });
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const hostTypes = [
     { value: 'family', label: 'Familia' },
@@ -52,6 +55,99 @@ const BecomeHost = () => {
     'Transporte veterinario'
   ];
 
+  const validateStep1 = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'El nombre es requerido';
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = 'El nombre debe tener al menos 3 caracteres';
+    }
+
+    if (!formData.type) {
+      newErrors.type = 'Debes seleccionar un tipo de cuidador';
+    }
+
+    if (!formData.city) {
+      newErrors.city = 'Debes seleccionar una ciudad';
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = 'La dirección es requerida';
+    } else if (formData.address.trim().length < 5) {
+      newErrors.address = 'La dirección debe tener al menos 5 caracteres';
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = 'La descripción es requerida';
+    } else if (formData.description.trim().length < 50) {
+      newErrors.description = 'La descripción debe tener al menos 50 caracteres';
+    }
+
+    if (!formData.experience) {
+      newErrors.experience = 'Debes seleccionar tu experiencia';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (formData.acceptedPets.length === 0) {
+      newErrors.acceptedPets = 'Debes seleccionar al menos un tipo de mascota';
+    }
+
+    if (formData.services.length === 0) {
+      newErrors.services = 'Debes seleccionar al menos un servicio';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.pricePerNight) {
+      newErrors.pricePerNight = 'El precio es requerido';
+    } else {
+      const price = parseInt(formData.pricePerNight);
+      if (isNaN(price) || price < 100) {
+        newErrors.pricePerNight = 'El precio mínimo es $100 MXN';
+      } else if (price > 2000) {
+        newErrors.pricePerNight = 'El precio máximo es $2000 MXN';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    let isValid = false;
+
+    if (currentStep === 1) {
+      isValid = validateStep1();
+    } else if (currentStep === 2) {
+      isValid = validateStep2();
+    } else if (currentStep === 3) {
+      isValid = validateStep3();
+    }
+
+    if (isValid) {
+      setCurrentStep(prev => prev + 1);
+      setErrors({});
+    } else {
+      toast({
+        title: "Campos incompletos",
+        description: "Por favor, completa todos los campos requeridos antes de continuar.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handlePetTypeChange = (petType: string, checked: boolean) => {
     if (checked) {
       setFormData(prev => ({
@@ -63,6 +159,10 @@ const BecomeHost = () => {
         ...prev,
         acceptedPets: prev.acceptedPets.filter(pet => pet !== petType)
       }));
+    }
+    // Clear error when user makes a selection
+    if (errors.acceptedPets) {
+      setErrors(prev => ({ ...prev, acceptedPets: '' }));
     }
   };
 
@@ -78,12 +178,26 @@ const BecomeHost = () => {
         services: prev.services.filter(s => s !== service)
       }));
     }
+    // Clear error when user makes a selection
+    if (errors.services) {
+      setErrors(prev => ({ ...prev, services: '' }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Formulario enviado:', formData);
-    setCurrentStep(4);
+    if (validateStep3()) {
+      console.log('Formulario enviado:', formData);
+      setCurrentStep(4);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const benefits = [
@@ -197,20 +311,33 @@ const BecomeHost = () => {
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name" className="text-gray-700 font-medium">Nombre del hogar/cuidador</Label>
+                        <Label htmlFor="name" className="text-gray-700 font-medium">
+                          Nombre del hogar/cuidador *
+                        </Label>
                         <Input
                           id="name"
                           value={formData.name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
                           placeholder="Ej: Casa de María Elena"
-                          className="border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500"
-                          required
+                          className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
+                            errors.name ? 'border-red-500' : ''
+                          }`}
                         />
+                        {errors.name && (
+                          <div className="flex items-center space-x-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.name}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="type" className="text-gray-700 font-medium">Tipo de cuidador</Label>
-                        <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
-                          <SelectTrigger className="border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500">
+                        <Label htmlFor="type" className="text-gray-700 font-medium">
+                          Tipo de cuidador *
+                        </Label>
+                        <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
+                          <SelectTrigger className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
+                            errors.type ? 'border-red-500' : ''
+                          }`}>
                             <SelectValue placeholder="Selecciona el tipo" />
                           </SelectTrigger>
                           <SelectContent>
@@ -221,14 +348,24 @@ const BecomeHost = () => {
                             ))}
                           </SelectContent>
                         </Select>
+                        {errors.type && (
+                          <div className="flex items-center space-x-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.type}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="city" className="text-gray-700 font-medium">Ciudad</Label>
-                        <Select value={formData.city} onValueChange={(value) => setFormData(prev => ({ ...prev, city: value }))}>
-                          <SelectTrigger className="border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500">
+                        <Label htmlFor="city" className="text-gray-700 font-medium">
+                          Ciudad *
+                        </Label>
+                        <Select value={formData.city} onValueChange={(value) => handleInputChange('city', value)}>
+                          <SelectTrigger className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
+                            errors.city ? 'border-red-500' : ''
+                          }`}>
                             <SelectValue placeholder="Selecciona tu ciudad" />
                           </SelectTrigger>
                           <SelectContent>
@@ -239,11 +376,21 @@ const BecomeHost = () => {
                             ))}
                           </SelectContent>
                         </Select>
+                        {errors.city && (
+                          <div className="flex items-center space-x-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.city}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="experience" className="text-gray-700 font-medium">Años de experiencia</Label>
-                        <Select value={formData.experience} onValueChange={(value) => setFormData(prev => ({ ...prev, experience: value }))}>
-                          <SelectTrigger className="border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500">
+                        <Label htmlFor="experience" className="text-gray-700 font-medium">
+                          Años de experiencia *
+                        </Label>
+                        <Select value={formData.experience} onValueChange={(value) => handleInputChange('experience', value)}>
+                          <SelectTrigger className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
+                            errors.experience ? 'border-red-500' : ''
+                          }`}>
                             <SelectValue placeholder="Selecciona experiencia" />
                           </SelectTrigger>
                           <SelectContent>
@@ -253,32 +400,65 @@ const BecomeHost = () => {
                             <SelectItem value="10+">Más de 10 años</SelectItem>
                           </SelectContent>
                         </Select>
+                        {errors.experience && (
+                          <div className="flex items-center space-x-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.experience}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="address" className="text-gray-700 font-medium">Dirección (zona/colonia)</Label>
+                      <Label htmlFor="address" className="text-gray-700 font-medium">
+                        Dirección (zona/colonia) *
+                      </Label>
                       <Input
                         id="address"
                         value={formData.address}
-                        onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
                         placeholder="Ej: Roma Norte, CDMX"
-                        className="border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500"
-                        required
+                        className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
+                          errors.address ? 'border-red-500' : ''
+                        }`}
                       />
+                      {errors.address && (
+                        <div className="flex items-center space-x-1 text-red-500 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{errors.address}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="description" className="text-gray-700 font-medium">Descripción</Label>
+                      <Label htmlFor="description" className="text-gray-700 font-medium">
+                        Descripción (mínimo 50 caracteres) *
+                      </Label>
                       <Textarea
                         id="description"
                         value={formData.description}
-                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        onChange={(e) => handleInputChange('description', e.target.value)}
                         placeholder="Cuéntanos sobre ti, tu experiencia con mascotas, tu hogar..."
                         rows={4}
-                        className="border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500"
-                        required
+                        className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
+                          errors.description ? 'border-red-500' : ''
+                        }`}
                       />
+                      <div className="flex justify-between items-center">
+                        <div>
+                          {errors.description && (
+                            <div className="flex items-center space-x-1 text-red-500 text-sm">
+                              <AlertCircle className="w-4 h-4" />
+                              <span>{errors.description}</span>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-xs ${
+                          formData.description.length >= 50 ? 'text-green-600' : 'text-gray-500'
+                        }`}>
+                          {formData.description.length}/50 caracteres
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -287,7 +467,15 @@ const BecomeHost = () => {
                 {currentStep === 2 && (
                   <div className="space-y-8">
                     <div className="space-y-4">
-                      <Label className="text-lg font-medium text-gray-900">¿Qué mascotas aceptas?</Label>
+                      <Label className="text-lg font-medium text-gray-900">
+                        ¿Qué mascotas aceptas? *
+                      </Label>
+                      {errors.acceptedPets && (
+                        <div className="flex items-center space-x-1 text-red-500 text-sm mb-4">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{errors.acceptedPets}</span>
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {petTypes.map((petType) => (
                           <div key={petType} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
@@ -303,7 +491,15 @@ const BecomeHost = () => {
                     </div>
 
                     <div className="space-y-4">
-                      <Label className="text-lg font-medium text-gray-900">¿Qué servicios ofreces?</Label>
+                      <Label className="text-lg font-medium text-gray-900">
+                        ¿Qué servicios ofreces? *
+                      </Label>
+                      {errors.services && (
+                        <div className="flex items-center space-x-1 text-red-500 text-sm mb-4">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{errors.services}</span>
+                        </div>
+                      )}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {availableServices.map((service) => (
                           <div key={service} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
@@ -336,21 +532,31 @@ const BecomeHost = () => {
                     </div>
 
                     <div className="space-y-4">
-                      <Label htmlFor="price" className="text-lg font-medium text-gray-900">Precio por noche (MXN)</Label>
+                      <Label htmlFor="price" className="text-lg font-medium text-gray-900">
+                        Precio por noche (MXN) *
+                      </Label>
                       <Input
                         id="price"
                         type="number"
                         value={formData.pricePerNight}
-                        onChange={(e) => setFormData(prev => ({ ...prev, pricePerNight: e.target.value }))}
+                        onChange={(e) => handleInputChange('pricePerNight', e.target.value)}
                         placeholder="300"
                         min="100"
                         max="2000"
-                        className="border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 text-lg"
-                        required
+                        className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 text-lg ${
+                          errors.pricePerNight ? 'border-red-500' : ''
+                        }`}
                       />
-                      <p className="text-sm text-gray-500">
-                        Precio sugerido: $250-500 MXN por noche
-                      </p>
+                      {errors.pricePerNight ? (
+                        <div className="flex items-center space-x-1 text-red-500 text-sm">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{errors.pricePerNight}</span>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          Precio sugerido: $250-500 MXN por noche
+                        </p>
+                      )}
                     </div>
 
                     <div className="bg-petbnb-50 border border-petbnb-200 p-6 rounded-lg">
@@ -389,7 +595,7 @@ const BecomeHost = () => {
                   {currentStep < 3 ? (
                     <Button
                       type="button"
-                      onClick={() => setCurrentStep(prev => prev + 1)}
+                      onClick={handleNext}
                       className="ml-auto bg-petbnb-600 hover:bg-petbnb-700 text-white"
                     >
                       Siguiente
