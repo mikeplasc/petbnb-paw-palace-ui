@@ -1,39 +1,49 @@
+import { Booking, getUserBookings } from "@/services/bookingService";
+import { Calendar, Clock, MapPin, Star, Stethoscope, User } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin, Clock, User, Star, MessageCircle, Stethoscope } from 'lucide-react';
-import { getUserBookings, Booking } from '@/services/bookingService';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 
 const MyBookings = () => {
-  const { data: allBookings = [], isLoading, error } = useQuery({
-    queryKey: ['userBookings'],
+  const {
+    data: allBookings = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["userBookings"],
     queryFn: getUserBookings,
   });
 
-  const upcomingBookings = allBookings.filter(booking => 
-    booking.status === 'confirmed' || booking.status === 'pending'
+  const upcomingBookings = allBookings.filter(
+    (booking) => booking.status === "confirmed" || booking.status === "pending"
   );
 
-  const pastBookings = allBookings.filter(booking => 
-    booking.status === 'completed'
+  const pastBookings = allBookings.filter(
+    (booking) => booking.status === "completed"
   );
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      confirmed: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      completed: 'bg-blue-100 text-blue-800',
-      cancelled: 'bg-red-100 text-red-800'
+      confirmed: "bg-green-100 text-green-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      completed: "bg-blue-100 text-blue-800",
+      cancelled: "bg-red-100 text-red-800",
     };
 
     const labels = {
-      confirmed: 'Confirmada',
-      pending: 'Pendiente',
-      completed: 'Completada',
-      cancelled: 'Cancelada'
+      confirmed: "Confirmada",
+      pending: "Pendiente",
+      completed: "Completada",
+      cancelled: "Cancelada",
     };
 
     return (
@@ -44,20 +54,26 @@ const MyBookings = () => {
   };
 
   const BookingCard = ({ booking }: { booking: Booking }) => {
-    const isVeterinary = booking.type === 'veterinary';
-    const petInfo = booking.pet_info ? JSON.parse(booking.pet_info as string) : null;
-    const services = booking.services ? JSON.parse(booking.services as string) : [];
-    
+    const isVeterinary = booking.type === "veterinary";
+    const petInfo = booking.pet_info
+      ? JSON.parse(booking.pet_info as string)
+      : null;
+    const services = booking.services
+      ? JSON.parse(booking.services as string)
+      : [];
+
     return (
       <Card className="mb-4 hover:shadow-md transition-shadow">
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <div className="flex items-center space-x-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                isVeterinary 
-                  ? 'bg-gradient-to-br from-blue-100 to-blue-200' 
-                  : 'bg-gradient-to-br from-petbnb-100 to-primary-100'
-              }`}>
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  isVeterinary
+                    ? "bg-gradient-to-br from-blue-100 to-blue-200"
+                    : "bg-gradient-to-br from-petbnb-100 to-primary-100"
+                }`}
+              >
                 {isVeterinary ? (
                   <Stethoscope className="h-6 w-6 text-blue-700" />
                 ) : (
@@ -89,7 +105,8 @@ const MyBookings = () => {
               )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="font-medium">Servicio:</span>
-                {booking.service_type || (services.length > 0 ? services[0] : 'Cuidado general')}
+                {booking.service_type ||
+                  (services.length > 0 ? services[0] : "Cuidado general")}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <MapPin className="h-4 w-4" />
@@ -105,11 +122,13 @@ const MyBookings = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="h-4 w-4" />
-                {booking.start_date} {booking.end_date !== booking.start_date && `- ${booking.end_date}`}
+                {booking.start_date}{" "}
+                {booking.end_date !== booking.start_date &&
+                  `- ${booking.end_date}`}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="font-medium">Precio:</span>
-                ${booking.total_price}
+                <span className="font-medium">Precio:</span>$
+                {booking.total_price}
               </div>
               {booking.notes && (
                 <div className="text-sm text-gray-600">
@@ -119,19 +138,15 @@ const MyBookings = () => {
               )}
             </div>
           </div>
-          
+
           <div className="flex gap-2 mt-4">
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <MessageCircle className="h-4 w-4" />
-              Contactar
-            </Button>
-            {booking.status === 'completed' && (
+            {booking.status === "completed" && (
               <Button size="sm" className="flex items-center gap-1">
                 <Star className="h-4 w-4" />
                 Valorar
               </Button>
             )}
-            {booking.status === 'confirmed' && (
+            {booking.status === "confirmed" && (
               <Button variant="outline" size="sm">
                 Ver detalles
               </Button>
