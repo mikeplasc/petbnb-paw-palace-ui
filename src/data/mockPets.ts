@@ -1,0 +1,65 @@
+
+import { Pet } from '@/types/adoption';
+
+export const mockPets: Pet[] = [
+  {
+    id: '1',
+    name: 'Max',
+    breed: 'Labrador Retriever',
+    age: '2 años',
+    size: 'Grande',
+    gender: 'Macho',
+    type: 'Perro',
+    description: 'Max es un perro muy cariñoso y juguetón. Le encanta correr y jugar con niños.',
+    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop',
+    location: 'Madrid, España',
+    vaccinated: true,
+    sterilized: true,
+    urgent: false,
+    shelterName: 'Refugio Esperanza',
+    shelterContact: 'contacto@refugioesperanza.es',
+    adoptionFee: 150,
+    dateAdded: '2024-01-15',
+    characteristics: ['Sociable', 'Activo', 'Entrenado']
+  },
+  {
+    id: '2',
+    name: 'Luna',
+    breed: 'Mestizo',
+    age: '1 año',
+    size: 'Mediano',
+    gender: 'Hembra',
+    type: 'Perro',
+    description: 'Luna es una perra muy dulce que busca una familia amorosa.',
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop',
+    location: 'Barcelona, España',
+    vaccinated: true,
+    sterilized: false,
+    urgent: true,
+    shelterName: 'Protectora Barcelona',
+    shelterContact: 'info@protectorabcn.es',
+    adoptionFee: 100,
+    dateAdded: '2024-01-20',
+    characteristics: ['Cariñosa', 'Tranquila', 'Obediente']
+  },
+  {
+    id: '3',
+    name: 'Mimi',
+    breed: 'Siamés',
+    age: '3 años',
+    size: 'Pequeño',
+    gender: 'Hembra',
+    type: 'Gato',
+    description: 'Mimi es una gata independiente pero muy cariñosa cuando te conoce.',
+    image: 'https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=400&h=300&fit=crop',
+    location: 'Valencia, España',
+    vaccinated: true,
+    sterilized: true,
+    urgent: false,
+    shelterName: 'Asociación Felina',
+    shelterContact: 'gatos@felina.org',
+    adoptionFee: 80,
+    dateAdded: '2024-01-18',
+    characteristics: ['Independiente', 'Limpia', 'Inteligente']
+  }
+];
