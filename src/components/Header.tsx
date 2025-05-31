@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Heart, User, Calendar, Settings } from 'lucide-react';
+import { Heart, User, Calendar, Settings, Stethoscope } from 'lucide-react';
 
 interface HeaderProps {
   currentPage?: string;
@@ -33,11 +33,13 @@ const Header = ({ currentPage = 'home', onNavigate }: HeaderProps) => {
           className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => handleNavigation('home')}
         >
-          <div className="w-8 h-8 bg-gradient-to-br from-petbnb-400 to-primary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">🐾</span>
-          </div>
+          <img 
+            src="/lovable-uploads/ad028fa8-9730-49d1-bbe6-f8185a05a757.png" 
+            alt="PetCare Logo" 
+            className="w-8 h-8 object-contain"
+          />
           <span className="text-2xl font-bold bg-gradient-to-r from-petbnb-600 to-primary-600 bg-clip-text text-transparent">
-            Petbnb
+            PetCare
           </span>
         </div>
 
@@ -116,6 +118,13 @@ const Header = ({ currentPage = 'home', onNavigate }: HeaderProps) => {
               >
                 <span className="mr-2">🐕</span>
                 <span>Mis mascotas</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => handleNavigation('my-veterinaries')}
+                className="cursor-pointer hover:bg-gray-50"
+              >
+                <Stethoscope className="mr-2 h-4 w-4" />
+                <span>Mis veterinarias</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 

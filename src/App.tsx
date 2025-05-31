@@ -16,7 +16,6 @@ import MyAdoptions from "./pages/MyAdoptions";
 import MyBookings from "./pages/MyBookings";
 import MyPets from "./pages/MyPets";
 import MyVeterinaries from "./pages/MyVeterinaries";
-import Navbar from "./components/Navbar";
 import NotFound from "./pages/NotFound";
 import PetTracking from "./pages/PetTracking";
 import Profile from "./pages/Profile";
@@ -28,6 +27,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Veterinaries from "./pages/Veterinaries";
+import { AppSidebar } from "./components/AppSidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 const queryClient = new QueryClient();
 
@@ -47,8 +48,17 @@ const App = () => (
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <Index />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <Index />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -56,8 +66,17 @@ const App = () => (
                   path="/hosts"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <Hosts />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <Hosts />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -65,8 +84,17 @@ const App = () => (
                   path="/become-host"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <BecomeHost />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <BecomeHost />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -74,8 +102,17 @@ const App = () => (
                   path="/veterinaries"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <Veterinaries />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <Veterinaries />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -83,8 +120,17 @@ const App = () => (
                   path="/adoption"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <Adoption />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <Adoption />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -92,8 +138,17 @@ const App = () => (
                   path="/adoption/stories"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <AdoptionStories />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <AdoptionStories />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -101,7 +156,17 @@ const App = () => (
                   path="/adoption/my-requests"
                   element={
                     <ProtectedRoute>
-                      <MyAdoptions />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <MyAdoptions />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -109,8 +174,17 @@ const App = () => (
                   path="/pet-tracking"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <PetTracking />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <PetTracking />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -118,8 +192,17 @@ const App = () => (
                   path="/lost-pets"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <LostPets />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <LostPets />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -127,8 +210,17 @@ const App = () => (
                   path="/search"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <SearchResults />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <SearchResults />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -136,8 +228,17 @@ const App = () => (
                   path="/profile"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <Profile />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <Profile />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -145,8 +246,17 @@ const App = () => (
                   path="/my-bookings"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <MyBookings />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <MyBookings />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -154,8 +264,17 @@ const App = () => (
                   path="/my-pets"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <MyPets />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <MyPets />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -163,8 +282,17 @@ const App = () => (
                   path="/my-veterinaries"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <MyVeterinaries />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <MyVeterinaries />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -172,8 +300,17 @@ const App = () => (
                   path="/favorites"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <Favorites />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <Favorites />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
@@ -181,8 +318,17 @@ const App = () => (
                   path="/settings"
                   element={
                     <ProtectedRoute>
-                      <Navbar />
-                      <Settings />
+                      <SidebarProvider>
+                        <div className="flex min-h-screen w-full">
+                          <AppSidebar />
+                          <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+                              <SidebarTrigger className="-ml-1" />
+                            </header>
+                            <Settings />
+                          </SidebarInset>
+                        </div>
+                      </SidebarProvider>
                     </ProtectedRoute>
                   }
                 />
