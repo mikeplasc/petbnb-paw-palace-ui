@@ -79,10 +79,10 @@ const Veterinaries = () => {
       {/* Lista de veterinarias */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {veterinaries.map((vet) => {
-          const images = Array.isArray(vet.images) ? vet.images : [];
-          const services = Array.isArray(vet.services) ? vet.services : [];
-          const certifications = Array.isArray(vet.certifications) ? vet.certifications : [];
-          const specialties = Array.isArray(vet.specialties) ? vet.specialties : [];
+          const images = Array.isArray(vet.images) ? vet.images as string[] : [];
+          const services = Array.isArray(vet.services) ? vet.services as string[] : [];
+          const certifications = Array.isArray(vet.certifications) ? vet.certifications as string[] : [];
+          const specialties = Array.isArray(vet.specialties) ? vet.specialties as string[] : [];
 
           return (
             <Card key={vet.id} className="group hover:shadow-lg transition-shadow">
@@ -103,7 +103,7 @@ const Veterinaries = () => {
                   <CardTitle className="text-lg">{vet.name}</CardTitle>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{vet.rating}</span>
+                    <span className="text-sm font-medium">{Number(vet.rating).toFixed(1)}</span>
                     <span className="text-sm text-gray-500">({vet.review_count})</span>
                   </div>
                 </div>
@@ -151,7 +151,7 @@ const Veterinaries = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="text-lg font-bold text-blue-600">
-                    ${vet.price_per_night}€<span className="text-sm font-normal text-gray-500">/consulta</span>
+                    €{vet.price_per_night}<span className="text-sm font-normal text-gray-500">/consulta</span>
                   </div>
                   <Button 
                     size="sm" 

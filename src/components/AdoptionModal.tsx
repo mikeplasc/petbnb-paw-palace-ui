@@ -8,16 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Star, MapPin, Heart, Phone, Mail, Clock, Shield, Calendar, User } from 'lucide-react';
-import { Pet } from '@/services/adoptionService';
+import { Pet } from '@/services/petService';
 
 interface AdoptionModalProps {
   pet: Pet | null;
   isOpen: boolean;
   onClose: () => void;
-  onSubmitAdoption: (petId: string, userInfo: any) => void;
-  onToggleFavorite: () => void;
-  isFavorite: boolean;
-  currentUser: {
+  onSubmitAdoption?: (petId: string, userInfo: any) => void;
+  onToggleFavorite?: () => void;
+  isFavorite?: boolean;
+  currentUser?: {
     name: string;
     email: string;
     phone: string;
@@ -30,8 +30,8 @@ const AdoptionModal = ({
   onClose, 
   onSubmitAdoption,
   onToggleFavorite,
-  isFavorite,
-  currentUser
+  isFavorite = false,
+  currentUser = { name: '', email: '', phone: '' }
 }: AdoptionModalProps) => {
   const [showAdoptionForm, setShowAdoptionForm] = useState(false);
   const [userInfo, setUserInfo] = useState({
@@ -44,8 +44,10 @@ const AdoptionModal = ({
 
   if (!pet) return null;
 
+  const characteristics = Array.isArray(pet.characteristics) ? pet.characteristics as string[] : [];
+
   const handleSubmitAdoption = async () => {
-    if (!userInfo.name || !userInfo.email || !userInfo.phone) {
+    if (!userInfo.name || !userInfo.email || !userInfo.phone || !onSubmitAdoption) {
       return;
     }
 
@@ -88,14 +90,16 @@ const AdoptionModal = ({
                     ADOPCIÓN URGENTE
                   </Badge>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onToggleFavorite}
-                  className="absolute top-3 right-3 bg-white/80 hover:bg-white"
-                >
-                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-                </Button>
+                {onToggleFavorite && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onToggleFavorite}
+                    className="absolute top-3 right-3 bg-white/80 hover:bg-white"
+                  >
+                    <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+                  </Button>
+                )}
               </div>
             </div>
             
@@ -125,7 +129,7 @@ const AdoptionModal = ({
               </div>
 
               <div className="text-2xl font-bold text-green-600">
-                €{pet.adoptionFee} cuota de adopción
+                €{pet.adoption_fee} cuota de adopción
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -157,8 +161,8 @@ const AdoptionModal = ({
             <CardContent className="p-4">
               <h3 className="font-semibold text-gray-900 mb-3">Características</h3>
               <div className="flex flex-wrap gap-2">
-                {pet.characteristics.map((characteristic) => (
-                  <Badge key={characteristic} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                {characteristics.map((characteristic, index) => (
+                  <Badge key={index} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                     {characteristic}
                   </Badge>
                 ))}
@@ -172,22 +176,22 @@ const AdoptionModal = ({
               <h3 className="font-semibold text-gray-900 mb-3">Información del refugio</h3>
               <div className="space-y-2">
                 <div className="flex items-center text-gray-700">
-                  <span className="font-medium">{pet.shelterName}</span>
+                  <span className="font-medium">{pet.shelter_name}</span>
                 </div>
                 <div className="flex items-center text-gray-700">
                   <Mail className="w-4 h-4 mr-2" />
-                  <span>{pet.shelterContact}</span>
+                  <span>{pet.shelter_contact}</span>
                 </div>
                 <div className="flex items-center text-gray-700">
                   <Clock className="w-4 h-4 mr-2" />
-                  <span>Publicado el {new Date(pet.dateAdded).toLocaleDateString()}</span>
+                  <span>Publicado el {new Date(pet.date_added).toLocaleDateString()}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Adoption Form */}
-          {showAdoptionForm && (
+          {showAdoptionForm && onSubmitAdoption && (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Solicitud de adopción</h3>
@@ -260,16 +264,18 @@ const AdoptionModal = ({
 
           {/* Action Buttons */}
           <div className="flex gap-4">
-            <Button 
-              className="flex-1 bg-purple-600 hover:bg-purple-700"
-              onClick={() => setShowAdoptionForm(!showAdoptionForm)}
-            >
-              {showAdoptionForm ? 'Cancelar adopción' : 'Adoptar ahora'}
-            </Button>
+            {onSubmitAdoption && (
+              <Button 
+                className="flex-1 bg-purple-600 hover:bg-purple-700"
+                onClick={() => setShowAdoptionForm(!showAdoptionForm)}
+              >
+                {showAdoptionForm ? 'Cancelar adopción' : 'Adoptar ahora'}
+              </Button>
+            )}
             <Button 
               variant="outline" 
               className="flex-1"
-              onClick={() => window.open(`mailto:${pet.shelterContact}?subject=Consulta sobre ${pet.name}`)}
+              onClick={() => window.open(`mailto:${pet.shelter_contact}?subject=Consulta sobre ${pet.name}`)}
             >
               Contactar refugio
             </Button>

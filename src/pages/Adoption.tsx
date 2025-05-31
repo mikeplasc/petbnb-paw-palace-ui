@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Heart, MapPin, Calendar, Shield, AlertTriangle } from 'lucide-react';
 import AdoptionModal from '@/components/AdoptionModal';
 import { getPets, Pet } from '@/services/petService';
+import { submitAdoptionRequest } from '@/services/adoptionService';
+import { toast } from 'sonner';
 
 const Adoption = () => {
   const [searchLocation, setSearchLocation] = useState('');
@@ -18,6 +20,8 @@ const Adoption = () => {
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
+
+  const queryClient = useQueryClient();
 
   const { data: pets = [], isLoading, error } = useQuery({
     queryKey: ['pets', searchLocation, petTypeFilter, sizeFilter, ageFilter],
@@ -29,9 +33,41 @@ const Adoption = () => {
     }),
   });
 
+  const adoptionMutation = useMutation({
+    mutationFn: ({ petId, petName, petImage, shelterName, userInfo }: {
+      petId: string;
+      petName: string;
+      petImage: string;
+      shelterName: string;
+      userInfo: any;
+    }) => submitAdoptionRequest(petId, petName, petImage, shelterName, userInfo),
+    onSuccess: () => {
+      toast.success('Solicitud de adopción enviada exitosamente');
+      setIsModalOpen(false);
+      setSelectedPet(null);
+      queryClient.invalidateQueries({ queryKey: ['adoption-requests'] });
+    },
+    onError: (error) => {
+      console.error('Error submitting adoption request:', error);
+      toast.error('Error al enviar la solicitud de adopción');
+    },
+  });
+
   const handleAdopt = (pet: Pet) => {
     setSelectedPet(pet);
     setIsModalOpen(true);
+  };
+
+  const handleSubmitAdoption = async (petId: string, userInfo: any) => {
+    if (!selectedPet) return;
+    
+    adoptionMutation.mutate({
+      petId,
+      petName: selectedPet.name,
+      petImage: selectedPet.image,
+      shelterName: selectedPet.shelter_name,
+      userInfo
+    });
   };
 
   const handleToggleFavorite = (petId: string) => {
@@ -40,6 +76,12 @@ const Adoption = () => {
         ? prev.filter(id => id !== petId)
         : [...prev, petId]
     );
+  };
+
+  const currentUser = {
+    name: 'Usuario',
+    email: 'usuario@email.com',
+    phone: '+34 123 456 789'
   };
 
   if (isLoading) {
@@ -154,7 +196,7 @@ const Adoption = () => {
       {/* Lista de mascotas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {pets.map((pet) => {
-          const characteristics = Array.isArray(pet.characteristics) ? pet.characteristics : [];
+          const characteristics = Array.isArray(pet.characteristics) ? pet.characteristics as string[] : [];
           const isFavorite = favorites.includes(pet.id);
 
           return (
@@ -239,7 +281,7 @@ const Adoption = () => {
                     <span>{pet.date_added}</span>
                   </div>
                   <div className="font-medium text-green-600">
-                    ${pet.adoption_fee}€
+                    €{pet.adoption_fee}
                   </div>
                 </div>
 
@@ -250,7 +292,11 @@ const Adoption = () => {
                   >
                     Adoptar
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleAdopt(pet)}
+                  >
                     Más info
                   </Button>
                 </div>
@@ -276,6 +322,10 @@ const Adoption = () => {
             setSelectedPet(null);
           }}
           pet={selectedPet}
+          onSubmitAdoption={handleSubmitAdoption}
+          onToggleFavorite={() => handleToggleFavorite(selectedPet.id)}
+          isFavorite={favorites.includes(selectedPet.id)}
+          currentUser={currentUser}
         />
       )}
     </div>

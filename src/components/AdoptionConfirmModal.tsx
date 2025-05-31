@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Heart, Info } from 'lucide-react';
-import { Pet } from '@/services/adoptionService';
+import { Pet } from '@/services/petService';
 
 interface AdoptionConfirmModalProps {
   pet: Pet | null;
@@ -57,11 +57,11 @@ const AdoptionConfirmModal = ({ pet, isOpen, onClose, onConfirm }: AdoptionConfi
 
           <div className="space-y-2">
             <p className="text-sm text-gray-700">
-              Al confirmar, enviaremos tu solicitud de adopción al refugio <strong>{pet.shelterName}</strong> 
+              Al confirmar, enviaremos tu solicitud de adopción al refugio <strong>{pet.shelter_name}</strong> 
               con tu información de perfil.
             </p>
             <p className="text-sm text-gray-600">
-              Cuota de adopción: <span className="font-semibold text-green-600">€{pet.adoptionFee}</span>
+              Cuota de adopción: <span className="font-semibold text-green-600">€{pet.adoption_fee}</span>
             </p>
           </div>
 

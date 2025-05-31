@@ -79,8 +79,8 @@ const FeaturedHostsSection = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {featuredHosts.map((host) => {
-            const images = Array.isArray(host.images) ? host.images : [];
-            const services = Array.isArray(host.services) ? host.services : [];
+            const images = Array.isArray(host.images) ? host.images as string[] : [];
+            const services = Array.isArray(host.services) ? host.services as string[] : [];
             const isFavorite = favorites.includes(host.id);
 
             return (
@@ -111,7 +111,7 @@ const FeaturedHostsSection = ({
                     <h3 className="text-xl font-semibold text-gray-900">{host.name}</h3>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{host.rating}</span>
+                      <span className="text-sm font-medium">{Number(host.rating).toFixed(1)}</span>
                       <span className="text-sm text-gray-500">({host.review_count})</span>
                     </div>
                   </div>
@@ -140,7 +140,7 @@ const FeaturedHostsSection = ({
 
                   <div className="flex items-center justify-between">
                     <div className="text-lg font-bold text-primary">
-                      ${host.price_per_night}€<span className="text-sm font-normal text-gray-500">/noche</span>
+                      €{host.price_per_night}<span className="text-sm font-normal text-gray-500">/noche</span>
                     </div>
                     <Button onClick={() => onViewDetails(host.id)} size="sm">
                       Ver detalles
