@@ -31,15 +31,31 @@ const convertSupabaseHostToMockHost = (supabaseHost: SupabaseHost): MockHost => 
     ? supabaseHost.images as string[]
     : [];
 
+  // Map database type values to expected MockHost type values
+  const mapHostType = (dbType: string): "family" | "individual" | "veterinary" => {
+    switch (dbType) {
+      case 'veterinary':
+        return 'veterinary';
+      case 'sitter':
+      case 'individual':
+        return 'individual';
+      case 'family':
+        return 'family';
+      default:
+        return 'individual'; // Default fallback
+    }
+  };
+
   return {
     id: supabaseHost.id,
     name: supabaseHost.name,
-    type: supabaseHost.type,
+    type: mapHostType(supabaseHost.type),
     location: supabaseHost.location,
     city: supabaseHost.city,
     rating: Number(supabaseHost.rating),
     reviewCount: supabaseHost.review_count,
     pricePerNight: supabaseHost.price_per_night,
+    image: images[0] || 'https://images.unsplash.com/photo-1582562124811-c09040d0a901', // Use first image or placeholder
     images: images,
     services: services,
     acceptedPets: acceptedPets,
