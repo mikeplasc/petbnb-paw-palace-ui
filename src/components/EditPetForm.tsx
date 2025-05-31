@@ -20,13 +20,44 @@ interface EditPetFormProps {
 }
 
 const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) => {
-  const [petData, setPetData] = useState<Pet>(pet);
+  const initialPetData = {
+    id: '',
+    name: '',
+    breed: '',
+    type: '',
+    age: '',
+    gender: '',
+    size: '',
+    location: '',
+    description: '',
+    image: '',
+    vaccinated: false,
+    sterilized: false,
+    urgent: false,
+    shelter_name: '',
+    shelter_contact: '',
+    adoption_fee: 0,
+    characteristics: [] as string[],
+    created_at: new Date().toISOString()
+  };
+
+  const [petData, setPetData] = useState(initialPetData);
   const [newCharacteristic, setNewCharacteristic] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Initialize form with pet data when editing
   useEffect(() => {
-    setPetData(pet);
-  }, [pet]);
+    if (pet && isOpen) {
+      setPetData(pet);
+    }
+  }, [pet, isOpen]);
+
+  // Reset form when modal closes
+  const handleClose = () => {
+    setPetData(initialPetData);
+    setNewCharacteristic('');
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +85,7 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
         description: "Los datos de la mascota se han actualizado correctamente",
       });
 
-      onClose();
+      handleClose();
     } catch (error) {
       toast({
         title: "Error",
@@ -84,7 +115,7 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar mascota</DialogTitle>
@@ -325,7 +356,7 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
