@@ -10,6 +10,7 @@ import { Heart, MapPin, Calendar, Shield, AlertTriangle } from 'lucide-react';
 import AdoptionModal from '@/components/AdoptionModal';
 import { getPets, createAdoptionRequest, type Pet } from '@/services/adoptionService';
 import { toast } from 'sonner';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const Adoption = () => {
   const [searchLocation, setSearchLocation] = useState('');
@@ -19,12 +20,15 @@ const Adoption = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
 
+  // Debounce the search location to avoid searching on every keystroke
+  const debouncedSearchLocation = useDebounce(searchLocation, 2000);
+
   const queryClient = useQueryClient();
 
   const { data: pets = [], isLoading, error } = useQuery({
-    queryKey: ['pets', searchLocation, petTypeFilter, sizeFilter],
+    queryKey: ['pets', debouncedSearchLocation, petTypeFilter, sizeFilter],
     queryFn: () => getPets({
-      location: searchLocation || undefined,
+      location: debouncedSearchLocation || undefined,
       type: petTypeFilter === 'all' ? undefined : petTypeFilter,
       size: sizeFilter === 'all' ? undefined : sizeFilter,
     }),
