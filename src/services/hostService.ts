@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 
@@ -24,6 +23,7 @@ export const getHosts = async (filters?: {
   }
 
   if (filters?.petType) {
+    // Use @> operator to check if the petType is contained in the accepted_pets array
     query = query.contains('accepted_pets', [filters.petType]);
   }
 
@@ -34,6 +34,7 @@ export const getHosts = async (filters?: {
     throw error;
   }
 
+  console.log('Database query result:', data);
   return data || [];
 };
 

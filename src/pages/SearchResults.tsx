@@ -150,7 +150,7 @@ const SearchResults = () => {
   console.log('Search params:', { locationParam, petTypeParam, startDateParam, endDateParam });
 
   // Build filters for the database query
-  const dbFilters: { location?: string; petType?: string; type?: string } = {};
+  const dbFilters: { location?: string; petType?: string } = {};
   
   if (locationParam) {
     dbFilters.location = locationParam;
@@ -171,10 +171,8 @@ const SearchResults = () => {
 
   console.log('Fetched hosts:', supabaseHosts);
 
-  // Convert Supabase hosts to ComponentHost format and filter out family hosts
-  const hosts = supabaseHosts
-    .filter(host => host.type !== 'family') // Remove family hosts
-    .map(convertSupabaseHostToComponentHost);
+  // Convert Supabase hosts to ComponentHost format
+  const hosts = supabaseHosts.map(convertSupabaseHostToComponentHost);
 
   console.log('Converted hosts:', hosts);
 
