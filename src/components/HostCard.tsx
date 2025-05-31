@@ -3,7 +3,27 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart, Star, MapPin, Clock, CheckCircle } from 'lucide-react';
-import { Host } from '@/data/mockData';
+
+interface Host {
+  id: string;
+  name: string;
+  type: "veterinary" | "individual";
+  location: string;
+  city: string;
+  rating: number;
+  reviewCount: number;
+  pricePerNight: number;
+  image: string;
+  images: string[];
+  services: string[];
+  acceptedPets: string[];
+  availability: boolean;
+  responseTime: string;
+  experience: string;
+  description: string;
+  certifications: string[];
+  specialties: string[];
+}
 
 interface HostCardProps {
   host: Host;
@@ -15,10 +35,8 @@ interface HostCardProps {
 const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }: HostCardProps) => {
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'family':
-        return 'Familia';
       case 'individual':
-        return 'Cuidador individual';
+        return 'Cuidador';
       case 'veterinary':
         return 'Veterinaria';
       default:
@@ -28,8 +46,6 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'family':
-        return 'bg-warm-100 text-warm-800';
       case 'individual':
         return 'bg-sage-100 text-sage-800';
       case 'veterinary':
@@ -44,7 +60,7 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
       <div className="relative">
         <div className="aspect-[4/3] overflow-hidden">
           <img
-            src={host.images?.[0] || '/placeholder.svg'}
+            src={host.images?.[0] || host.image || '/placeholder.svg'}
             alt={host.name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />

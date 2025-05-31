@@ -14,7 +14,28 @@ import { getHosts } from '@/services/hostService';
 import { petTypes, cities } from '@/data/mockData';
 import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
 import type { Host as SupabaseHost } from '@/services/hostService';
-import type { Host } from '@/data/mockData';
+
+// Define the Host type to match what HostCard expects
+interface Host {
+  id: string;
+  name: string;
+  type: "veterinary" | "individual";
+  location: string;
+  city: string;
+  rating: number;
+  reviewCount: number;
+  pricePerNight: number;
+  image: string;
+  images: string[];
+  services: string[];
+  acceptedPets: string[];
+  availability: boolean;
+  responseTime: string;
+  experience: string;
+  description: string;
+  certifications: string[];
+  specialties: string[];
+}
 
 // Helper function to convert Supabase host to Host format
 const convertSupabaseHostToHost = (supabaseHost: SupabaseHost): Host => {
@@ -30,18 +51,16 @@ const convertSupabaseHostToHost = (supabaseHost: SupabaseHost): Host => {
     ? supabaseHost.images as string[]
     : [];
 
-  // Map database type values to expected Host type values
-  const mapHostType = (dbType: string): "veterinary" | "family" | "individual" => {
+  // Map database type values to expected Host type values, excluding family
+  const mapHostType = (dbType: string): "veterinary" | "individual" => {
     switch (dbType) {
       case 'veterinary':
         return 'veterinary';
       case 'family':
-        return 'family';
       case 'individual':
-        return 'individual';
       case 'sitter':
       default:
-        return 'individual'; // Default fallback for sitter and other types
+        return 'individual'; // Map all non-veterinary types to individual
     }
   };
 
@@ -54,11 +73,11 @@ const convertSupabaseHostToHost = (supabaseHost: SupabaseHost): Host => {
     rating: Number(supabaseHost.rating),
     reviewCount: supabaseHost.review_count,
     pricePerNight: supabaseHost.price_per_night,
-    image: images[0] || 'https://images.unsplash.com/photo-1582562124811-c09040d0a901', // Use first image or placeholder
+    image: images[0] || 'https://images.unsplash.com/photo-1582562124811-c09040d0a901',
     images: images,
     services: services,
     acceptedPets: acceptedPets,
-    availability: supabaseHost.availability, // Keep as boolean
+    availability: supabaseHost.availability,
     responseTime: supabaseHost.response_time,
     experience: supabaseHost.experience || '',
     description: supabaseHost.description,
@@ -102,8 +121,10 @@ const SearchResults = () => {
     }),
   });
 
-  // Convert Supabase hosts to Host format
-  const hosts = supabaseHosts.map(convertSupabaseHostToHost);
+  // Convert Supabase hosts to Host format and filter out family hosts
+  const hosts = supabaseHosts
+    .filter(host => host.type !== 'family') // Remove family hosts
+    .map(convertSupabaseHostToHost);
 
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);
@@ -196,12 +217,11 @@ const SearchResults = () => {
     });
 
   const services = ['Paseos', 'Alimentación', 'Medicación', 'Juegos', 'Cuidado nocturno', 'Baño'];
-  const hostTypes = ['family', 'individual', 'veterinary'];
+  const hostTypes = ['individual', 'veterinary']; // Remove 'family' from host types
 
   const getHostTypeLabel = (type: string) => {
     switch (type) {
-      case 'family': return 'Familia';
-      case 'individual': return 'Cuidador individual';
+      case 'individual': return 'Cuidadores';
       case 'veterinary': return 'Veterinaria';
       default: return type;
     }
