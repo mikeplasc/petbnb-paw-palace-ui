@@ -3,52 +3,21 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, Search, MapPin, Calendar, Filter, AlertTriangle } from 'lucide-react';
+import { Heart, Plus, AlertTriangle } from 'lucide-react';
 import { getLostPets } from '@/services/lostPetService';
 import LostPetCard from '@/components/LostPetCard';
+import ReportLostPetModal from '@/components/ReportLostPetModal';
 import { useToast } from '@/hooks/use-toast';
 
 const LostPets = () => {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('Todos');
-  const [locationFilter, setLocationFilter] = useState('');
-  const [sortBy, setSortBy] = useState('recent');
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { data: lostPets = [], isLoading } = useQuery({
     queryKey: ['lostPets'],
     queryFn: getLostPets,
     refetchInterval: 30000, // Actualizar cada 30 segundos
-  });
-
-  const filteredPets = lostPets.filter(lostPet => {
-    if (!lostPet.pets) return false;
-    
-    const matchesSearch = lostPet.pets.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lostPet.pets.breed.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesType = typeFilter === 'Todos' || lostPet.pets.type === typeFilter;
-    
-    const matchesLocation = !locationFilter || 
-                           lostPet.last_seen_location.toLowerCase().includes(locationFilter.toLowerCase());
-    
-    return matchesSearch && matchesType && matchesLocation;
-  });
-
-  const sortedPets = [...filteredPets].sort((a, b) => {
-    switch (sortBy) {
-      case 'recent':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case 'reward':
-        return (b.reward_amount || 0) - (a.reward_amount || 0);
-      case 'lastSeen':
-        return new Date(b.last_seen_date).getTime() - new Date(a.last_seen_date).getTime();
-      default:
-        return 0;
-    }
   });
 
   const handleContactOwner = (lostPet: any) => {
@@ -88,73 +57,20 @@ const LostPets = () => {
             Ayuda a reunir mascotas perdidas con sus familias
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={() => setIsReportModalOpen(true)}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Reportar mascota perdida
+          </Button>
           <Badge variant="outline" className="flex items-center gap-1">
             <Heart className="h-3 w-3 text-red-500" />
             {lostPets.length} mascotas necesitan ayuda
           </Badge>
         </div>
       </div>
-
-      {/* Filtros */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros de búsqueda
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Buscar por nombre o raza</label>
-              <Input
-                placeholder="Ej: Max, Labrador..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Tipo de mascota</label>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  <SelectItem value="Perro">Perros</SelectItem>
-                  <SelectItem value="Gato">Gatos</SelectItem>
-                  <SelectItem value="Ave">Aves</SelectItem>
-                  <SelectItem value="Otro">Otros</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Ubicación</label>
-              <Input
-                placeholder="Ciudad o zona..."
-                value={locationFilter}
-                onChange={(e) => setLocationFilter(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Ordenar por</label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Más recientes</SelectItem>
-                  <SelectItem value="reward">Mayor recompensa</SelectItem>
-                  <SelectItem value="lastSeen">Última vez visto</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Información importante */}
       <Card className="mb-8 border-yellow-200 bg-yellow-50">
@@ -179,35 +95,21 @@ const LostPets = () => {
       </Card>
 
       {/* Lista de mascotas perdidas */}
-      {sortedPets.length === 0 ? (
+      {lostPets.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
-            {lostPets.length === 0 ? (
-              <>
-                <Heart className="h-16 w-16 text-gray-300 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  ¡Buenas noticias!
-                </h3>
-                <p className="text-gray-600 text-center">
-                  No hay mascotas perdidas reportadas en este momento
-                </p>
-              </>
-            ) : (
-              <>
-                <Search className="h-16 w-16 text-gray-300 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No se encontraron resultados
-                </h3>
-                <p className="text-gray-600 text-center">
-                  Intenta ajustar los filtros de búsqueda
-                </p>
-              </>
-            )}
+            <Heart className="h-16 w-16 text-gray-300 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              ¡Buenas noticias!
+            </h3>
+            <p className="text-gray-600 text-center">
+              No hay mascotas perdidas reportadas en este momento
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedPets.map((lostPet) => (
+          {lostPets.map((lostPet) => (
             <LostPetCard
               key={lostPet.id}
               lostPet={lostPet}
@@ -242,6 +144,11 @@ const LostPets = () => {
           </CardContent>
         </Card>
       )}
+
+      <ReportLostPetModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
     </div>
   );
 };
