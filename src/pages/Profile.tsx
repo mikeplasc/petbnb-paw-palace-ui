@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X, Heart, Clock } from 'lucide-react';
 import { getUserAdoptionRequests } from '@/services/adoptionService';
 import { getUserProfile, updateUserProfile, UserProfile } from '@/services/profileService';
+import { getMyPets } from '@/services/petService';
 import { toast } from 'sonner';
 
 const Profile = () => {
@@ -25,6 +26,11 @@ const Profile = () => {
     queryKey: ['userAdoptionRequests'],
     queryFn: getUserAdoptionRequests,
   });
+
+  const { data: pets = []} = useQuery({
+      queryKey: ["my-pets"],
+      queryFn: getMyPets,
+    });
 
   const [formData, setFormData] = useState({
     full_name: '',
@@ -222,7 +228,7 @@ const Profile = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Mascotas registradas</span>
-                  <span className="font-semibold">0</span>
+                  <span className="font-semibold">{pets?.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Solicitudes de adopción</span>
