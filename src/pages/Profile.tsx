@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['userProfile'],
@@ -32,6 +33,30 @@ const Profile = () => {
     location: '',
     bio: ''
   });
+
+  const [emailError, setEmailError] = useState('');
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setEmailError('El email es requerido');
+      emailInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      setEmailError('Por favor ingresa un email válido');
+      emailInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setFormData(prev => ({ ...prev, email: newEmail }));
+    validateEmail(newEmail);
+  };
 
   useEffect(() => {
     if (profile) {
@@ -59,6 +84,11 @@ const Profile = () => {
   });
 
   const handleSave = () => {
+    // Validate email
+    if (!validateEmail(formData.email)) {
+      return;
+    }
+
     updateProfileMutation.mutate({
       full_name: formData.full_name,
       email: formData.email,
@@ -236,9 +266,15 @@ const Profile = () => {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={handleEmailChange}
                     disabled={!isEditing}
+                    placeholder="tu@email.com"
+                    className={emailError ? 'border-red-500' : ''}
+                    ref={emailInputRef}
                   />
+                  {emailError && (
+                    <p className="text-sm text-red-500 mt-1">{emailError}</p>
+                  )}
                 </div>
               </div>
             </CardContent>
