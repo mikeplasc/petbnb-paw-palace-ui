@@ -26,6 +26,11 @@ const Profile = () => {
     queryFn: getUserAdoptionRequests,
   });
 
+  const { data: pets = [], isLoading } = useQuery({
+    queryKey: ["my-pets"],
+    queryFn: getMyPets,
+  });
+
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -222,7 +227,7 @@ const Profile = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Mascotas registradas</span>
-                  <span className="font-semibold">-</span>
+                  <span className="font-semibold">{pets?.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Solicitudes de adopción</span>
