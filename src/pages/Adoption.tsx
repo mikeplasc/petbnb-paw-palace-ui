@@ -5,20 +5,26 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Heart, MapPin, Calendar, Shield, Star, Search, Filter } from 'lucide-react';
+import { Heart, MapPin, Shield, Search, Filter, Edit } from 'lucide-react';
 import { getPets, Pet, createAdoptionRequest } from '@/services/adoptionService';
 import { toast } from '@/hooks/use-toast';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import AdoptionModal from '@/components/AdoptionModal';
 import AdoptionConfirmModal from '@/components/AdoptionConfirmModal';
 import AddPetForm from '@/components/AddPetForm';
+import EditPetForm from '@/components/EditPetForm';
+import CurrencySelector from '@/components/CurrencySelector';
 
 const PETS_PER_PAGE = 12;
+const CURRENT_USER_EMAIL = 'juan.perez@email.com'; // Simular usuario actual
 
 const Adoption = () => {
   const [pets, setPets] = useState<Pet[]>([]);
   const [filteredPets, setFilteredPets] = useState<Pet[]>([]);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [petToAdopt, setPetToAdopt] = useState<Pet | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -31,11 +37,12 @@ const Adoption = () => {
     urgent: false
   });
   const [showFilters, setShowFilters] = useState(false);
+  const { formatPrice } = useCurrency();
 
   // Mock user data - in real app this would come from authentication
   const currentUser = {
     name: 'Juan Pérez',
-    email: 'juan.perez@email.com',
+    email: CURRENT_USER_EMAIL,
     phone: '+34 612 345 678'
   };
 
@@ -169,6 +176,34 @@ const Adoption = () => {
     setSearchTerm('');
   };
 
+  const handleAddPet = (newPetData: any) => {
+    const updatedPets = [...pets, newPetData];
+    setPets(updatedPets);
+    setFilteredPets(updatedPets);
+    
+    console.log('New pet added:', newPetData);
+  };
+
+  const handleUpdatePet = (updatedPet: Pet) => {
+    const updatedPets = pets.map(pet => 
+      pet.id === updatedPet.id ? updatedPet : pet
+    );
+    setPets(updatedPets);
+    setFilteredPets(updatedPets);
+    
+    console.log('Pet updated:', updatedPet);
+  };
+
+  const handleEditPet = (pet: Pet) => {
+    setEditingPet(pet);
+    setIsEditModalOpen(true);
+  };
+
+  const canEditPet = (pet: Pet) => {
+    // Solo puede editar si es el mismo email del refugio que el usuario actual
+    return pet.shelterContact === currentUser.email;
+  };
+
   // Paginación
   const totalPages = Math.ceil(filteredPets.length / PETS_PER_PAGE);
   const startIndex = (currentPage - 1) * PETS_PER_PAGE;
@@ -178,14 +213,6 @@ const Adoption = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleAddPet = (newPetData: any) => {
-    const updatedPets = [...pets, newPetData];
-    setPets(updatedPets);
-    setFilteredPets(updatedPets);
-    
-    console.log('New pet added:', newPetData);
   };
 
   return (
@@ -224,8 +251,9 @@ const Adoption = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Add Pet Form */}
-        <div className="mb-6 flex justify-end">
+        {/* Add Pet Form and Currency Selector */}
+        <div className="mb-6 flex justify-between items-center">
+          <CurrencySelector />
           <AddPetForm onAddPet={handleAddPet} />
         </div>
 
@@ -310,16 +338,28 @@ const Adoption = () => {
                     URGENTE
                   </Badge>
                 )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleFavorite(pet.id)}
-                  className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                >
-                  <Heart className={`w-4 h-4 ${
-                    favorites.includes(pet.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'
-                  }`} />
-                </Button>
+                <div className="absolute top-2 right-2 flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleFavorite(pet.id)}
+                    className="bg-white/80 hover:bg-white"
+                  >
+                    <Heart className={`w-4 h-4 ${
+                      favorites.includes(pet.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                    }`} />
+                  </Button>
+                  {canEditPet(pet) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditPet(pet)}
+                      className="bg-white/80 hover:bg-white"
+                    >
+                      <Edit className="w-4 h-4 text-gray-600" />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <CardContent className="p-4">
@@ -354,7 +394,7 @@ const Adoption = () => {
                 </p>
 
                 <div className="text-lg font-bold text-green-600 mb-3">
-                  €{pet.adoptionFee} cuota de adopción
+                  {formatPrice(pet.adoptionFee)} cuota de adopción
                 </div>
 
                 <div className="flex gap-2">
@@ -443,6 +483,19 @@ const Adoption = () => {
           isFavorite={favorites.includes(selectedPet.id)}
           onToggleFavorite={() => toggleFavorite(selectedPet.id)}
           currentUser={currentUser}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {editingPet && (
+        <EditPetForm
+          pet={editingPet}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingPet(null);
+          }}
+          onUpdatePet={handleUpdatePet}
         />
       )}
 

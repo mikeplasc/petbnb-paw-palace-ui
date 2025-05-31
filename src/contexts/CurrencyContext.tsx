@@ -12,19 +12,19 @@ interface CurrencyContextType {
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 const exchangeRates: Record<Currency, number> = {
-  MXN: 1,
-  USD: 0.056,
-  EUR: 0.052
+  EUR: 1,
+  USD: 1.08,
+  MXN: 22.5
 };
 
 const currencySymbols: Record<Currency, string> = {
-  MXN: '$',
-  USD: '$',
-  EUR: '€'
+  EUR: '€',
+  USD: 'US$',
+  MXN: '$'
 };
 
 export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currency, setCurrency] = useState<Currency>('MXN');
+  const [currency, setCurrency] = useState<Currency>('EUR');
 
   const formatPrice = (amount: number) => {
     const convertedAmount = amount * exchangeRates[currency];
