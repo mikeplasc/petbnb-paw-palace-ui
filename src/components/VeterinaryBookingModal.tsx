@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,9 +17,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar, Clock, Star, MapPin } from 'lucide-react';
+import { Calendar, Clock, Star, MapPin, PlusCircle, AlertCircle } from 'lucide-react';
 import { createBooking } from '@/services/bookingService';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+interface Pet {
+  id: number;
+  name: string;
+  type: string;
+  breed: string;
+  age: number;
+  weight: number;
+  image: string;
+  description: string;
+  vaccinated: boolean;
+  neutered: boolean;
+  microchip: string;
+  emergencyContact: string;
+}
 
 interface VeterinaryBookingModalProps {
   isOpen: boolean;
@@ -29,8 +45,7 @@ interface VeterinaryBookingModalProps {
 
 const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBookingModalProps) => {
   const [formData, setFormData] = useState({
-    petName: '',
-    petType: '',
+    selectedPetId: '',
     serviceType: '',
     preferredDate: '',
     preferredTime: '',
@@ -38,31 +53,67 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
     emergencyContact: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userPets, setUserPets] = useState<Pet[]>([]);
   const { toast } = useToast();
+
+  // Simular obtener las mascotas del usuario desde localStorage o una API
+  useEffect(() => {
+    if (isOpen) {
+      // En una aplicación real, esto vendría de un contexto global o API
+      const savedPets = localStorage.getItem('userPets');
+      if (savedPets) {
+        setUserPets(JSON.parse(savedPets));
+      } else {
+        setUserPets([]);
+      }
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (userPets.length === 0) {
+      toast({
+        title: "No tienes mascotas registradas",
+        description: "Necesitas registrar al menos una mascota para hacer una reserva.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.selectedPetId) {
+      toast({
+        title: "Selecciona una mascota",
+        description: "Debes seleccionar una mascota para la consulta.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      const selectedPet = userPets.find(pet => pet.id.toString() === formData.selectedPetId);
+      
       // Create booking using the existing service
       const booking = createBooking(veterinary.id, {
         ...veterinary,
-        image: veterinary.images[0]
+        image: veterinary.images[0],
+        petInfo: selectedPet
       });
 
       toast({
         title: "¡Reserva confirmada!",
-        description: `Tu cita en ${veterinary.name} ha sido reservada exitosamente.`,
+        description: `Tu cita en ${veterinary.name} ha sido reservada exitosamente para ${selectedPet?.name}.`,
       });
 
       console.log('Reserva creada:', booking);
       console.log('Datos del formulario:', formData);
+      console.log('Mascota seleccionada:', selectedPet);
       
       onClose();
       setFormData({
-        petName: '',
-        petType: '',
+        selectedPetId: '',
         serviceType: '',
         preferredDate: '',
         preferredTime: '',
@@ -82,6 +133,12 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleGoToRegisterPet = () => {
+    onClose();
+    // Redirigir a la página de mis mascotas
+    window.location.href = '/my-pets';
   };
 
   if (!veterinary) return null;
@@ -124,41 +181,49 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
           </div>
         </div>
 
+        {/* No pets alert */}
+        {userPets.length === 0 && (
+          <Alert className="mb-6 border-orange-200 bg-orange-50">
+            <AlertCircle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              <div className="flex items-center justify-between">
+                <span>No tienes mascotas registradas. Necesitas registrar al menos una mascota para hacer una reserva.</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGoToRegisterPet}
+                  className="ml-4 border-orange-300 text-orange-700 hover:bg-orange-100"
+                >
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Registrar mascota
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Pet Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Información de la mascota</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="petName">Nombre de la mascota</Label>
-                <Input
-                  id="petName"
-                  value={formData.petName}
-                  onChange={(e) => handleChange('petName', e.target.value)}
-                  placeholder="Nombre de tu mascota"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="petType">Tipo de mascota</Label>
-                <Select value={formData.petType} onValueChange={(value) => handleChange('petType', value)} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="perro">Perro</SelectItem>
-                    <SelectItem value="gato">Gato</SelectItem>
-                    <SelectItem value="ave">Ave</SelectItem>
-                    <SelectItem value="roedor">Roedor</SelectItem>
-                    <SelectItem value="reptil">Reptil</SelectItem>
-                    <SelectItem value="otro">Otro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Pet Selection */}
+          {userPets.length > 0 && (
+            <div>
+              <Label htmlFor="selectedPet">Selecciona tu mascota</Label>
+              <Select value={formData.selectedPetId} onValueChange={(value) => handleChange('selectedPetId', value)} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Elige la mascota para la consulta" />
+                </SelectTrigger>
+                <SelectContent>
+                  {userPets.map((pet) => (
+                    <SelectItem key={pet.id} value={pet.id.toString()}>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">{pet.type === 'Perro' ? '🐕' : '🐱'}</span>
+                        <span>{pet.name} - {pet.breed} ({pet.age} años)</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
+          )}
 
           {/* Service Type */}
           <div>
@@ -242,7 +307,7 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting}
+              disabled={isSubmitting || userPets.length === 0}
               className="bg-petbnb-600 hover:bg-petbnb-700"
             >
               {isSubmitting ? 'Procesando...' : 'Confirmar reserva'}

@@ -4,6 +4,13 @@ export interface Booking {
   hostId: string;
   hostName: string;
   hostImage: string;
+  petInfo?: {
+    id: number;
+    name: string;
+    type: string;
+    breed: string;
+    age: number;
+  };
   petType: string;
   startDate: string;
   endDate: string;
@@ -23,7 +30,8 @@ export const createBooking = (hostId: string, hostData: any): Booking => {
     hostId,
     hostName: hostData.name,
     hostImage: hostData.image,
-    petType: 'Perro', // This would come from user selection
+    petInfo: hostData.petInfo,
+    petType: hostData.petInfo ? hostData.petInfo.type : 'Perro', // Use pet info if available
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
     totalPrice: hostData.pricePerNight * 7,
