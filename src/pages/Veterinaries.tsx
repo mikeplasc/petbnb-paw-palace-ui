@@ -16,7 +16,7 @@ import { mockHosts, cities } from '@/data/mockData';
 
 const Veterinaries = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
+  const [selectedCity, setSelectedCity] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
 
   // Filter only veterinary hosts
@@ -26,7 +26,7 @@ const Veterinaries = () => {
     .filter(vet => {
       const matchesSearch = vet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            vet.location.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCity = !selectedCity || vet.city === selectedCity;
+      const matchesCity = selectedCity === 'all' || vet.city === selectedCity;
       return matchesSearch && matchesCity;
     })
     .sort((a, b) => {
@@ -102,7 +102,7 @@ const Veterinaries = () => {
                 <SelectValue placeholder="Todas las ciudades" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas las ciudades</SelectItem>
+                <SelectItem value="all">Todas las ciudades</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city} value={city}>
                     {city}
