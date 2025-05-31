@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, MapPin, Star, Calendar, Shield, Stethoscope } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import HostCard from '@/components/HostCard';
-import { hosts } from '@/data/mockData';
+import { mockHosts } from '@/data/mockData';
 
 const Favorites = () => {
   const [hostFavorites, setHostFavorites] = useState<string[]>([]);
@@ -81,7 +81,7 @@ const Favorites = () => {
     });
   };
 
-  const favoriteHosts = hosts.filter(host => hostFavorites.includes(host.id));
+  const favoriteHosts = mockHosts.filter(host => hostFavorites.includes(host.id));
   const favoriteVeterinaries = mockVeterinaries.filter(vet => veterinaryFavorites.includes(vet.id));
 
   return (
