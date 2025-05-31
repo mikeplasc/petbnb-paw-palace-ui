@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { getUserProfile } from '@/services/profileService';
 import {
   Sidebar,
   SidebarContent,
@@ -40,6 +42,12 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: getUserProfile,
+    enabled: !!user
+  });
 
   const handleSignOut = async () => {
     await signOut();
@@ -101,13 +109,14 @@ export function AppSidebar() {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src="/placeholder-user.jpg" alt={user?.email} />
+                    <AvatarImage src={profile?.avatar_url || "/placeholder-user.jpg"} alt={profile?.full_name || user?.email} />
                     <AvatarFallback className="rounded-lg">
                       <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.user_metadata?.full_name}</span>
+
+                    <span className="truncate font-semibold">{profile?.full_name || user?.email?.split('@')[0] || 'Usuario'}</span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                 </SidebarMenuButton>
