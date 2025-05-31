@@ -4,11 +4,11 @@ export interface Favorite {
   id: string;
   user_id: string;
   item_id: string;
-  item_type: 'pet' | 'host';
+  item_type: 'pet' | 'host' | 'veterinary';
   created_at: string;
 }
 
-export const getFavorites = async (itemType?: 'pet' | 'host'): Promise<Favorite[]> => {
+export const getFavorites = async (itemType?: 'pet' | 'host' | 'veterinary'): Promise<Favorite[]> => {
   let query = supabase
     .from('favorites')
     .select('*')
@@ -28,11 +28,11 @@ export const getFavorites = async (itemType?: 'pet' | 'host'): Promise<Favorite[
   // Asegurar que item_type sea del tipo correcto
   return (data || []).map(item => ({
     ...item,
-    item_type: item.item_type as 'pet' | 'host'
+    item_type: item.item_type as 'pet' | 'host' | 'veterinary'
   }));
 };
 
-export const addToFavorites = async (itemId: string, itemType: 'pet' | 'host'): Promise<void> => {
+export const addToFavorites = async (itemId: string, itemType: 'pet' | 'host' | 'veterinary'): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -53,7 +53,7 @@ export const addToFavorites = async (itemId: string, itemType: 'pet' | 'host'): 
   }
 };
 
-export const removeFromFavorites = async (itemId: string, itemType: 'pet' | 'host'): Promise<void> => {
+export const removeFromFavorites = async (itemId: string, itemType: 'pet' | 'host' | 'veterinary'): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -73,7 +73,7 @@ export const removeFromFavorites = async (itemId: string, itemType: 'pet' | 'hos
   }
 };
 
-export const isFavorite = async (itemId: string, itemType: 'pet' | 'host'): Promise<boolean> => {
+export const isFavorite = async (itemId: string, itemType: 'pet' | 'host' | 'veterinary'): Promise<boolean> => {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) return false;

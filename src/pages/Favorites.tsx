@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import HostProfileModal from "@/components/HostProfileModal";
 import VeterinaryProfileModal from "@/components/VeterinaryProfileModal";
 import type { Host } from "@/services/hostService";
-import { getHosts } from "@/services/hostService";
+import { getHosts, getVeterinaries } from "@/services/hostService";
 import { getPets } from "@/services/petService";
 import logo from "@/assets/logo.jpeg";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -120,6 +120,15 @@ const Favorites = () => {
     queryFn: () => getHosts(),
   });
 
+  // Fetch veterinaries using React Query
+  const { data: allVeterinaries = [], isLoading: isLoadingVeterinaries, error: veterinariesError } = useQuery({
+    queryKey: ["veterinaries-favorites"],
+    queryFn: () => getVeterinaries(),
+  });
+
+  // Add console log to debug
+  console.log('Veterinaries data:', { allVeterinaries, isLoadingVeterinaries, veterinariesError });
+
   // Convert Supabase hosts to ComponentHost format and filter out family hosts
   const allHosts = supabaseHosts
     .filter((host) => host.type !== "family") // Remove family hosts
@@ -132,36 +141,18 @@ const Favorites = () => {
   const petFavoriteIds = allFavorites
     .filter((fav) => fav.item_type === "pet")
     .map((fav) => fav.item_id);
+  const veterinaryFavoriteIds = allFavorites
+    .filter((fav) => fav.item_type === "veterinary")
+    .map((fav) => fav.item_id);
 
   // Get favorite hosts directly from supabaseHosts
   const favoriteHosts = supabaseHosts.filter((host) =>
     hostFavoriteIds.includes(host.id)
   );
   const favoritePets = allPets.filter((pet) => petFavoriteIds.includes(pet.id));
-
-  // Mock data for veterinaries - in real app this would come from a service
-  const mockVeterinaries = [
-    {
-      id: "vet1",
-      name: "Clínica Veterinaria San José",
-      location: "Madrid, España",
-      rating: 4.8,
-      reviewCount: 156,
-      image: "/placeholder.svg",
-      services: ["Consulta general", "Cirugía", "Vacunación"],
-      pricePerNight: 45,
-    },
-    {
-      id: "vet2",
-      name: "Hospital Veterinario Central",
-      location: "Barcelona, España",
-      rating: 4.9,
-      reviewCount: 203,
-      image: "/placeholder.svg",
-      services: ["Emergencias 24h", "Radiografía", "Análisis"],
-      pricePerNight: 55,
-    },
-  ];
+  const favoriteVeterinaries = allVeterinaries.filter((vet) =>
+    veterinaryFavoriteIds.includes(vet.id)
+  );
 
   const toggleHostFavorite = (hostId: string) => {
     toggleFavorite(hostId, "host");
@@ -172,29 +163,7 @@ const Favorites = () => {
   };
 
   const toggleVeterinaryFavorite = (vetId: string) => {
-    const updatedFavorites = localStorage.getItem("veterinaryFavorites");
-    const veterinaryFavorites = updatedFavorites
-      ? JSON.parse(updatedFavorites)
-      : [];
-    const isCurrentlyFavorite = veterinaryFavorites.includes(vetId);
-
-    const updatedVetFavorites = isCurrentlyFavorite
-      ? veterinaryFavorites.filter((id: string) => id !== vetId)
-      : [...veterinaryFavorites, vetId];
-
-    localStorage.setItem(
-      "veterinaryFavorites",
-      JSON.stringify(updatedVetFavorites)
-    );
-
-    toast({
-      title: isCurrentlyFavorite
-        ? "Eliminado de favoritos"
-        : "Añadido a favoritos",
-      description: isCurrentlyFavorite
-        ? "La veterinaria se eliminó de tus favoritos"
-        : "La veterinaria se añadió a tus favoritos",
-    });
+    toggleFavorite(vetId, "veterinary");
   };
 
   const handleRemoveFavorite = (petId: string) => {
@@ -269,7 +238,7 @@ const Favorites = () => {
               Cuidadores ({favoriteHosts.length})
             </TabsTrigger>
             <TabsTrigger value="veterinaries">
-              Veterinarias ({mockVeterinaries.length})
+              Veterinarias ({favoriteVeterinaries.length})
             </TabsTrigger>
             <TabsTrigger value="pets">
               Mascotas ({favoritePets.length})
@@ -367,54 +336,90 @@ const Favorites = () => {
           </TabsContent>
 
           <TabsContent value="veterinaries" className="mt-6">
-            {mockVeterinaries.length > 0 ? (
+            {favoriteVeterinaries.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockVeterinaries.map((vet) => (
-                  <Card
-                    key={vet.id}
-                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => handleViewVeterinary(vet)}
-                  >
-                    <div className="relative">
-                      <img
-                        src={vet.image || logo}
-                        alt={vet.name}
-                        className="w-full h-48 object-cover"
-                        onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                          e.currentTarget.src = logo;
-                        }}
-                      />
-                    </div>
+                {favoriteVeterinaries.map((vet) => {
+                  const images = Array.isArray(vet.images) ? vet.images as string[] : [];
+                  const services = Array.isArray(vet.services) ? vet.services as string[] : [];
 
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold">{vet.name}</h3>
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">
-                            {vet.rating}
-                          </span>
+                  return (
+                    <Card
+                      key={vet.id}
+                      className="overflow-hidden hover:shadow-lg transition-shadow"
+                      onClick={() => handleViewVeterinary(vet)}
+                    >
+                      <div className="relative">
+                        <img
+                          src={images[0] || logo}
+                          alt={vet.name}
+                          className="w-full h-48 object-cover"
+                          onError={(
+                            e: React.SyntheticEvent<HTMLImageElement>
+                          ) => {
+                            e.currentTarget.src = logo;
+                          }}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleVeterinaryFavorite(vet.id)}
+                          className="absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full p-2"
+                        >
+                          <Heart
+                            className="w-4 h-4 fill-red-500 text-red-500"
+                          />
+                        </Button>
+                      </div>
+
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-semibold">{vet.name}</h3>
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium">
+                              {Number(vet.rating).toFixed(1)}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              ({vet.review_count})
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center text-sm text-gray-600 mb-3">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {vet.location}
-                      </div>
+                        <div className="flex items-center text-sm text-gray-600 mb-3">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {vet.city}
+                        </div>
 
-                      <div className="text-gray-600 text-sm mb-4">
-                        <span className="font-medium">Servicios: </span>
-                        {vet.services.join(", ")}
-                      </div>
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {services.slice(0, 2).map((service, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {service}
+                            </Badge>
+                          ))}
+                          {services.length > 2 && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              +{services.length - 2} más
+                            </Badge>
+                          )}
+                        </div>
 
-                      <div className="flex justify-between items-center">
-                        <span className="text-xl font-bold text-green-600">
-                          €{vet.pricePerNight}/consulta
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <div className="flex justify-between items-center">
+                          <span className="text-xl font-bold text-green-600">
+                            €{vet.price_per_night}/consulta
+                          </span>
+                          <Button size="sm">Ver detalles</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">

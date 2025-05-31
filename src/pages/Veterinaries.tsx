@@ -1,4 +1,4 @@
-import { Calendar, Clock, MapPin, Star, Stethoscope } from "lucide-react";
+import { Calendar, Clock, MapPin, Star, Stethoscope, Heart } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -17,12 +17,14 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useFavorites } from "@/hooks/useFavorites";
 
 const Veterinaries = () => {
   const [searchInput, setSearchInput] = useState("");
   const searchLocation = useDebounce(searchInput, 1500); // 1.5 seconds debounce
   const [selectedVet, setSelectedVet] = useState<Host | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   const { formatPrice } = useCurrency();
 
@@ -108,22 +110,39 @@ const Veterinaries = () => {
           return (
             <Card
               key={vet.id}
-              className="group hover:shadow-lg transition-shadow flex flex-col cursor-pointer"
-              onClick={() => handleBookAppointment(vet)}
+              className="group hover:shadow-lg transition-shadow flex flex-col"
             >
               <div className="relative">
                 <img
                   src={images[0] || logo}
                   alt={vet.name}
-                  className="w-full h-48 object-cover rounded-t-lg"
+                  className="w-full h-48 object-cover rounded-t-lg cursor-pointer"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = logo;
                   }}
+                  onClick={() => handleBookAppointment(vet)}
                 />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(vet.id, 'veterinary');
+                  }}
+                  className="absolute top-2 right-2 bg-white/80 hover:bg-white rounded-full p-2"
+                >
+                  <Heart
+                    className={`w-5 h-5 ${
+                      isFavorite(vet.id, 'veterinary')
+                        ? "fill-red-500 text-red-500"
+                        : "text-gray-600"
+                    }`}
+                  />
+                </Button>
               </div>
 
-              <CardHeader>
+              <CardHeader className="cursor-pointer" onClick={() => handleBookAppointment(vet)}>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">{vet.name}</CardTitle>
                   <div className="flex items-center gap-1">

@@ -45,18 +45,25 @@ export const getHosts = async (filters?: {
 };
 
 export const getVeterinaries = async (location?: string) => {
-  let query = supabase.from("hosts").select("*").eq("type", "veterinary");
+  let query = supabase
+    .from("hosts")
+    .select("*")
+    .eq("type", "veterinary")
+    .order("rating", { ascending: false });
 
   if (location) {
     query = query.ilike("location", `%${location}%`);
   }
 
-  const { data, error } = await query.order("rating", { ascending: false });
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching veterinaries:", error);
     throw error;
   }
+
+  // Add debug log
+  console.log("Veterinaries query result:", { data, error });
 
   return data || [];
 };
