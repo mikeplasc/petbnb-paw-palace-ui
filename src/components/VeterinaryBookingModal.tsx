@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -130,19 +129,24 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
     try {
       const selectedPet = userPets.find(pet => pet.id.toString() === formData.selectedPetId);
       
-      // Create booking using the existing service
-      const booking = createBooking(veterinary.id, {
-        ...veterinary,
-        image: veterinary.images[0],
-        petInfo: selectedPet
-      });
+      // Create booking using the existing service with veterinary type
+      const booking = createBooking(
+        veterinary.id, 
+        {
+          ...veterinary,
+          image: veterinary.images[0],
+          petInfo: selectedPet
+        },
+        'veterinary', // Specify this is a veterinary booking
+        formData // Pass form data for veterinary-specific fields
+      );
 
       toast({
         title: "¡Reserva confirmada!",
         description: `Tu cita en ${veterinary.name} ha sido reservada exitosamente para ${selectedPet?.name}.`,
       });
 
-      console.log('Reserva creada:', booking);
+      console.log('Reserva veterinaria creada:', booking);
       console.log('Datos del formulario:', formData);
       console.log('Mascota seleccionada:', selectedPet);
       

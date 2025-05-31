@@ -4,56 +4,61 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, MapPin, Clock, User, Star, MessageCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Star, MessageCircle, Stethoscope } from 'lucide-react';
+import { getUserBookings } from '@/services/bookingService';
 
 const MyBookings = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
+  
+  // Get bookings from service
+  const allBookings = getUserBookings();
+  
+  // Separate bookings by status and add mock data for demonstration
+  const mockBookings = [
+    {
+      id: 1,
+      hostName: 'María García',
+      hostImage: '/placeholder-user.jpg',
+      petName: 'Luna',
+      service: 'Cuidado en casa del cuidador',
+      startDate: '2024-06-15',
+      endDate: '2024-06-18',
+      location: 'Barcelona, España',
+      status: 'confirmed',
+      price: 120,
+      rating: 4.9,
+      type: 'host'
+    },
+    {
+      id: 2,
+      hostName: 'Carlos López',
+      hostImage: '/placeholder-user.jpg',
+      petName: 'Max',
+      service: 'Paseo de perros',
+      startDate: '2024-06-20',
+      endDate: '2024-06-20',
+      location: 'Madrid, España',
+      status: 'pending',
+      price: 25,
+      rating: 4.7,
+      type: 'host'
+    }
+  ];
+
+  // Combine real bookings with mock data
+  const combinedUpcomingBookings = [
+    ...mockBookings.filter(booking => booking.status === 'confirmed' || booking.status === 'pending'),
+    ...allBookings.filter(booking => booking.status === 'confirmed' || booking.status === 'pending')
+  ];
+
+  const combinedPastBookings = [
+    ...mockBookings.filter(booking => booking.status === 'completed'),
+    ...allBookings.filter(booking => booking.status === 'completed')
+  ];
 
   const bookings = {
-    upcoming: [
-      {
-        id: 1,
-        hostName: 'María García',
-        hostImage: '/placeholder-user.jpg',
-        petName: 'Luna',
-        service: 'Cuidado en casa del cuidador',
-        startDate: '2024-06-15',
-        endDate: '2024-06-18',
-        location: 'Barcelona, España',
-        status: 'confirmed',
-        price: 120,
-        rating: 4.9
-      },
-      {
-        id: 2,
-        hostName: 'Carlos López',
-        hostImage: '/placeholder-user.jpg',
-        petName: 'Max',
-        service: 'Paseo de perros',
-        startDate: '2024-06-20',
-        endDate: '2024-06-20',
-        location: 'Madrid, España',
-        status: 'pending',
-        price: 25,
-        rating: 4.7
-      }
-    ],
-    past: [
-      {
-        id: 3,
-        hostName: 'Ana Martínez',
-        hostImage: '/placeholder-user.jpg',
-        petName: 'Luna',
-        service: 'Cuidado diurno',
-        startDate: '2024-05-10',
-        endDate: '2024-05-12',
-        location: 'Valencia, España',
-        status: 'completed',
-        price: 80,
-        rating: 5.0,
-        reviewed: true
-      }
-    ]
+    upcoming: combinedUpcomingBookings,
+    past: combinedPastBookings
   };
 
   const getStatusBadge = (status: string) => {
@@ -78,73 +83,104 @@ const MyBookings = () => {
     );
   };
 
-  const BookingCard = ({ booking }: { booking: any }) => (
-    <Card className="mb-4 hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-petbnb-100 to-primary-100 rounded-full flex items-center justify-center">
-              <User className="h-6 w-6 text-primary-700" />
+  const BookingCard = ({ booking }: { booking: any }) => {
+    const isVeterinary = booking.type === 'veterinary';
+    const petName = booking.petInfo?.name || booking.petName;
+    const serviceName = booking.serviceType || booking.service;
+    
+    return (
+      <Card className="mb-4 hover:shadow-md transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <div className="flex items-center space-x-3">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                isVeterinary 
+                  ? 'bg-gradient-to-br from-blue-100 to-blue-200' 
+                  : 'bg-gradient-to-br from-petbnb-100 to-primary-100'
+              }`}>
+                {isVeterinary ? (
+                  <Stethoscope className="h-6 w-6 text-blue-700" />
+                ) : (
+                  <User className="h-6 w-6 text-primary-700" />
+                )}
+              </div>
+              <div>
+                <CardTitle className="text-lg">{booking.hostName}</CardTitle>
+                <CardDescription className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  {booking.rating || 'N/A'}
+                  {isVeterinary && (
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      Veterinaria
+                    </Badge>
+                  )}
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-lg">{booking.hostName}</CardTitle>
-              <CardDescription className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                {booking.rating}
-              </CardDescription>
+            {getStatusBadge(booking.status)}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="font-medium">🐕 Mascota:</span>
+                {petName}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="font-medium">Servicio:</span>
+                {serviceName}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="h-4 w-4" />
+                {booking.location}
+              </div>
+              {isVeterinary && booking.preferredTime && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Clock className="h-4 w-4" />
+                  {booking.preferredTime}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="h-4 w-4" />
+                {booking.startDate} {booking.endDate !== booking.startDate && `- ${booking.endDate}`}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="font-medium">Precio:</span>
+                ${booking.totalPrice || booking.price}
+              </div>
+              {isVeterinary && booking.notes && (
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Notas:</span>
+                  <p className="text-xs mt-1">{booking.notes}</p>
+                </div>
+              )}
             </div>
           </div>
-          {getStatusBadge(booking.status)}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="font-medium">🐕 Mascota:</span>
-              {booking.petName}
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="font-medium">Servicio:</span>
-              {booking.service}
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <MapPin className="h-4 w-4" />
-              {booking.location}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Calendar className="h-4 w-4" />
-              {booking.startDate} - {booking.endDate}
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="font-medium">Precio:</span>
-              €{booking.price}
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex gap-2 mt-4">
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <MessageCircle className="h-4 w-4" />
-            Contactar
-          </Button>
-          {booking.status === 'completed' && !booking.reviewed && (
-            <Button size="sm" className="flex items-center gap-1">
-              <Star className="h-4 w-4" />
-              Valorar
+          
+          <div className="flex gap-2 mt-4">
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <MessageCircle className="h-4 w-4" />
+              Contactar
             </Button>
-          )}
-          {booking.status === 'confirmed' && (
-            <Button variant="outline" size="sm">
-              Ver detalles
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+            {booking.status === 'completed' && !booking.reviewed && (
+              <Button size="sm" className="flex items-center gap-1">
+                <Star className="h-4 w-4" />
+                Valorar
+              </Button>
+            )}
+            {booking.status === 'confirmed' && (
+              <Button variant="outline" size="sm">
+                Ver detalles
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
