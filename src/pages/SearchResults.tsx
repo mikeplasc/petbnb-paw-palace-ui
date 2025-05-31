@@ -110,10 +110,10 @@ const SearchResults = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="Perros">Perros</SelectItem>
-                <SelectItem value="Gatos">Gatos</SelectItem>
-                <SelectItem value="Aves">Aves</SelectItem>
-                <SelectItem value="Conejos">Conejos</SelectItem>
+                <SelectItem value="Perro">Perros</SelectItem>
+                <SelectItem value="Gato">Gatos</SelectItem>
+                <SelectItem value="Ave">Aves</SelectItem>
+                <SelectItem value="Conejo">Conejos</SelectItem>
               </SelectContent>
             </Select>
           </div>
