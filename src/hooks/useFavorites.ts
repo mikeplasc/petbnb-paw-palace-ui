@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getFavorites, addToFavorites, removeFromFavorites } from '@/services/favoritesService';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-export const useFavorites = (itemType?: 'pet' | 'host') => {
+export const useFavorites = (itemType?: 'pet' | 'host' | 'veterinary') => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -16,7 +15,7 @@ export const useFavorites = (itemType?: 'pet' | 'host') => {
   });
 
   const addFavoriteMutation = useMutation({
-    mutationFn: ({ itemId, itemType }: { itemId: string; itemType: 'pet' | 'host' }) =>
+    mutationFn: ({ itemId, itemType }: { itemId: string; itemType: 'pet' | 'host' | 'veterinary' }) =>
       addToFavorites(itemId, itemType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
@@ -29,7 +28,7 @@ export const useFavorites = (itemType?: 'pet' | 'host') => {
   });
 
   const removeFavoriteMutation = useMutation({
-    mutationFn: ({ itemId, itemType }: { itemId: string; itemType: 'pet' | 'host' }) =>
+    mutationFn: ({ itemId, itemType }: { itemId: string; itemType: 'pet' | 'host' | 'veterinary' }) =>
       removeFromFavorites(itemId, itemType),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
@@ -41,7 +40,7 @@ export const useFavorites = (itemType?: 'pet' | 'host') => {
     },
   });
 
-  const toggleFavorite = (itemId: string, itemType: 'pet' | 'host') => {
+  const toggleFavorite = (itemId: string, itemType: 'pet' | 'host' | 'veterinary') => {
     if (!user) {
       toast.error('Debes iniciar sesión para usar favoritos');
       return;
@@ -56,7 +55,7 @@ export const useFavorites = (itemType?: 'pet' | 'host') => {
     }
   };
 
-  const isFavorite = (itemId: string, itemType: 'pet' | 'host') => {
+  const isFavorite = (itemId: string, itemType: 'pet' | 'host' | 'veterinary') => {
     return favorites.some(fav => fav.item_id === itemId && fav.item_type === itemType);
   };
 
