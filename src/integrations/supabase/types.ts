@@ -470,60 +470,6 @@ export type Database = {
           },
         ]
       }
-      adoption_stories: {
-        Row: {
-          id: string
-          user_id: string
-          pet_id: string
-          pet_name: string
-          pet_image: string
-          title: string
-          content: string
-          images: string[]
-          likes: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          pet_id: string
-          pet_name: string
-          pet_image: string
-          title: string
-          content: string
-          images: string[]
-          likes?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          pet_id?: string
-          pet_name?: string
-          pet_image?: string
-          title?: string
-          content?: string
-          images?: string[]
-          likes?: number
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "adoption_stories_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "adoption_stories_pet_id_fkey"
-            columns: ["pet_id"]
-            isOneToOne: false
-            referencedRelation: "pets"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
     }
     Views: {
       [_ in never]: never

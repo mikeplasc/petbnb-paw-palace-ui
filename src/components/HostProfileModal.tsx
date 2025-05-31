@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,10 @@ import {
 import { Host } from "@/services/hostService";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useFavorites } from "@/hooks/useFavorites";
+import { createBooking } from "@/services/bookingService";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.jpeg";
+import { useState } from "react";
 
 interface HostProfileModalProps {
   host: Host | null;
@@ -39,6 +41,8 @@ const HostProfileModal = ({
 }: HostProfileModalProps) => {
   const { formatPrice } = useCurrency();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { toast } = useToast();
+  const [isBooking, setIsBooking] = useState(false);
 
   if (!host) return null;
 
@@ -52,9 +56,37 @@ const HostProfileModal = ({
     toggleFavorite(host.id, "host");
   };
 
-  const handleSelectHost = () => {
-    onSelectHost?.(host.id);
-    onClose();
+  const handleSelectHost = async () => {
+    try {
+      setIsBooking(true);
+      
+      // Create booking with current date as default
+      const today = new Date().toISOString().split('T')[0];
+      const formData = {
+        preferredDate: today,
+        serviceType: 'cuidado_general',
+        notes: `Reserva realizada desde el perfil del cuidador ${host.name}`,
+      };
+
+      const booking = await createBooking(host.id, host, 'host', formData);
+      
+      toast({
+        title: "¡Cuidador seleccionado exitosamente!",
+        description: `Has creado una reserva con ${host.name}. Puedes ver los detalles en tu sección de reservas.`,
+      });
+
+      onSelectHost?.(host.id);
+      onClose();
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast({
+        title: "Error al seleccionar cuidador",
+        description: "Hubo un problema al crear la reserva. Por favor intenta de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   const getTypeLabel = (type: string) => {
@@ -302,9 +334,10 @@ const HostProfileModal = ({
             </Button>
             <Button 
               onClick={handleSelectHost}
+              disabled={isBooking}
               className="flex-1 bg-gradient-to-r from-petbnb-500 to-primary-600 hover:from-petbnb-600 hover:to-primary-700 text-white"
             >
-              Seleccionar Cuidador
+              {isBooking ? "Creando reserva..." : "Seleccionar Cuidador"}
             </Button>
           </div>
         </div>
