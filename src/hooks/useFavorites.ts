@@ -1,54 +1,73 @@
+import {
+  addToFavorites,
+  getFavorites,
+  removeFromFavorites,
+} from "@/services/favoritesService";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getFavorites, addToFavorites, removeFromFavorites } from '@/services/favoritesService';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
-export const useFavorites = (itemType?: 'pet' | 'host') => {
+export const useFavorites = (itemType?: "pet" | "host" | "veterinary") => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: favorites = [], isLoading } = useQuery({
-    queryKey: ['favorites', itemType, user?.id],
+    queryKey: ["favorites", itemType, user?.id],
     queryFn: () => getFavorites(itemType),
     enabled: !!user,
   });
 
   const addFavoriteMutation = useMutation({
-    mutationFn: ({ itemId, itemType }: { itemId: string; itemType: 'pet' | 'host' }) =>
-      addToFavorites(itemId, itemType),
+    mutationFn: ({
+      itemId,
+      itemType,
+    }: {
+      itemId: string;
+      itemType: "pet" | "host" | "veterinary";
+    }) => addToFavorites(itemId, itemType),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      toast.success('Añadido a favoritos');
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+      toast.success("Añadido a favoritos");
     },
     onError: (error) => {
-      console.error('Error adding to favorites:', error);
-      toast.error('Error al añadir a favoritos');
+      console.error("Error adding to favorites:", error);
+      toast.error("Error al añadir a favoritos");
     },
   });
 
   const removeFavoriteMutation = useMutation({
-    mutationFn: ({ itemId, itemType }: { itemId: string; itemType: 'pet' | 'host' }) =>
-      removeFromFavorites(itemId, itemType),
+    mutationFn: ({
+      itemId,
+      itemType,
+    }: {
+      itemId: string;
+      itemType: "pet" | "host" | "veterinary";
+    }) => removeFromFavorites(itemId, itemType),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      toast.success('Eliminado de favoritos');
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+      toast.success("Eliminado de favoritos");
     },
     onError: (error) => {
-      console.error('Error removing from favorites:', error);
-      toast.error('Error al eliminar de favoritos');
+      console.error("Error removing from favorites:", error);
+      toast.error("Error al eliminar de favoritos");
     },
   });
 
-  const toggleFavorite = (itemId: string, itemType: 'pet' | 'host') => {
+  const toggleFavorite = (
+    itemId: string,
+    itemType: "pet" | "host" | "veterinary"
+  ) => {
     if (!user) {
-      toast.error('Debes iniciar sesión para usar favoritos');
+      toast.error("Debes iniciar sesión para usar favoritos");
       return;
     }
 
-    const isFav = favorites.some(fav => fav.item_id === itemId && fav.item_type === itemType);
-    
+    const isFav = favorites.some(
+      (fav) => fav.item_id === itemId && fav.item_type === itemType
+    );
+
     if (isFav) {
       removeFavoriteMutation.mutate({ itemId, itemType });
     } else {
@@ -56,8 +75,13 @@ export const useFavorites = (itemType?: 'pet' | 'host') => {
     }
   };
 
-  const isFavorite = (itemId: string, itemType: 'pet' | 'host') => {
-    return favorites.some(fav => fav.item_id === itemId && fav.item_type === itemType);
+  const isFavorite = (
+    itemId: string,
+    itemType: "pet" | "host" | "veterinary"
+  ) => {
+    return favorites.some(
+      (fav) => fav.item_id === itemId && fav.item_type === itemType
+    );
   };
 
   return {

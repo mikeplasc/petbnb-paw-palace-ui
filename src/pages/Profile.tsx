@@ -1,15 +1,38 @@
-import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X, Heart, Clock } from 'lucide-react';
-import { getUserAdoptionRequests } from '@/services/adoptionService';
-import { getUserProfile, updateUserProfile, UserProfile } from '@/services/profileService';
-import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Calendar,
+  Clock,
+  Edit2,
+  Heart,
+  Mail,
+  MapPin,
+  Phone,
+  Save,
+  User,
+  X,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  UserProfile,
+  getUserProfile,
+  updateUserProfile,
+} from "@/services/profileService";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getUserAdoptionRequests } from "@/services/adoptionService";
+import { getUserStats } from "@/services/statsService";
+import { toast } from "sonner";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -17,55 +40,66 @@ const Profile = () => {
   const emailInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
-    queryKey: ['userProfile'],
+    queryKey: ["userProfile"],
     queryFn: getUserProfile,
   });
 
   const { data: adoptionRequests = [], isLoading: requestsLoading } = useQuery({
-    queryKey: ['userAdoptionRequests'],
+    queryKey: ["userAdoptionRequests"],
     queryFn: getUserAdoptionRequests,
   });
 
-  const [formData, setFormData] = useState({
-    full_name: '',
-    email: '',
-    phone: '',
-    location: '',
-    bio: ''
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["userStats"],
+    queryFn: getUserStats,
   });
 
-  const [emailError, setEmailError] = useState('');
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    location: "",
+    bio: "",
+  });
+
+  const [emailError, setEmailError] = useState("");
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
-      setEmailError('El email es requerido');
-      emailInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setEmailError("El email es requerido");
+      emailInputRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       return false;
     }
     if (!emailRegex.test(email)) {
-      setEmailError('Por favor ingresa un email válido');
-      emailInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setEmailError("Por favor ingresa un email válido");
+      emailInputRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       return false;
     }
-    setEmailError('');
+    setEmailError("");
     return true;
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
-    setFormData(prev => ({ ...prev, email: newEmail }));
+    setFormData((prev) => ({ ...prev, email: newEmail }));
     validateEmail(newEmail);
   };
 
   useEffect(() => {
     if (profile) {
       setFormData({
-        full_name: profile.full_name || '',
-        email: profile.email || '',
-        phone: '', // Estos campos se pueden agregar a la tabla profiles si se necesitan
-        location: '',
-        bio: ''
+        full_name: profile.full_name || "",
+        email: profile.email || "",
+        phone: "", // Estos campos se pueden agregar a la tabla profiles si se necesitan
+        location: "",
+        bio: "",
       });
     }
   }, [profile]);
@@ -73,13 +107,13 @@ const Profile = () => {
   const updateProfileMutation = useMutation({
     mutationFn: updateUserProfile,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      toast.success('Perfil actualizado exitosamente');
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      toast.success("Perfil actualizado exitosamente");
       setIsEditing(false);
     },
     onError: (error) => {
-      console.error('Error updating profile:', error);
-      toast.error('Error al actualizar el perfil');
+      console.error("Error updating profile:", error);
+      toast.error("Error al actualizar el perfil");
     },
   });
 
@@ -99,30 +133,38 @@ const Profile = () => {
     setIsEditing(false);
     if (profile) {
       setFormData({
-        full_name: profile.full_name || '',
-        email: profile.email || '',
-        phone: '',
-        location: '',
-        bio: ''
+        full_name: profile.full_name || "",
+        email: profile.email || "",
+        phone: "",
+        location: "",
+        bio: "",
       });
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "approved":
+        return "bg-green-100 text-green-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Pendiente';
-      case 'approved': return 'Aprobada';
-      case 'rejected': return 'Rechazada';
-      default: return status;
+      case "pending":
+        return "Pendiente";
+      case "approved":
+        return "Aprobada";
+      case "rejected":
+        return "Rechazada";
+      default:
+        return status;
     }
   };
 
@@ -148,15 +190,17 @@ const Profile = () => {
     return (
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="text-center">
-          <p className="text-gray-600">No se pudo cargar el perfil del usuario.</p>
+          <p className="text-gray-600">
+            No se pudo cargar el perfil del usuario.
+          </p>
         </div>
       </div>
     );
   }
 
-  const joinDate = new Date(profile.created_at).toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long'
+  const joinDate = new Date(profile.created_at).toLocaleDateString("es-ES", {
+    year: "numeric",
+    month: "long",
   });
 
   return (
@@ -164,21 +208,28 @@ const Profile = () => {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Mi Perfil</h1>
         {!isEditing ? (
-          <Button onClick={() => setIsEditing(true)} className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-2"
+          >
             <Edit2 className="h-4 w-4" />
             Editar Perfil
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button 
-              onClick={handleSave} 
+            <Button
+              onClick={handleSave}
               className="flex items-center gap-2"
               disabled={updateProfileMutation.isPending}
             >
               <Save className="h-4 w-4" />
               Guardar
             </Button>
-            <Button variant="outline" onClick={handleCancel} className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              className="flex items-center gap-2"
+            >
               <X className="h-4 w-4" />
               Cancelar
             </Button>
@@ -192,12 +243,21 @@ const Profile = () => {
           <Card>
             <CardHeader className="text-center">
               <Avatar className="w-32 h-32 mx-auto mb-4">
-                <AvatarImage src={profile.avatar_url || "/placeholder-user.jpg"} alt={profile.full_name || 'Usuario'} />
+                <AvatarImage
+                  src={profile.avatar_url || "/placeholder-user.jpg"}
+                  alt={profile.full_name || "Usuario"}
+                />
                 <AvatarFallback className="text-2xl bg-gradient-to-br from-petbnb-100 to-primary-100 text-primary-700">
-                  {(profile.full_name || profile.email || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
+                  {(profile.full_name || profile.email || "U")
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <CardTitle className="text-xl">{profile.full_name || 'Usuario'}</CardTitle>
+              <CardTitle className="text-xl">
+                {profile.full_name || "Usuario"}
+              </CardTitle>
               <CardDescription className="flex items-center justify-center gap-1">
                 <Calendar className="h-4 w-4" />
                 Miembro desde {joinDate}
@@ -214,19 +274,31 @@ const Profile = () => {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Reservas completadas</span>
-                  <span className="font-semibold">0</span>
+                  <span className="font-semibold">
+                    {statsLoading ? "-" : stats?.completed_bookings}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Valoración promedio</span>
-                  <span className="font-semibold">-</span>
+                  <span className="font-semibold">
+                    {statsLoading
+                      ? "-"
+                      : stats?.average_rating
+                      ? stats.average_rating.toFixed(1)
+                      : "-"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Mascotas registradas</span>
-                  <span className="font-semibold">0</span>
+                  <span className="font-semibold">
+                    {statsLoading ? "-" : stats?.registered_pets}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Solicitudes de adopción</span>
-                  <span className="font-semibold">{adoptionRequests.length}</span>
+                  <span className="font-semibold">
+                    {statsLoading ? "-" : stats?.adoption_requests}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -252,7 +324,9 @@ const Profile = () => {
                   <Input
                     id="name"
                     value={formData.full_name}
-                    onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, full_name: e.target.value })
+                    }
                     disabled={!isEditing}
                   />
                 </div>
@@ -269,7 +343,7 @@ const Profile = () => {
                     onChange={handleEmailChange}
                     disabled={!isEditing}
                     placeholder="tu@email.com"
-                    className={emailError ? 'border-red-500' : ''}
+                    className={emailError ? "border-red-500" : ""}
                     ref={emailInputRef}
                   />
                   {emailError && (
@@ -301,20 +375,30 @@ const Profile = () => {
                 <div className="text-center py-8 text-gray-500">
                   <Heart className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p>No has realizado ninguna solicitud de adopción aún.</p>
-                  <p className="text-sm">¡Visita nuestra sección de adopción para encontrar tu compañero perfecto!</p>
+                  <p className="text-sm">
+                    ¡Visita nuestra sección de adopción para encontrar tu
+                    compañero perfecto!
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {adoptionRequests.map((request) => (
-                    <div key={request.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50">
+                    <div
+                      key={request.id}
+                      className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50"
+                    >
                       <img
                         src={request.pet_image}
                         alt={request.pet_name}
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{request.pet_name}</h4>
-                        <p className="text-sm text-gray-600">{request.shelter_name}</p>
+                        <h4 className="font-semibold text-gray-900">
+                          {request.pet_name}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {request.shelter_name}
+                        </p>
                         <div className="flex items-center gap-2 mt-1">
                           <Clock className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-500">

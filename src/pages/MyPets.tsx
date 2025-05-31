@@ -133,13 +133,6 @@ const MyPets = () => {
               e.currentTarget.src = logo;
             }}
           />
-          <Button
-            size="sm"
-            variant="outline"
-            className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm"
-          >
-            <Camera className="h-4 w-4" />
-          </Button>
         </div>
 
         <CardHeader>

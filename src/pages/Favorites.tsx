@@ -8,12 +8,12 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getHosts, getVeterinaries } from "@/services/hostService";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import HostCard from "@/components/HostCard";
 import type { Host as SupabaseHost } from "@/services/hostService";
-import { getHosts } from "@/services/hostService";
 import { getPets } from "@/services/petService";
 import logo from "@/assets/logo.jpeg";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -61,10 +61,10 @@ const convertSupabaseHostToComponentHost = (
   // Map database type values to expected ComponentHost type values
   const mapHostType = (dbType: string): "veterinary" | "host" => {
     switch (dbType) {
-      case 'veterinary':
-        return 'veterinary';
+      case "veterinary":
+        return "veterinary";
       default:
-        return 'host'; // Map all non-veterinary types to host
+        return "host"; // Map all non-veterinary types to host
     }
   };
 
@@ -116,6 +116,12 @@ const Favorites = () => {
     queryFn: () => getHosts(),
   });
 
+  // Fetch veterinaries using React Query
+  const { data: supabaseVeterinaries = [] } = useQuery({
+    queryKey: ["veterinaries-favorites"],
+    queryFn: () => getVeterinaries(),
+  });
+
   // Convert Supabase hosts to ComponentHost format and filter out family hosts
   const allHosts = supabaseHosts
     .filter((host) => host.type !== "family") // Remove family hosts
@@ -128,35 +134,17 @@ const Favorites = () => {
   const petFavoriteIds = allFavorites
     .filter((fav) => fav.item_type === "pet")
     .map((fav) => fav.item_id);
+  const veterinaryFavoriteIds = allFavorites
+    .filter((fav) => fav.item_type === "veterinary")
+    .map((fav) => fav.item_id);
 
   const favoriteHosts = allHosts.filter((host) =>
     hostFavoriteIds.includes(host.id)
   );
   const favoritePets = allPets.filter((pet) => petFavoriteIds.includes(pet.id));
-
-  // Mock data for veterinaries - in real app this would come from a service
-  const mockVeterinaries = [
-    {
-      id: "vet1",
-      name: "Clínica Veterinaria San José",
-      location: "Madrid, España",
-      rating: 4.8,
-      reviewCount: 156,
-      image: "/placeholder.svg",
-      services: ["Consulta general", "Cirugía", "Vacunación"],
-      pricePerNight: 45,
-    },
-    {
-      id: "vet2",
-      name: "Hospital Veterinario Central",
-      location: "Barcelona, España",
-      rating: 4.9,
-      reviewCount: 203,
-      image: "/placeholder.svg",
-      services: ["Emergencias 24h", "Radiografía", "Análisis"],
-      pricePerNight: 55,
-    },
-  ];
+  const favoriteVeterinaries = supabaseVeterinaries.filter((vet) =>
+    veterinaryFavoriteIds.includes(vet.id)
+  );
 
   const toggleHostFavorite = (hostId: string) => {
     toggleFavorite(hostId, "host");
@@ -167,29 +155,7 @@ const Favorites = () => {
   };
 
   const toggleVeterinaryFavorite = (vetId: string) => {
-    const updatedFavorites = localStorage.getItem("veterinaryFavorites");
-    const veterinaryFavorites = updatedFavorites
-      ? JSON.parse(updatedFavorites)
-      : [];
-    const isCurrentlyFavorite = veterinaryFavorites.includes(vetId);
-
-    const updatedVetFavorites = isCurrentlyFavorite
-      ? veterinaryFavorites.filter((id: string) => id !== vetId)
-      : [...veterinaryFavorites, vetId];
-
-    localStorage.setItem(
-      "veterinaryFavorites",
-      JSON.stringify(updatedVetFavorites)
-    );
-
-    toast({
-      title: isCurrentlyFavorite
-        ? "Eliminado de favoritos"
-        : "Añadido a favoritos",
-      description: isCurrentlyFavorite
-        ? "La veterinaria se eliminó de tus favoritos"
-        : "La veterinaria se añadió a tus favoritos",
-    });
+    toggleFavorite(vetId, "veterinary");
   };
 
   const handleRemoveFavorite = (petId: string) => {
@@ -215,7 +181,7 @@ const Favorites = () => {
               Cuidadores ({favoriteHosts.length})
             </TabsTrigger>
             <TabsTrigger value="veterinaries">
-              Veterinarias ({mockVeterinaries.length})
+              Veterinarias ({favoriteVeterinaries.length})
             </TabsTrigger>
             <TabsTrigger value="pets">
               Mascotas ({favoritePets.length})
@@ -251,18 +217,13 @@ const Favorites = () => {
           </TabsContent>
 
           <TabsContent value="veterinaries" className="mt-6">
-            {mockVeterinaries.length > 0 ? (
+            {favoriteVeterinaries.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockVeterinaries.map((vet) => {
-                  const updatedFavorites = localStorage.getItem(
-                    "veterinaryFavorites"
-                  );
-                  const veterinaryFavorites = updatedFavorites
-                    ? JSON.parse(updatedFavorites)
+                {favoriteVeterinaries.map((vet) => {
+                  const images = Array.isArray(vet.images) ? vet.images : [];
+                  const services = Array.isArray(vet.services)
+                    ? vet.services
                     : [];
-                  const isCurrentlyFavorite = veterinaryFavorites.includes(
-                    vet.id
-                  );
 
                   return (
                     <Card
@@ -271,7 +232,7 @@ const Favorites = () => {
                     >
                       <div className="relative">
                         <img
-                          src={vet.image || logo}
+                          src={images[0] || logo}
                           alt={vet.name}
                           className="w-full h-48 object-cover"
                           onError={(
@@ -286,13 +247,7 @@ const Favorites = () => {
                           onClick={() => toggleVeterinaryFavorite(vet.id)}
                           className="absolute top-2 right-2 bg-white/80 hover:bg-white"
                         >
-                          <Heart
-                            className={`w-4 h-4 ${
-                              isCurrentlyFavorite
-                                ? "fill-red-500 text-red-500"
-                                : ""
-                            }`}
-                          />
+                          <Heart className="w-4 h-4 fill-red-500 text-red-500" />
                         </Button>
                       </div>
 
@@ -302,18 +257,21 @@ const Favorites = () => {
                           <div className="flex items-center space-x-1">
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                             <span className="text-sm font-medium">
-                              {vet.rating}
+                              {Number(vet.rating).toFixed(1)}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              ({vet.review_count})
                             </span>
                           </div>
                         </div>
 
                         <div className="flex items-center text-sm text-gray-600 mb-3">
                           <MapPin className="w-4 h-4 mr-1" />
-                          {vet.location}
+                          {vet.city}
                         </div>
 
                         <div className="flex flex-wrap gap-1 mb-3">
-                          {vet.services.slice(0, 2).map((service, index) => (
+                          {services.slice(0, 2).map((service, index) => (
                             <Badge
                               key={index}
                               variant="secondary"
@@ -322,11 +280,16 @@ const Favorites = () => {
                               {service}
                             </Badge>
                           ))}
+                          {services.length > 2 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{services.length - 2} más
+                            </Badge>
+                          )}
                         </div>
 
                         <div className="flex justify-between items-center">
                           <span className="text-xl font-bold text-green-600">
-                            €{vet.pricePerNight}/consulta
+                            €{vet.price_per_night}/consulta
                           </span>
                           <Button size="sm">Ver detalles</Button>
                         </div>
