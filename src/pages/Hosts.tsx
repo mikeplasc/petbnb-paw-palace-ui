@@ -26,12 +26,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import HostProfileModal from "@/components/HostProfileModal";
 import logo from "@/assets/logo.jpeg";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface HostFilters {
   location?: string;
@@ -46,12 +48,15 @@ const Hosts = () => {
   const [petType, setPetType] = useState("all");
   const [minRating, setMinRating] = useState("all");
   const [maxPrice, setMaxPrice] = useState("");
+  const [selectedHost, setSelectedHost] = useState<Host | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const debouncedSearchLocation = useDebounce(searchLocation, 1000);
   const debouncedMaxPrice = useDebounce(maxPrice, 1000);
 
   const { toggleFavorite, isFavorite } = useFavorites();
   const { formatPrice } = useCurrency();
+  const { toast } = useToast();
 
   const {
     data: hosts = [],
@@ -90,6 +95,27 @@ const Hosts = () => {
 
   const handleToggleFavorite = (hostId: string) => {
     toggleFavorite(hostId, "host");
+  };
+
+  const handleViewProfile = (host: Host) => {
+    setSelectedHost(host);
+    setIsModalOpen(true);
+  };
+
+  const handleSelectHost = (hostId: string) => {
+    const host = hosts.find(h => h.id === hostId);
+    if (host) {
+      toast({
+        title: "Cuidador seleccionado",
+        description: `Has seleccionado a ${host.name} como tu cuidador.`,
+      });
+      // Here you could add logic to save the selection or navigate to booking
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedHost(null);
   };
 
   if (isLoading) {
@@ -316,7 +342,12 @@ const Hosts = () => {
                       /noche
                     </span>
                   </div>
-                  <Button size="sm">Ver perfil</Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleViewProfile(host)}
+                  >
+                    Ver perfil
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -334,6 +365,14 @@ const Hosts = () => {
           </p>
         </div>
       )}
+
+      {/* Host Profile Modal */}
+      <HostProfileModal
+        host={selectedHost}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSelectHost={handleSelectHost}
+      />
     </div>
   );
 };
