@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,11 +23,53 @@ const Veterinaries = () => {
   const [selectedVeterinary, setSelectedVeterinary] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [allVeterinaries, setAllVeterinaries] = useState<any[]>([]);
 
-  // Filter only veterinary hosts
-  const veterinaries = mockHosts.filter(host => host.type === 'veterinary');
+  // Load veterinaries on component mount
+  useEffect(() => {
+    // Get mock veterinaries
+    const mockVeterinaries = mockHosts.filter(host => host.type === 'veterinary');
+    
+    // Get user's personal veterinaries from localStorage
+    const personalVeterinaries = JSON.parse(localStorage.getItem('myVeterinaries') || '[]');
+    
+    // Transform personal veterinaries to match the expected format
+    const transformedPersonalVets = personalVeterinaries.map((vet: any) => ({
+      ...vet,
+      type: 'veterinary',
+      city: vet.location.split(',')[0]?.trim() || vet.location,
+      reviewCount: vet.reviewCount || 0,
+      images: vet.images && vet.images.length > 0 ? vet.images : ['/placeholder.svg']
+    }));
+    
+    // Combine both arrays
+    const combined = [...mockVeterinaries, ...transformedPersonalVets];
+    setAllVeterinaries(combined);
+  }, []);
 
-  const filteredVeterinaries = veterinaries
+  // Listen for updates to personal veterinaries
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const mockVeterinaries = mockHosts.filter(host => host.type === 'veterinary');
+      const personalVeterinaries = JSON.parse(localStorage.getItem('myVeterinaries') || '[]');
+      
+      const transformedPersonalVets = personalVeterinaries.map((vet: any) => ({
+        ...vet,
+        type: 'veterinary',
+        city: vet.location.split(',')[0]?.trim() || vet.location,
+        reviewCount: vet.reviewCount || 0,
+        images: vet.images && vet.images.length > 0 ? vet.images : ['/placeholder.svg']
+      }));
+      
+      const combined = [...mockVeterinaries, ...transformedPersonalVets];
+      setAllVeterinaries(combined);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const filteredVeterinaries = allVeterinaries
     .filter(vet => {
       const matchesSearch = vet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            vet.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -80,7 +123,7 @@ const Veterinaries = () => {
             {/* Quick stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">{veterinaries.length}+</div>
+                <div className="text-2xl font-bold">{allVeterinaries.length}+</div>
                 <div className="text-petbnb-100">Clínicas certificadas</div>
               </div>
               <div className="bg-white/10 backdrop-blur rounded-lg p-4">
