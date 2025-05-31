@@ -1,9 +1,15 @@
 
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Star, MapPin, Heart, Phone, Mail, Clock, Shield } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Star, MapPin, Heart, Phone, Mail, Clock, Shield, Send } from 'lucide-react';
+import { createBooking } from '@/services/bookingService';
+import { sendMessage } from '@/services/messageService';
+import { toast } from '@/hooks/use-toast';
 
 interface Host {
   id: string;
@@ -38,6 +44,10 @@ const HostDetailsModal = ({
   onToggleFavorite, 
   isFavorite 
 }: HostDetailsModalProps) => {
+  const [showMessageForm, setShowMessageForm] = useState(false);
+  const [messageContent, setMessageContent] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
   if (!host) return null;
 
   const getHostTypeLabel = (type: string) => {
@@ -46,6 +56,56 @@ const HostDetailsModal = ({
       case 'individual': return 'Cuidador individual';
       case 'veterinary': return 'Veterinaria';
       default: return type;
+    }
+  };
+
+  const handleBooking = async () => {
+    setIsLoading(true);
+    try {
+      const booking = createBooking(host.id, host);
+      toast({
+        title: "¡Reserva creada exitosamente!",
+        description: `Tu reserva con ${host.name} ha sido registrada. Revisa tu historial de reservas.`,
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo crear la reserva. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageContent.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor escribe un mensaje antes de enviar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const message = sendMessage(host.id, host.name, messageContent);
+      toast({
+        title: "¡Mensaje enviado!",
+        description: `${host.name} respondió: "${message.response.substring(0, 50)}..."`,
+      });
+      setMessageContent('');
+      setShowMessageForm(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo enviar el mensaje. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -162,13 +222,54 @@ const HostDetailsModal = ({
             </CardContent>
           </Card>
 
+          {/* Message Form */}
+          {showMessageForm && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-3">Enviar mensaje</h3>
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder="Escribe tu mensaje aquí..."
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    rows={4}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={isLoading}
+                      className="flex-1"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {isLoading ? 'Enviando...' : 'Enviar mensaje'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowMessageForm(false)}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-4">
-            <Button className="flex-1 bg-primary-600 hover:bg-primary-700">
-              Reservar ahora
+            <Button 
+              className="flex-1 bg-primary-600 hover:bg-primary-700"
+              onClick={handleBooking}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creando reserva...' : 'Reservar ahora'}
             </Button>
-            <Button variant="outline" className="flex-1">
-              Enviar mensaje
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => setShowMessageForm(!showMessageForm)}
+            >
+              {showMessageForm ? 'Cancelar mensaje' : 'Enviar mensaje'}
             </Button>
           </div>
         </div>
