@@ -5,13 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 const CategoriesSection = () => {
   const categories = [
     {
-      title: 'Casas familiares',
-      description: 'Familias amorosas con experiencia',
-      icon: '🏠',
-      count: '150+ disponibles',
-      color: 'from-warm-400 to-warm-500'
-    },
-    {
       title: 'Veterinarias certificadas',
       description: 'Cuidado médico profesional 24/7',
       icon: '🏥',
@@ -19,7 +12,7 @@ const CategoriesSection = () => {
       color: 'from-petbnb-400 to-petbnb-500'
     },
     {
-      title: 'Cuidadores individuales',
+      title: 'Cuidadores',
       description: 'Atención personalizada uno a uno',
       icon: '👨‍⚕️',
       count: '200+ cuidadores',
@@ -39,7 +32,7 @@ const CategoriesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {categories.map((category, index) => (
             <Card key={index} className="group cursor-pointer border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-8 text-center">
