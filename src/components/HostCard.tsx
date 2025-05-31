@@ -1,15 +1,14 @@
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Heart, Star, MapPin, Clock, CheckCircle } from 'lucide-react';
 
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Clock, Heart, MapPin, Star } from "lucide-react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.jpeg";
 
 interface Host {
   id: string;
   name: string;
-  type: "veterinary" | "individual";
+  type: "veterinary" | "host";
   location: string;
   city: string;
   rating: number;
@@ -42,10 +41,10 @@ const HostCard = ({
 }: HostCardProps) => {
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case "individual":
-        return "Cuidador"; // Changed from 'Cuidador individual'
-      case "veterinary":
-        return "Veterinaria";
+      case 'host':
+        return 'Cuidador';
+      case 'veterinary':
+        return 'Veterinaria';
       default:
         return type;
     }

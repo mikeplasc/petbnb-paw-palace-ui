@@ -1,28 +1,15 @@
-import {
-  Calendar,
-  Clock,
-  Heart,
-  Mail,
-  MapPin,
-  Shield,
-  User,
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Heart, MapPin, Calendar, Shield, Clock, Mail, User } from 'lucide-react';
+import { Pet } from '@/services/adoptionService';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Pet } from "@/services/adoptionService";
-import { Textarea } from "@/components/ui/textarea";
 import logo from "@/assets/logo.jpeg";
-import { useState } from "react";
 
 interface AdoptionModalProps {
   pet: Pet | null;
@@ -48,13 +35,21 @@ const AdoptionModal = ({
   currentUser = { name: "", email: "", phone: "" },
 }: AdoptionModalProps) => {
   const [showAdoptionForm, setShowAdoptionForm] = useState(false);
-  const [userInfo, setUserInfo] = useState({
-    name: currentUser.name,
-    email: currentUser.email,
-    phone: currentUser.phone,
-    message: "",
-  });
+  const initialUserInfo = {
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  };
+  const [userInfo, setUserInfo] = useState(initialUserInfo);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Reset form when modal closes
+  const handleClose = () => {
+    setUserInfo(initialUserInfo);
+    setShowAdoptionForm(false);
+    onClose();
+  };
 
   if (!pet) return null;
 
@@ -75,12 +70,7 @@ const AdoptionModal = ({
     setIsLoading(true);
     try {
       await onSubmitAdoption(pet.id, userInfo);
-      setUserInfo({
-        name: currentUser.name,
-        email: currentUser.email,
-        phone: currentUser.phone,
-        message: "",
-      });
+      setUserInfo(initialUserInfo);
       setShowAdoptionForm(false);
     } finally {
       setIsLoading(false);
@@ -88,7 +78,7 @@ const AdoptionModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-900">

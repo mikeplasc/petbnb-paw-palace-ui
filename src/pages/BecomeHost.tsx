@@ -21,7 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const BecomeHost = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     name: '',
     email: '',
     type: '',
@@ -33,8 +33,9 @@ const BecomeHost = () => {
     services: [] as string[],
     pricePerNight: '',
     photos: [] as string[]
-  });
+  };
 
+  const [formData, setFormData] = useState(initialFormData);
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,8 +43,7 @@ const BecomeHost = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const hostTypes = [
-    { value: 'family', label: 'Familia' },
-    { value: 'individual', label: 'Cuidador individual' },
+    { value: 'host', label: 'Cuidador' },
     { value: 'veterinary', label: 'Veterinaria/Clínica' }
   ];
 
@@ -254,6 +254,8 @@ const BecomeHost = () => {
         photos: formData.photos,
       });
 
+      // Reset form data to initial state
+      setFormData(initialFormData);
       setCurrentStep(4);
       setEmailSent(true);
       
@@ -282,6 +284,12 @@ const BecomeHost = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Add reset functionality to the "Volver al inicio" button in success screen
+  const handleReset = () => {
+    setFormData(initialFormData);
+    setCurrentStep(1);
   };
 
   const handleInputChange = (field: string, value: string) => {

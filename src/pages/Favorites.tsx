@@ -24,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 interface ComponentHost {
   id: string;
   name: string;
-  type: "veterinary" | "individual";
+  type: "veterinary" | "host";
   location: string;
   city: string;
   rating: number;
@@ -58,16 +58,13 @@ const convertSupabaseHostToComponentHost = (
     ? (supabaseHost.images as string[])
     : [];
 
-  // Map database type values to expected ComponentHost type values, excluding family
-  const mapHostType = (dbType: string): "veterinary" | "individual" => {
+  // Map database type values to expected ComponentHost type values
+  const mapHostType = (dbType: string): "veterinary" | "host" => {
     switch (dbType) {
-      case "veterinary":
-        return "veterinary";
-      case "family":
-      case "individual":
-      case "sitter":
+      case 'veterinary':
+        return 'veterinary';
       default:
-        return "individual"; // Map all non-veterinary types to individual
+        return 'host'; // Map all non-veterinary types to host
     }
   };
 

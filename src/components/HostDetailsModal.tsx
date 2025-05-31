@@ -1,31 +1,16 @@
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Clock,
-  Heart,
-  Mail,
-  MapPin,
-  Phone,
-  Send,
-  Shield,
-  Star,
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import ChatWidget from "./ChatWidget";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { createBooking } from "@/services/bookingService";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Star, MapPin, Heart, Phone, Mail, Clock, Shield, Send } from 'lucide-react';
+import { createBooking } from '@/services/bookingService';
+import { sendMessage } from '@/services/messageService';
+import { toast } from '@/hooks/use-toast';
+import ChatWidget from './ChatWidget';
 import logo from "@/assets/logo.jpeg";
-import { sendMessage } from "@/services/messageService";
-import { toast } from "@/hooks/use-toast";
-import { useState } from "react";
 
 interface Host {
   id: string;
@@ -37,7 +22,7 @@ interface Host {
   image: string;
   acceptedPets: string[];
   services: string[];
-  type: "family" | "individual" | "veterinary";
+  type: 'host' | 'veterinary';
   description?: string;
   experience?: string;
   availability?: string;
@@ -74,14 +59,9 @@ const HostDetailsModal = ({
 
   const getHostTypeLabel = (type: string) => {
     switch (type) {
-      case "family":
-        return "Familia";
-      case "individual":
-        return "Cuidador individual";
-      case "veterinary":
-        return "Veterinaria";
-      default:
-        return type;
+      case 'host': return 'Cuidador';
+      case 'veterinary': return 'Veterinaria';
+      default: return type;
     }
   };
 
@@ -126,7 +106,11 @@ const HostDetailsModal = ({
         initialMessage: messageContent,
       });
       setShowChat(true);
-
+      
+      // Clean up the form
+      setMessageContent('');
+      setShowMessageForm(false);
+      
       toast({
         title: "¡Mensaje enviado!",
         description: `${host.name} respondió: "${message.response.substring(
@@ -134,8 +118,6 @@ const HostDetailsModal = ({
           50
         )}..."`,
       });
-      setMessageContent("");
-      setShowMessageForm(false);
       onClose(); // Close the modal when chat opens
     } catch (error) {
       toast({
@@ -148,9 +130,16 @@ const HostDetailsModal = ({
     }
   };
 
+  // Add cleanup when modal closes
+  const handleClose = () => {
+    setMessageContent('');
+    setShowMessageForm(false);
+    onClose();
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-gray-900">
