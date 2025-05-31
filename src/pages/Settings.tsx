@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,9 +7,12 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Shield, CreditCard, Globe, Eye, Mail, Smartphone, Trash2, AlertTriangle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Bell, Shield, CreditCard, Globe, Eye, Mail, Smartphone, Trash2, AlertTriangle, DollarSign } from 'lucide-react';
+import { useCurrency, Currency } from '@/contexts/CurrencyContext';
 
 const Settings = () => {
+  const { currency, setCurrency } = useCurrency();
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -26,6 +28,12 @@ const Settings = () => {
     showPhone: false,
     dataSharing: false
   });
+
+  const currencies = [
+    { value: 'MXN' as Currency, label: 'Peso Mexicano (MXN)', flag: '🇲🇽' },
+    { value: 'USD' as Currency, label: 'Dólar Americano (USD)', flag: '🇺🇸' },
+    { value: 'EUR' as Currency, label: 'Euro (EUR)', flag: '🇪🇺' }
+  ];
 
   const NotificationSettings = () => (
     <div className="space-y-6">
@@ -276,12 +284,77 @@ const Settings = () => {
     </div>
   );
 
+  const GeneralSettings = () => (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium mb-4">Configuración de Moneda</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <DollarSign className="h-5 w-5 text-gray-500" />
+              <div>
+                <Label className="text-sm font-medium">Moneda preferida</Label>
+                <p className="text-sm text-gray-500">Selecciona la moneda para mostrar precios</p>
+              </div>
+            </div>
+            <Select value={currency} onValueChange={(value: Currency) => setCurrency(value)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Selecciona moneda" />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((curr) => (
+                  <SelectItem key={curr.value} value={curr.value}>
+                    <div className="flex items-center space-x-2">
+                      <span>{curr.flag}</span>
+                      <span>{curr.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div>
+        <h3 className="text-lg font-medium mb-4">Configuración Regional</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Globe className="h-5 w-5 text-gray-500" />
+              <div>
+                <Label className="text-sm font-medium">Idioma</Label>
+                <p className="text-sm text-gray-500">Selecciona tu idioma preferido</p>
+              </div>
+            </div>
+            <Select defaultValue="es">
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="es">🇪🇸 Español</SelectItem>
+                <SelectItem value="en">🇺🇸 English</SelectItem>
+                <SelectItem value="fr">🇫🇷 Français</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Configuración</h1>
 
-      <Tabs defaultValue="notifications" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            General
+          </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
             Notificaciones
@@ -299,6 +372,20 @@ const Settings = () => {
             Cuenta
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="general" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuración General</CardTitle>
+              <CardDescription>
+                Gestiona tu moneda, idioma y preferencias regionales
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <GeneralSettings />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
           <Card>

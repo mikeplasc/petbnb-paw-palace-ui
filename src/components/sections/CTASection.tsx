@@ -7,6 +7,11 @@ interface CTASectionProps {
 }
 
 const CTASection = ({ onStartSearch, onBecomeHost }: CTASectionProps) => {
+  const handleBecomeHost = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    onBecomeHost();
+  };
+
   return (
     <section className="py-20 px-4 bg-gradient-to-br from-petbnb-500 to-primary-600">
       <div className="container mx-auto text-center">
@@ -28,8 +33,8 @@ const CTASection = ({ onStartSearch, onBecomeHost }: CTASectionProps) => {
             <Button 
               size="lg"
               variant="outline"
-              onClick={onBecomeHost}
-              className="border-white text-white hover:bg-white hover:text-petbnb-600 px-8 py-3 text-lg font-semibold"
+              onClick={handleBecomeHost}
+              className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-petbnb-600 px-8 py-3 text-lg font-semibold transition-all duration-300"
             >
               Convertirse en cuidador
             </Button>
