@@ -15,7 +15,6 @@ const Adoption = () => {
   const [searchLocation, setSearchLocation] = useState('');
   const [petTypeFilter, setPetTypeFilter] = useState('all');
   const [sizeFilter, setSizeFilter] = useState('all');
-  const [ageFilter, setAgeFilter] = useState('all');
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -23,12 +22,11 @@ const Adoption = () => {
   const queryClient = useQueryClient();
 
   const { data: pets = [], isLoading, error } = useQuery({
-    queryKey: ['pets', searchLocation, petTypeFilter, sizeFilter, ageFilter],
+    queryKey: ['pets', searchLocation, petTypeFilter, sizeFilter],
     queryFn: () => getPets({
       location: searchLocation || undefined,
       type: petTypeFilter === 'all' ? undefined : petTypeFilter,
       size: sizeFilter === 'all' ? undefined : sizeFilter,
-      age: ageFilter === 'all' ? undefined : ageFilter,
     }),
   });
 
@@ -109,7 +107,7 @@ const Adoption = () => {
 
       {/* Filtros */}
       <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Ubicación
@@ -154,30 +152,12 @@ const Adoption = () => {
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Edad
-            </label>
-            <Select value={ageFilter} onValueChange={setAgeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="Cachorro">Cachorro</SelectItem>
-                <SelectItem value="Joven">Joven</SelectItem>
-                <SelectItem value="Adulto">Adulto</SelectItem>
-                <SelectItem value="Senior">Senior</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <div className="flex items-end">
             <Button 
               onClick={() => {
                 setSearchLocation('');
                 setPetTypeFilter('all');
                 setSizeFilter('all');
-                setAgeFilter('all');
               }}
               variant="outline" 
               className="w-full"
