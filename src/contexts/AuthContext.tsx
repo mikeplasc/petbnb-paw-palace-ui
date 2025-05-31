@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +28,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if we're on the reset password page and handle token extraction
+    if (window.location.pathname === '/reset-password') {
+      const currentUrl = new URL(window.location.href);
+      const hashParams = new URLSearchParams(currentUrl.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+      
+      if (accessToken && refreshToken && type === 'recovery') {
+        // Clear the hash and set the tokens as query parameters
+        window.history.replaceState(
+          null, 
+          '', 
+          `/reset-password?access_token=${accessToken}&refresh_token=${refreshToken}`
+        );
+        
+        // Set the session with the recovery tokens
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+        
+        setLoading(false);
+        return;
+      }
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
