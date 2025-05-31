@@ -45,6 +45,23 @@ export const getHosts = async (filters?: {
   return data || [];
 };
 
+export const getVeterinaries = async (location?: string) => {
+  let query = supabase.from('hosts').select('*').eq('type', 'veterinary');
+
+  if (location) {
+    query = query.ilike('location', `%${location}%`);
+  }
+
+  const { data, error } = await query.order('rating', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching veterinaries:', error);
+    throw error;
+  }
+
+  return data || [];
+};
+
 export const getHostById = async (id: string) => {
   const { data, error } = await supabase
     .from('hosts')
