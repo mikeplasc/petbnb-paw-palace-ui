@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Hosts from "./pages/Hosts";
 import BecomeHost from "./pages/BecomeHost";
 import Veterinaries from "./pages/Veterinaries";
@@ -36,6 +37,7 @@ const App = () => (
             <div className="min-h-screen bg-background font-sans antialiased">
               <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/" element={
                   <ProtectedRoute>
                     <Navbar />
