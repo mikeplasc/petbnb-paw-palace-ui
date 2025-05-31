@@ -108,7 +108,7 @@ const Veterinaries = () => {
           return (
             <Card
               key={vet.id}
-              className="group hover:shadow-lg transition-shadow"
+              className="group hover:shadow-lg transition-shadow flex flex-col"
             >
               <div className="relative">
                 <img
@@ -145,65 +145,51 @@ const Veterinaries = () => {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="flex-1">
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {specialties.slice(0, 3).map((specialty, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {specialty}
+                    </Badge>
+                  ))}
+                </div>
+
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                   {vet.description}
                 </p>
 
-                {specialties.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">
-                      Especialidades:
-                    </h4>
-                    <div className="flex flex-wrap gap-1">
-                      {specialties.map((specialty, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {specialty}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 <div className="flex flex-wrap gap-1 mb-4">
                   {services.slice(0, 3).map((service, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
+                    <Badge key={index} variant="outline" className="text-xs">
                       {service}
                     </Badge>
                   ))}
                   {services.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="outline" className="text-xs">
                       +{services.length - 3}
                     </Badge>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="h-4 w-4" />
                   <span>Responde en {vet.response_time}</span>
                 </div>
+              </CardContent>
 
-                <div className="flex items-center justify-between">
-                  <div className="text-lg font-bold text-blue-600">
+              <div className="border-t mt-auto">
+                <div className="p-4 flex items-center justify-between">
+                  <div className="text-lg font-bold text-primary">
                     {formatPrice(vet.price_per_night)}
                     <span className="text-sm font-normal text-gray-500">
                       /consulta
                     </span>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleBookAppointment(vet)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Calendar className="h-4 w-4 mr-1" />
-                    Reservar
+                  <Button size="sm" onClick={() => handleBookAppointment(vet)}>
+                    Ver perfil
                   </Button>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           );
         })}

@@ -1,49 +1,85 @@
+import {
+  Calendar,
+  Clock,
+  Heart,
+  Home,
+  MapPin,
+  Shield,
+  Star,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Host, getHosts } from "@/services/hostService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Star, Heart, MapPin, Clock, Shield } from 'lucide-react';
-import { getHosts } from '@/services/hostService';
-import { useFavorites } from '@/hooks/useFavorites';
-import { useDebounce } from '@/hooks/useDebounce';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import logo from "@/assets/logo.jpeg";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+
+interface HostFilters {
+  location?: string;
+  petType?: string;
+  type?: string;
+  minRating?: number;
+  maxPrice?: number;
+}
 
 const Hosts = () => {
-  const [searchLocation, setSearchLocation] = useState('');
-  const [petType, setPetType] = useState('all');
-  const [hostType, setHostType] = useState('all');
-  const [minRating, setMinRating] = useState('all');
-  const [maxPrice, setMaxPrice] = useState('');
+  const [searchLocation, setSearchLocation] = useState("");
+  const [petType, setPetType] = useState("all");
+  const [minRating, setMinRating] = useState("all");
+  const [maxPrice, setMaxPrice] = useState("");
 
   const debouncedSearchLocation = useDebounce(searchLocation, 1000);
   const debouncedMaxPrice = useDebounce(maxPrice, 1000);
 
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { formatPrice } = useCurrency();
 
-  const { data: hosts = [], isLoading, error } = useQuery({
-    queryKey: ['hosts', debouncedSearchLocation, petType, hostType, minRating, debouncedMaxPrice],
+  const {
+    data: hosts = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: [
+      "hosts",
+      debouncedSearchLocation,
+      petType,
+      minRating,
+      debouncedMaxPrice,
+    ],
     queryFn: () => {
-      const filters: any = {};
-      
+      const filters: HostFilters = {};
+
       if (debouncedSearchLocation) {
         filters.location = debouncedSearchLocation;
       }
-      
-      if (petType !== 'all') {
+
+      if (petType !== "all") {
         filters.petType = petType;
       }
-      
-      if (hostType !== 'all') {
-        filters.type = hostType;
-      }
-      
-      if (minRating !== 'all') {
+
+      if (minRating !== "all") {
         filters.minRating = parseFloat(minRating);
       }
-      
+
       if (debouncedMaxPrice) {
         filters.maxPrice = parseFloat(debouncedMaxPrice);
       }
@@ -53,7 +89,7 @@ const Hosts = () => {
   });
 
   const handleToggleFavorite = (hostId: string) => {
-    toggleFavorite(hostId, 'host');
+    toggleFavorite(hostId, "host");
   };
 
   if (isLoading) {
@@ -79,7 +115,9 @@ const Hosts = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Cuidadores de Mascotas</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        Cuidadores de Mascotas
+      </h1>
 
       {/* Filtros */}
       <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
@@ -94,7 +132,7 @@ const Hosts = () => {
               onChange={(e) => setSearchLocation(e.target.value)}
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tipo de mascota
@@ -105,28 +143,10 @@ const Hosts = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="Perros">Perros</SelectItem>
-                <SelectItem value="Gatos">Gatos</SelectItem>
-                <SelectItem value="Aves">Aves</SelectItem>
-                <SelectItem value="Conejos">Conejos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de servicio
-            </label>
-            <Select value={hostType} onValueChange={setHostType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de servicio" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="sitter">Cuidador</SelectItem>
-                <SelectItem value="daycare">Guardería</SelectItem>
-                <SelectItem value="walker">Paseador</SelectItem>
-                <SelectItem value="boarding">Pensión</SelectItem>
+                <SelectItem value="Perro">Perros</SelectItem>
+                <SelectItem value="Gato">Gatos</SelectItem>
+                <SelectItem value="Ave">Aves</SelectItem>
+                <SelectItem value="Conejo">Conejos</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -145,6 +165,10 @@ const Hosts = () => {
                 <SelectItem value="4.0">4.0+ ⭐</SelectItem>
                 <SelectItem value="3.5">3.5+ ⭐</SelectItem>
                 <SelectItem value="3.0">3.0+ ⭐</SelectItem>
+                <SelectItem value="2.5">2.5+ ⭐</SelectItem>
+                <SelectItem value="2.0">2.0+ ⭐</SelectItem>
+                <SelectItem value="1.5">1.5+ ⭐</SelectItem>
+                <SelectItem value="1.0">1.0+ ⭐</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -155,7 +179,7 @@ const Hosts = () => {
             </label>
             <Input
               type="number"
-              placeholder="€ por noche"
+              placeholder="Precio por noche"
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
             />
@@ -163,13 +187,12 @@ const Hosts = () => {
         </div>
 
         <div className="flex justify-end mt-4">
-          <Button 
+          <Button
             onClick={() => {
-              setSearchLocation('');
-              setPetType('all');
-              setHostType('all');
-              setMinRating('all');
-              setMaxPrice('');
+              setSearchLocation("");
+              setPetType("all");
+              setMinRating("all");
+              setMaxPrice("");
             }}
             variant="outline"
           >
@@ -181,33 +204,49 @@ const Hosts = () => {
       {/* Resultados */}
       <div className="mb-6">
         <p className="text-gray-600">
-          {hosts.length} {hosts.length === 1 ? 'cuidador encontrado' : 'cuidadores encontrados'}
+          {hosts.length}{" "}
+          {hosts.length === 1
+            ? "cuidador encontrado"
+            : "cuidadores encontrados"}
         </p>
       </div>
 
       {/* Lista de hosts */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {hosts.map((host) => {
-          const images = Array.isArray(host.images) ? host.images as string[] : [];
-          const services = Array.isArray(host.services) ? host.services as string[] : [];
-          const certifications = Array.isArray(host.certifications) ? host.certifications as string[] : [];
-          const isCurrentlyFavorite = isFavorite(host.id, 'host');
+          const images = Array.isArray(host.images)
+            ? (host.images as string[])
+            : [];
+          const services = Array.isArray(host.services)
+            ? (host.services as string[])
+            : [];
+          const certifications = Array.isArray(host.certifications)
+            ? (host.certifications as string[])
+            : [];
 
           return (
-            <Card key={host.id} className="group hover:shadow-lg transition-shadow">
+            <Card
+              key={host.id}
+              className="group hover:shadow-lg transition-shadow flex flex-col"
+            >
               <div className="relative">
                 <img
-                  src={images[0] || '/placeholder.svg'}
+                  src={images[0] || logo}
                   alt={host.name}
                   className="w-full h-48 object-cover rounded-t-lg"
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                    e.currentTarget.src = logo;
+                  }}
                 />
                 <button
                   onClick={() => handleToggleFavorite(host.id)}
-                  className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50"
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
                 >
                   <Heart
                     className={`h-5 w-5 ${
-                      isCurrentlyFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'
+                      isFavorite(host.id, "host")
+                        ? "fill-red-500 text-red-500"
+                        : "text-gray-600"
                     }`}
                   />
                 </button>
@@ -224,8 +263,12 @@ const Hosts = () => {
                   <CardTitle className="text-lg">{host.name}</CardTitle>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{Number(host.rating).toFixed(1)}</span>
-                    <span className="text-sm text-gray-500">({host.review_count})</span>
+                    <span className="text-sm font-medium">
+                      {Number(host.rating).toFixed(1)}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      ({host.review_count})
+                    </span>
                   </div>
                 </div>
                 <CardDescription className="flex items-center gap-1">
@@ -234,7 +277,14 @@ const Hosts = () => {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="flex-1">
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {host.accepted_pets.map((acceptedPet, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {acceptedPet}
+                    </Badge>
+                  ))}
+                </div>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                   {host.description}
                 </p>
@@ -252,18 +302,23 @@ const Hosts = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="h-4 w-4" />
                   <span>Responde en {host.response_time}</span>
                 </div>
+              </CardContent>
 
-                <div className="flex items-center justify-between">
+              <div className="border-t mt-auto">
+                <div className="p-4 flex items-center justify-between">
                   <div className="text-lg font-bold text-primary">
-                    €{host.price_per_night}<span className="text-sm font-normal text-gray-500">/noche</span>
+                    {formatPrice(host.price_per_night)}
+                    <span className="text-sm font-normal text-gray-500">
+                      /noche
+                    </span>
                   </div>
                   <Button size="sm">Ver perfil</Button>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           );
         })}
@@ -271,8 +326,12 @@ const Hosts = () => {
 
       {hosts.length === 0 && !isLoading && (
         <div className="text-center py-12">
-          <p className="text-gray-600">No se encontraron cuidadores con los filtros aplicados.</p>
-          <p className="text-sm text-gray-500 mt-2">Intenta ajustar los filtros o búsqueda.</p>
+          <p className="text-gray-600">
+            No se encontraron cuidadores con los filtros aplicados.
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Intenta ajustar los filtros o búsqueda.
+          </p>
         </div>
       )}
     </div>
