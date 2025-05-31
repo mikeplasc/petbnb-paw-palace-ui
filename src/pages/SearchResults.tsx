@@ -37,6 +37,28 @@ interface ComponentHost {
   specialties: string[];
 }
 
+// Define the Modal Host type to match what HostDetailsModal expects
+interface ModalHost {
+  id: string;
+  name: string;
+  type: "veterinary" | "individual";
+  location: string;
+  city: string;
+  rating: number;
+  reviewCount: number;
+  pricePerNight: number;
+  image: string;
+  images: string[];
+  services: string[];
+  acceptedPets: string[];
+  availability: string; // Modal expects string
+  responseTime: string;
+  experience: string;
+  description: string;
+  certifications: string[];
+  specialties: string[];
+}
+
 // Helper function to convert Supabase host to ComponentHost format
 const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): ComponentHost => {
   const acceptedPets = Array.isArray(supabaseHost.accepted_pets) 
@@ -90,13 +112,21 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
   };
 };
 
+// Helper function to convert ComponentHost to ModalHost format
+const convertComponentHostToModalHost = (componentHost: ComponentHost): ModalHost => {
+  return {
+    ...componentHost,
+    availability: componentHost.availability ? 'available' : 'unavailable'
+  };
+};
+
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedHost, setSelectedHost] = useState<ComponentHost | null>(null);
+  const [selectedHost, setSelectedHost] = useState<ModalHost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filters state
@@ -142,7 +172,8 @@ const SearchResults = () => {
   const handleViewDetails = (hostId: string) => {
     const host = hosts.find(h => h.id === hostId);
     if (host) {
-      setSelectedHost(host);
+      const modalHost = convertComponentHostToModalHost(host);
+      setSelectedHost(modalHost);
       setIsModalOpen(true);
     }
   };
