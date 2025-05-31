@@ -1,21 +1,33 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { getHosts, getVeterinaries } from '@/services/hostService';
 
 const CategoriesSection = () => {
+  const { data: veterinaries = [] } = useQuery({
+    queryKey: ['veterinaries'],
+    queryFn: () => getVeterinaries(),
+  });
+
+  const { data: caregivers = [] } = useQuery({
+    queryKey: ['caregivers'],
+    queryFn: () => getHosts({ type: 'individual' }),
+  });
+
   const categories = [
     {
       title: 'Veterinarias certificadas',
       description: 'Cuidado médico profesional 24/7',
       icon: '🏥',
-      count: '25+ clínicas',
+      count: `${veterinaries.length}+ clínicas`,
       color: 'from-petbnb-400 to-petbnb-500'
     },
     {
       title: 'Cuidadores',
       description: 'Atención personalizada uno a uno',
       icon: '👨‍⚕️',
-      count: '200+ cuidadores',
+      count: `${caregivers.length}+ cuidadores`,
       color: 'from-sage-400 to-sage-500'
     }
   ];
