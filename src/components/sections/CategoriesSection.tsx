@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +11,7 @@ const CategoriesSection = () => {
 
   const { data: caregivers = [] } = useQuery({
     queryKey: ['caregivers'],
-    queryFn: () => getHosts({ type: 'individual' }),
+    queryFn: () => getHosts({ type: 'sitter' }),
   });
 
   const categories = [
