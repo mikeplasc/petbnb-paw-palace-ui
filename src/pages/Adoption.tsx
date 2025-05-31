@@ -29,6 +29,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Link } from 'react-router-dom';
+import logo from "@/assets/logo.jpeg";
 
 const Adoption = () => {
   const [searchLocation, setSearchLocation] = useState("");
@@ -216,7 +217,7 @@ const Adoption = () => {
           return (
             <Card
               key={pet.id}
-              className="group hover:shadow-lg transition-shadow"
+              className="group hover:shadow-lg transition-shadow flex flex-col"
             >
               <div className="relative">
                 <img
@@ -226,6 +227,9 @@ const Adoption = () => {
                   }
                   alt={pet.name}
                   className="w-full h-48 object-cover rounded-t-lg"
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                    e.currentTarget.src = logo;
+                  }}
                 />
                 <button
                   onClick={() => handleToggleFavorite(pet.id)}
@@ -258,7 +262,7 @@ const Adoption = () => {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="flex-1">
                 <div className="grid grid-cols-2 gap-2 text-sm mb-4">
                   <div>
                     <span className="font-medium">Raza:</span> {pet.breed}
@@ -297,24 +301,27 @@ const Adoption = () => {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      {new Date(pet.created_at || "").toLocaleDateString()}
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="h-4 w-4" />
+                  <span>
+                    {new Date(pet.created_at || "").toLocaleDateString()}
+                  </span>
+                </div>
+              </CardContent>
+
+              <div className="border-t mt-auto">
+                <div className="p-4 flex items-center justify-between">
+                  <div className="text-lg font-bold text-primary">
+                    {formatPrice(pet.adoption_fee || 0)}
+                    <span className="text-sm font-normal text-gray-500">
+                      cuota
                     </span>
                   </div>
-                  <div className="font-medium text-green-600">
-                    {formatPrice(pet.adoption_fee || 0)}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={() => handleAdopt(pet)} className="flex-1">
+                  <Button onClick={() => handleAdopt(pet)} size="sm">
                     Adoptar
                   </Button>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           );
         })}
