@@ -89,22 +89,30 @@ const Navbar = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-white border border-gray-200 shadow-lg" align="end">
-              <DropdownMenuItem className="cursor-pointer hover:bg-gray-50">
-                <User className="mr-2 h-4 w-4" />
-                <span>Mi perfil</span>
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
+                <Link to="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Mi perfil</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-gray-50">
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>Mis reservas</span>
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
+                <Link to="/my-bookings">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  <span>Mis reservas</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:bg-gray-50">
-                <span className="mr-2">🐕</span>
-                <span>Mis mascotas</span>
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
+                <Link to="/my-pets">
+                  <span className="mr-2">🐕</span>
+                  <span>Mis mascotas</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer hover:bg-gray-50">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Configuración</span>
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
+                <Link to="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Configuración</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer hover:bg-gray-50 text-red-600">
