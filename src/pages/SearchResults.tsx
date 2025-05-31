@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SearchBar, { SearchFilters } from '@/components/SearchBar';
@@ -165,15 +164,15 @@ const SearchResults = () => {
     minRating?: number;
   } = {};
   
-  if (appliedFilters.location) {
+  if (appliedFilters.location && appliedFilters.location !== 'all') {
     dbFilters.location = appliedFilters.location;
   }
   
-  if (appliedFilters.petType) {
+  if (appliedFilters.petType && appliedFilters.petType !== 'all') {
     dbFilters.petType = appliedFilters.petType;
   }
 
-  if (appliedFilters.hostType) {
+  if (appliedFilters.hostType && appliedFilters.hostType !== 'all') {
     dbFilters.type = appliedFilters.hostType;
   }
 
@@ -251,16 +250,16 @@ const SearchResults = () => {
     
     // Update URL with new filters
     const newParams = new URLSearchParams(searchParams);
-    if (localFilters.location) newParams.set('location', localFilters.location);
-    if (localFilters.petType) newParams.set('petType', localFilters.petType);
+    if (localFilters.location && localFilters.location !== 'all') newParams.set('location', localFilters.location);
+    if (localFilters.petType && localFilters.petType !== 'all') newParams.set('petType', localFilters.petType);
     setSearchParams(newParams);
   };
 
   const handleClearFilters = () => {
     const clearedFilters = {
-      location: '',
-      petType: '',
-      hostType: '',
+      location: 'all',
+      petType: 'all',
+      hostType: 'all',
       minPrice: 0,
       maxPrice: 2000,
       minRating: 0,
@@ -376,11 +375,11 @@ const SearchResults = () => {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {appliedFilters.location ? `Cuidadores en ${appliedFilters.location}` : 'Resultados de búsqueda'}
+              {appliedFilters.location && appliedFilters.location !== 'all' ? `Cuidadores en ${appliedFilters.location}` : 'Resultados de búsqueda'}
             </h1>
             <p className="text-gray-600">
               {sortedHosts.length} cuidadores encontrados
-              {appliedFilters.petType && ` para ${appliedFilters.petType.toLowerCase()}`}
+              {appliedFilters.petType && appliedFilters.petType !== 'all' && ` para ${appliedFilters.petType.toLowerCase()}`}
             </p>
           </div>
 
@@ -438,7 +437,7 @@ const SearchResults = () => {
                       <SelectValue placeholder="Selecciona una ciudad" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                      <SelectItem value="">Todas las ubicaciones</SelectItem>
+                      <SelectItem value="all">Todas las ubicaciones</SelectItem>
                       {cities.map((city) => (
                         <SelectItem key={city} value={city}>
                           {city}
@@ -456,7 +455,7 @@ const SearchResults = () => {
                       <SelectValue placeholder="Selecciona tipo de mascota" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                      <SelectItem value="">Todos los tipos</SelectItem>
+                      <SelectItem value="all">Todos los tipos</SelectItem>
                       {petTypes.map((petType) => (
                         <SelectItem key={petType} value={petType}>
                           {petType}
@@ -474,7 +473,7 @@ const SearchResults = () => {
                       <SelectValue placeholder="Selecciona tipo de cuidador" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                      <SelectItem value="">Todos los tipos</SelectItem>
+                      <SelectItem value="all">Todos los tipos</SelectItem>
                       {hostTypes.map((hostType) => (
                         <SelectItem key={hostType} value={hostType}>
                           {getHostTypeLabel(hostType)}
@@ -584,21 +583,27 @@ const SearchResults = () => {
                 </div>
 
                 {/* Active Filters Display */}
-                {(appliedFilters.location || appliedFilters.petType || appliedFilters.hostType || appliedFilters.minPrice > 0 || appliedFilters.maxPrice < 2000 || appliedFilters.minRating > 0 || appliedFilters.services.length > 0) && (
+                {(appliedFilters.location && appliedFilters.location !== 'all' || 
+                  appliedFilters.petType && appliedFilters.petType !== 'all' || 
+                  appliedFilters.hostType && appliedFilters.hostType !== 'all' || 
+                  appliedFilters.minPrice > 0 || 
+                  appliedFilters.maxPrice < 2000 || 
+                  appliedFilters.minRating > 0 || 
+                  appliedFilters.services.length > 0) && (
                   <div className="pt-4 border-t">
                     <h4 className="font-medium text-gray-900 mb-2">Filtros aplicados:</h4>
                     <div className="flex flex-wrap gap-2">
-                      {appliedFilters.location && (
+                      {appliedFilters.location && appliedFilters.location !== 'all' && (
                         <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                           {appliedFilters.location}
                         </Badge>
                       )}
-                      {appliedFilters.petType && (
+                      {appliedFilters.petType && appliedFilters.petType !== 'all' && (
                         <Badge variant="secondary" className="bg-green-100 text-green-800">
                           {appliedFilters.petType}
                         </Badge>
                       )}
-                      {appliedFilters.hostType && (
+                      {appliedFilters.hostType && appliedFilters.hostType !== 'all' && (
                         <Badge variant="secondary" className="bg-purple-100 text-purple-800">
                           {getHostTypeLabel(appliedFilters.hostType)}
                         </Badge>
