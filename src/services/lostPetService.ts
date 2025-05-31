@@ -72,6 +72,77 @@ export const reportLostPet = async (lostPetData: {
   return data;
 };
 
+export const updateLostPet = async (lostPetId: string, updateData: {
+  last_seen_date?: string;
+  last_seen_location?: string;
+  last_seen_latitude?: number;
+  last_seen_longitude?: number;
+  description?: string;
+  reward_amount?: number;
+  contact_phone?: string;
+  contact_email?: string;
+}) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  const { data, error } = await supabase
+    .from('lost_pets')
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', lostPetId)
+    .eq('owner_id', user.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating lost pet:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+export const deleteLostPet = async (lostPetId: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  // Primero obtener la información de la mascota para desmarcarla como perdida
+  const { data: lostPet } = await supabase
+    .from('lost_pets')
+    .select('pet_id')
+    .eq('id', lostPetId)
+    .eq('owner_id', user.id)
+    .single();
+
+  // Eliminar el registro de mascota perdida
+  const { error } = await supabase
+    .from('lost_pets')
+    .delete()
+    .eq('id', lostPetId)
+    .eq('owner_id', user.id);
+
+  if (error) {
+    console.error('Error deleting lost pet:', error);
+    throw error;
+  }
+
+  // Desmarcar la mascota como perdida en la tabla pets
+  if (lostPet) {
+    await supabase
+      .from('pets')
+      .update({ is_lost: false })
+      .eq('id', lostPet.pet_id);
+  }
+};
+
 export const markPetAsFound = async (lostPetId: string) => {
   const { data, error } = await supabase
     .from('lost_pets')

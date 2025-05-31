@@ -1,42 +1,20 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Plus, Smartphone } from 'lucide-react';
 import { getMyPets } from '@/services/petService';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 const PetTracking = () => {
   const { toast } = useToast();
-  const [realTimeConnections, setRealTimeConnections] = useState<Set<string>>(new Set());
 
   const { data: myPets = [], isLoading: isLoadingPets } = useQuery({
     queryKey: ['myPets'],
     queryFn: getMyPets,
   });
-
-  // Simular estado de conexión en tiempo real
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeConnections(prev => {
-        const newSet = new Set(prev);
-        myPets.forEach(pet => {
-          // Simular conexión aleatoria
-          if (Math.random() > 0.7) {
-            newSet.add(pet.id);
-          } else {
-            newSet.delete(pet.id);
-          }
-        });
-        return newSet;
-      });
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [myPets]);
 
   // Generar coordenadas aleatorias para cada mascota
   const generateRandomCoordinates = () => {
@@ -81,7 +59,7 @@ const PetTracking = () => {
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="flex items-center gap-1">
             <Smartphone className="h-3 w-3" />
-            {realTimeConnections.size} dispositivos conectados
+            {myPets.length} dispositivos conectados
           </Badge>
         </div>
       </div>
@@ -105,46 +83,38 @@ const PetTracking = () => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {myPets.map((pet) => {
-            const isConnected = realTimeConnections.has(pet.id);
-            return (
-              <Card key={pet.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <img
-                      src={pet.image || '/placeholder-pet.jpg'}
-                      alt={pet.name}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{pet.name}</h3>
-                      <p className="text-gray-600">{pet.type} • {pet.breed}</p>
-                    </div>
+          {myPets.map((pet) => (
+            <Card key={pet.id} className="cursor-pointer hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <img
+                    src={pet.image || '/placeholder-pet.jpg'}
+                    alt={pet.name}
+                    className="w-16 h-16 rounded-full object-cover"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{pet.name}</h3>
+                    <p className="text-gray-600">{pet.type} • {pet.breed}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Estado del dispositivo:</span>
+                    <Badge className="bg-green-100 text-green-800">En línea</Badge>
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Estado del dispositivo:</span>
-                      {isConnected ? (
-                        <Badge className="bg-green-100 text-green-800">En línea</Badge>
-                      ) : (
-                        <Badge variant="secondary">Desconectado</Badge>
-                      )}
-                    </div>
-                    
-                    <Button
-                      onClick={() => openGoogleMaps(pet.name)}
-                      className="w-full"
-                      variant={isConnected ? "default" : "outline"}
-                    >
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Ver ubicación
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  <Button
+                    onClick={() => openGoogleMaps(pet.name)}
+                    className="w-full"
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Ver ubicación
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </div>
