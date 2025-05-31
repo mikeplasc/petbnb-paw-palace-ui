@@ -1,4 +1,3 @@
-
 import {
   Calendar,
   Clock,
@@ -282,7 +281,8 @@ const Hosts = () => {
           return (
             <Card
               key={host.id}
-              className="group hover:shadow-lg transition-shadow flex flex-col"
+              className="group hover:shadow-lg transition-shadow flex flex-col cursor-pointer"
+              onClick={() => handleViewProfile(host)}
             >
               <div className="relative">
                 <img
@@ -294,7 +294,10 @@ const Hosts = () => {
                   }}
                 />
                 <button
-                  onClick={() => handleToggleFavorite(host.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleFavorite(host.id);
+                  }}
                   className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
                 >
                   <Heart
@@ -333,29 +336,21 @@ const Hosts = () => {
               </CardHeader>
 
               <CardContent className="flex-1">
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {host.accepted_pets.map((acceptedPet, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {acceptedPet}
-                    </Badge>
-                  ))}
+                <div className="text-gray-600 text-sm mb-4">
+                  <div className="mb-2">
+                    <span className="font-medium">Acepta: </span>
+                    {host.accepted_pets.join(", ")}
+                  </div>
+                  <div>
+                    <span className="font-medium">Servicios: </span>
+                    {services.slice(0, 3).join(", ")}
+                    {services.length > 3 && ` y ${services.length - 3} más`}
+                  </div>
                 </div>
+
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                   {host.description}
                 </p>
-
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {services.slice(0, 3).map((service, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {service}
-                    </Badge>
-                  ))}
-                  {services.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{services.length - 3}
-                    </Badge>
-                  )}
-                </div>
 
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="h-4 w-4" />
@@ -371,12 +366,6 @@ const Hosts = () => {
                       /noche
                     </span>
                   </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleViewProfile(host)}
-                  >
-                    Ver perfil
-                  </Button>
                 </div>
               </div>
             </Card>

@@ -11,14 +11,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import HostCard from "@/components/HostCard";
-import type { Host as SupabaseHost } from "@/services/hostService";
+import HostProfileModal from "@/components/HostProfileModal";
+import VeterinaryProfileModal from "@/components/VeterinaryProfileModal";
+import type { Host } from "@/services/hostService";
 import { getHosts } from "@/services/hostService";
 import { getPets } from "@/services/petService";
 import logo from "@/assets/logo.jpeg";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { useState } from "react";
 
 // Define the Component Host type to match what HostCard expects
 interface ComponentHost {
@@ -44,7 +47,7 @@ interface ComponentHost {
 
 // Helper function to convert Supabase host to ComponentHost format
 const convertSupabaseHostToComponentHost = (
-  supabaseHost: SupabaseHost
+  supabaseHost: Host
 ): ComponentHost => {
   const acceptedPets = Array.isArray(supabaseHost.accepted_pets)
     ? (supabaseHost.accepted_pets as string[])
@@ -98,6 +101,7 @@ const convertSupabaseHostToComponentHost = (
 
 const Favorites = () => {
   const { toast } = useToast();
+  const { formatPrice } = useCurrency();
   const {
     favorites: allFavorites,
     toggleFavorite,
@@ -129,7 +133,8 @@ const Favorites = () => {
     .filter((fav) => fav.item_type === "pet")
     .map((fav) => fav.item_id);
 
-  const favoriteHosts = allHosts.filter((host) =>
+  // Get favorite hosts directly from supabaseHosts
+  const favoriteHosts = supabaseHosts.filter((host) =>
     hostFavoriteIds.includes(host.id)
   );
   const favoritePets = allPets.filter((pet) => petFavoriteIds.includes(pet.id));
@@ -196,6 +201,55 @@ const Favorites = () => {
     toggleFavorite(petId, "pet");
   };
 
+  const [selectedVeterinary, setSelectedVeterinary] = useState<any>(null);
+  const [isVetModalOpen, setIsVetModalOpen] = useState(false);
+
+  const handleViewVeterinary = (vet: any) => {
+    setSelectedVeterinary({
+      ...vet,
+      images: [vet.image],
+      certifications: [],
+      specialties: [],
+      description: "Clínica veterinaria especializada en atención integral de mascotas.",
+      responseTime: "1-2 horas",
+    });
+    setIsVetModalOpen(true);
+  };
+
+  const handleCloseVetModal = () => {
+    setIsVetModalOpen(false);
+    setSelectedVeterinary(null);
+  };
+
+  const handleBookVeterinary = () => {
+    toast({
+      title: "Reserva iniciada",
+      description: "Has iniciado el proceso de reserva con esta veterinaria.",
+    });
+    // Here you could add logic to handle the booking process
+  };
+
+  const [selectedHost, setSelectedHost] = useState<Host | null>(null);
+  const [isHostModalOpen, setIsHostModalOpen] = useState(false);
+
+  const handleViewHost = (host: Host) => {
+    setSelectedHost(host);
+    setIsHostModalOpen(true);
+  };
+
+  const handleCloseHostModal = () => {
+    setIsHostModalOpen(false);
+    setSelectedHost(null);
+  };
+
+  const handleSelectHost = (hostId: string) => {
+    toast({
+      title: "Cuidador seleccionado",
+      description: "Has seleccionado este cuidador para tu mascota.",
+    });
+    // Here you could add logic to handle the host selection
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -225,17 +279,79 @@ const Favorites = () => {
           <TabsContent value="hosts" className="mt-6">
             {favoriteHosts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {favoriteHosts.map((host) => (
-                  <HostCard
-                    key={host.id}
-                    host={host}
-                    isFavorite={true}
-                    onToggleFavorite={toggleHostFavorite}
-                    onViewDetails={(hostId) =>
-                      console.log("Ver detalles:", hostId)
-                    }
-                  />
-                ))}
+                {favoriteHosts.map((host) => {
+                  const accepted_pets = Array.isArray(host.accepted_pets) ? host.accepted_pets : [];
+                  const services = Array.isArray(host.services) ? host.services : [];
+                  const certifications = Array.isArray(host.certifications) ? host.certifications : [];
+                  const images = Array.isArray(host.images) ? host.images : [];
+                  const image = images[0] || logo;
+
+                  return (
+                    <Card
+                      key={host.id}
+                      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => handleViewHost(host)}
+                    >
+                      <div className="relative">
+                        <img
+                          src={image}
+                          alt={host.name}
+                          className="w-full h-48 object-cover"
+                          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                            e.currentTarget.src = logo;
+                          }}
+                        />
+                        {certifications.length > 0 && (
+                          <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                            <Shield className="h-3 w-3" />
+                            Certificado
+                          </div>
+                        )}
+                      </div>
+
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-semibold">{host.name}</h3>
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium">
+                              {Number(host.rating).toFixed(1)}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              ({host.review_count})
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center text-sm text-gray-600 mb-3">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {host.city}
+                        </div>
+
+                        <div className="text-gray-600 text-sm mb-4">
+                          <div className="mb-2">
+                            <span className="font-medium">Acepta: </span>
+                            {accepted_pets.join(", ")}
+                          </div>
+                          <div>
+                            <span className="font-medium">Servicios: </span>
+                            {services.slice(0, 3).join(", ")}
+                            {services.length > 3 && ` y ${services.length - 3} más`}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          <span className="text-xl font-bold text-primary">
+                            {formatPrice(host.price_per_night)}
+                            <span className="text-sm font-normal text-gray-500">
+                              /noche
+                            </span>
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -253,87 +369,52 @@ const Favorites = () => {
           <TabsContent value="veterinaries" className="mt-6">
             {mockVeterinaries.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockVeterinaries.map((vet) => {
-                  const updatedFavorites = localStorage.getItem(
-                    "veterinaryFavorites"
-                  );
-                  const veterinaryFavorites = updatedFavorites
-                    ? JSON.parse(updatedFavorites)
-                    : [];
-                  const isCurrentlyFavorite = veterinaryFavorites.includes(
-                    vet.id
-                  );
+                {mockVeterinaries.map((vet) => (
+                  <Card
+                    key={vet.id}
+                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => handleViewVeterinary(vet)}
+                  >
+                    <div className="relative">
+                      <img
+                        src={vet.image || logo}
+                        alt={vet.name}
+                        className="w-full h-48 object-cover"
+                        onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                          e.currentTarget.src = logo;
+                        }}
+                      />
+                    </div>
 
-                  return (
-                    <Card
-                      key={vet.id}
-                      className="overflow-hidden hover:shadow-lg transition-shadow"
-                    >
-                      <div className="relative">
-                        <img
-                          src={vet.image || logo}
-                          alt={vet.name}
-                          className="w-full h-48 object-cover"
-                          onError={(
-                            e: React.SyntheticEvent<HTMLImageElement>
-                          ) => {
-                            e.currentTarget.src = logo;
-                          }}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleVeterinaryFavorite(vet.id)}
-                          className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                        >
-                          <Heart
-                            className={`w-4 h-4 ${
-                              isCurrentlyFavorite
-                                ? "fill-red-500 text-red-500"
-                                : ""
-                            }`}
-                          />
-                        </Button>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-semibold">{vet.name}</h3>
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-medium">
+                            {vet.rating}
+                          </span>
+                        </div>
                       </div>
 
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg font-semibold">{vet.name}</h3>
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">
-                              {vet.rating}
-                            </span>
-                          </div>
-                        </div>
+                      <div className="flex items-center text-sm text-gray-600 mb-3">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {vet.location}
+                      </div>
 
-                        <div className="flex items-center text-sm text-gray-600 mb-3">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {vet.location}
-                        </div>
+                      <div className="text-gray-600 text-sm mb-4">
+                        <span className="font-medium">Servicios: </span>
+                        {vet.services.join(", ")}
+                      </div>
 
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {vet.services.slice(0, 2).map((service, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {service}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-xl font-bold text-green-600">
-                            €{vet.pricePerNight}/consulta
-                          </span>
-                          <Button size="sm">Ver detalles</Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                      <div className="flex justify-between items-center">
+                        <span className="text-xl font-bold text-green-600">
+                          €{vet.pricePerNight}/consulta
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -368,9 +449,7 @@ const Favorites = () => {
                           src={pet.image || logo}
                           alt={pet.name}
                           className="w-full h-48 object-cover"
-                          onError={(
-                            e: React.SyntheticEvent<HTMLImageElement>
-                          ) => {
+                          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                             e.currentTarget.src = logo;
                           }}
                         />
@@ -379,14 +458,6 @@ const Favorites = () => {
                             URGENTE
                           </Badge>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => togglePetFavorite(pet.id)}
-                          className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                        >
-                          <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-                        </Button>
                       </div>
 
                       <CardContent className="p-4">
@@ -427,16 +498,6 @@ const Favorites = () => {
                           ))}
                         </div>
 
-                        <div className="flex justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleFavorite(pet.id, "pet")}
-                          >
-                            Eliminar de favoritos
-                          </Button>
-                        </div>
-
                         <div className="mt-2 text-xs text-gray-500">
                           Por {pet.shelter_name}
                         </div>
@@ -459,6 +520,24 @@ const Favorites = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Host Profile Modal */}
+      <HostProfileModal
+        host={selectedHost}
+        isOpen={isHostModalOpen}
+        onClose={handleCloseHostModal}
+        onSelectHost={handleSelectHost}
+      />
+
+      {/* Veterinary Profile Modal */}
+      <VeterinaryProfileModal
+        veterinary={selectedVeterinary}
+        isOpen={isVetModalOpen}
+        onClose={handleCloseVetModal}
+        onBooking={handleBookVeterinary}
+        isFavorite={true}
+        onToggleFavorite={toggleVeterinaryFavorite}
+      />
     </div>
   );
 };
