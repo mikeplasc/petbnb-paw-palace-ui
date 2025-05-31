@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Heart, User, Calendar, Settings, Menu } from 'lucide-react';
+import { Heart, User, Calendar, Settings, Menu, Stethoscope } from 'lucide-react';
 import { useState } from 'react';
 
 const Navbar = () => {
@@ -131,6 +131,12 @@ const Navbar = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
+                <Link to="/my-veterinaries">
+                  <Stethoscope className="mr-2 h-4 w-4" />
+                  <span>Mis veterinarias</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
                 <Link to="/favorites">
                   <Heart className="mr-2 h-4 w-4" />
                   <span>Favoritos</span>
@@ -195,6 +201,14 @@ const Navbar = () => {
             }`}
           >
             Veterinarias
+          </Link>
+          <Link
+            to="/my-veterinaries"
+            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
+              isActive('/my-veterinaries') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
+            }`}
+          >
+            Mis Vet.
           </Link>
           <Link
             to="/adoption"
