@@ -168,6 +168,63 @@ export type Database = {
         }
         Relationships: []
       }
+      host_applications: {
+        Row: {
+          accepted_pets: string[]
+          address: string
+          city: string
+          created_at: string
+          description: string
+          email: string
+          experience: string
+          id: string
+          name: string
+          photos: string[] | null
+          price_per_night: number
+          services: string[]
+          status: string | null
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          accepted_pets: string[]
+          address: string
+          city: string
+          created_at?: string
+          description: string
+          email: string
+          experience: string
+          id?: string
+          name: string
+          photos?: string[] | null
+          price_per_night: number
+          services: string[]
+          status?: string | null
+          type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          accepted_pets?: string[]
+          address?: string
+          city?: string
+          created_at?: string
+          description?: string
+          email?: string
+          experience?: string
+          id?: string
+          name?: string
+          photos?: string[] | null
+          price_per_night?: number
+          services?: string[]
+          status?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       hosts: {
         Row: {
           accepted_pets: string[] | null

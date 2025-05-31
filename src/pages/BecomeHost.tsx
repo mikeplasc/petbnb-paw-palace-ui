@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,11 +16,13 @@ import { Badge } from '@/components/ui/badge';
 import { Upload, Star, Shield, Heart, CheckCircle, AlertCircle } from 'lucide-react';
 import { cities, petTypes } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { submitHostApplication } from '@/services/hostApplicationService';
 
 const BecomeHost = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     type: '',
     city: '',
     address: '',
@@ -35,6 +36,7 @@ const BecomeHost = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const hostTypes = [
     { value: 'family', label: 'Familia' },
@@ -62,6 +64,15 @@ const BecomeHost = () => {
       newErrors.name = 'El nombre es requerido';
     } else if (formData.name.trim().length < 3) {
       newErrors.name = 'El nombre debe tener al menos 3 caracteres';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'El correo electrónico es requerido';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        newErrors.email = 'Por favor ingresa un correo electrónico válido';
+      }
     }
 
     if (!formData.type) {
@@ -160,7 +171,6 @@ const BecomeHost = () => {
         acceptedPets: prev.acceptedPets.filter(pet => pet !== petType)
       }));
     }
-    // Clear error when user makes a selection
     if (errors.acceptedPets) {
       setErrors(prev => ({ ...prev, acceptedPets: '' }));
     }
@@ -178,23 +188,52 @@ const BecomeHost = () => {
         services: prev.services.filter(s => s !== service)
       }));
     }
-    // Clear error when user makes a selection
     if (errors.services) {
       setErrors(prev => ({ ...prev, services: '' }));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateStep3()) {
-      console.log('Formulario enviado:', formData);
+    if (!validateStep3()) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      await submitHostApplication({
+        name: formData.name,
+        email: formData.email,
+        type: formData.type,
+        city: formData.city,
+        address: formData.address,
+        description: formData.description,
+        experience: formData.experience,
+        accepted_pets: formData.acceptedPets,
+        services: formData.services,
+        price_per_night: parseInt(formData.pricePerNight),
+        photos: formData.photos,
+      });
+
       setCurrentStep(4);
+      
+      toast({
+        title: "¡Solicitud enviada exitosamente!",
+        description: "Hemos enviado un correo de confirmación con los próximos pasos.",
+      });
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      toast({
+        title: "Error al enviar la solicitud",
+        description: "Hubo un problema al procesar tu solicitud. Por favor, inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -227,8 +266,11 @@ const BecomeHost = () => {
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">¡Solicitud enviada!</h2>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-600 mb-4">
               Revisaremos tu información y te contactaremos en 24-48 horas.
+            </p>
+            <p className="text-sm text-gray-500 mb-8">
+              Hemos enviado un correo electrónico a <strong>{formData.email}</strong> con información detallada sobre los próximos pasos.
             </p>
             <Button onClick={() => setCurrentStep(1)} className="w-full bg-petbnb-600 hover:bg-petbnb-700">
               Volver al inicio
@@ -331,6 +373,30 @@ const BecomeHost = () => {
                         )}
                       </div>
                       <div className="space-y-2">
+                        <Label htmlFor="email" className="text-gray-700 font-medium">
+                          Correo electrónico *
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          placeholder="tu@correo.com"
+                          className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
+                            errors.email ? 'border-red-500' : ''
+                          }`}
+                        />
+                        {errors.email && (
+                          <div className="flex items-center space-x-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
                         <Label htmlFor="type" className="text-gray-700 font-medium">
                           Tipo de cuidador *
                         </Label>
@@ -355,9 +421,6 @@ const BecomeHost = () => {
                           </div>
                         )}
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label htmlFor="city" className="text-gray-700 font-medium">
                           Ciudad *
@@ -380,6 +443,29 @@ const BecomeHost = () => {
                           <div className="flex items-center space-x-1 text-red-500 text-sm">
                             <AlertCircle className="w-4 h-4" />
                             <span>{errors.city}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="address" className="text-gray-700 font-medium">
+                          Dirección (zona/colonia) *
+                        </Label>
+                        <Input
+                          id="address"
+                          value={formData.address}
+                          onChange={(e) => handleInputChange('address', e.target.value)}
+                          placeholder="Ej: Roma Norte, CDMX"
+                          className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
+                            errors.address ? 'border-red-500' : ''
+                          }`}
+                        />
+                        {errors.address && (
+                          <div className="flex items-center space-x-1 text-red-500 text-sm">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{errors.address}</span>
                           </div>
                         )}
                       </div>
@@ -407,27 +493,6 @@ const BecomeHost = () => {
                           </div>
                         )}
                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="address" className="text-gray-700 font-medium">
-                        Dirección (zona/colonia) *
-                      </Label>
-                      <Input
-                        id="address"
-                        value={formData.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        placeholder="Ej: Roma Norte, CDMX"
-                        className={`border-gray-300 focus:border-petbnb-500 focus:ring-petbnb-500 ${
-                          errors.address ? 'border-red-500' : ''
-                        }`}
-                      />
-                      {errors.address && (
-                        <div className="flex items-center space-x-1 text-red-500 text-sm">
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{errors.address}</span>
-                        </div>
-                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -563,6 +628,7 @@ const BecomeHost = () => {
                       <h4 className="font-semibold text-petbnb-800 mb-4 text-lg">Resumen de tu perfil</h4>
                       <div className="space-y-3 text-sm">
                         <div className="flex"><span className="font-medium text-gray-700 w-32">Nombre:</span> <span className="text-gray-900">{formData.name}</span></div>
+                        <div className="flex"><span className="font-medium text-gray-700 w-32">Email:</span> <span className="text-gray-900">{formData.email}</span></div>
                         <div className="flex"><span className="font-medium text-gray-700 w-32">Tipo:</span> <span className="text-gray-900">{formData.type}</span></div>
                         <div className="flex"><span className="font-medium text-gray-700 w-32">Ciudad:</span> <span className="text-gray-900">{formData.city}</span></div>
                         <div>
@@ -588,6 +654,7 @@ const BecomeHost = () => {
                       variant="outline"
                       onClick={() => setCurrentStep(prev => prev - 1)}
                       className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                      disabled={isSubmitting}
                     >
                       Anterior
                     </Button>
@@ -604,8 +671,9 @@ const BecomeHost = () => {
                     <Button
                       type="submit"
                       className="ml-auto bg-petbnb-600 hover:bg-petbnb-700 text-white"
+                      disabled={isSubmitting}
                     >
-                      Enviar solicitud
+                      {isSubmitting ? 'Enviando...' : 'Enviar solicitud'}
                     </Button>
                   )}
                 </div>
