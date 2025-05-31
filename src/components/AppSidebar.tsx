@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -66,10 +65,10 @@ export function AppSidebar() {
         <div className="flex items-center space-x-2 p-2">
           <img 
             src="/lovable-uploads/ad028fa8-9730-49d1-bbe6-f8185a05a757.png" 
-            alt="PetCare Logo" 
+            alt="PetBnb Logo" 
             className="w-8 h-8 object-contain"
           />
-          <span className="text-xl font-bold text-sidebar-foreground">PetCare</span>
+          <span className="text-xl font-bold text-sidebar-foreground">PetBnb</span>
         </div>
       </SidebarHeader>
       
