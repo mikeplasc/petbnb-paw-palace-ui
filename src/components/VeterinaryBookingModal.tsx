@@ -130,16 +130,16 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
     try {
       const selectedPet = userPets.find(pet => pet.id.toString() === formData.selectedPetId);
       
-      // Create booking using the existing service with veterinary type
-      const booking = createBooking(
+      // Create booking using the updated service
+      const booking = await createBooking(
         veterinary.id, 
         {
           ...veterinary,
           image: veterinary.images[0],
           petInfo: selectedPet
         },
-        'veterinary', // Specify this is a veterinary booking
-        formData // Pass form data for veterinary-specific fields
+        'veterinary',
+        formData
       );
 
       toast({

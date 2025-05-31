@@ -45,8 +45,8 @@ const MyBookings = () => {
 
   const BookingCard = ({ booking }: { booking: Booking }) => {
     const isVeterinary = booking.type === 'veterinary';
-    const petInfo = booking.pet_info as any;
-    const services = Array.isArray(booking.services) ? booking.services : [];
+    const petInfo = booking.pet_info ? JSON.parse(booking.pet_info as string) : null;
+    const services = booking.services ? JSON.parse(booking.services as string) : [];
     
     return (
       <Card className="mb-4 hover:shadow-md transition-shadow">
@@ -89,7 +89,7 @@ const MyBookings = () => {
               )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="font-medium">Servicio:</span>
-                {booking.service_type || services[0] || 'Cuidado general'}
+                {booking.service_type || (services.length > 0 ? services[0] : 'Cuidado general')}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <MapPin className="h-4 w-4" />

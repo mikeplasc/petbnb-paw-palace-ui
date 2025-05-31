@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,10 @@ const Profile = () => {
     bio: 'Amante de los animales con más de 5 años de experiencia cuidando mascotas.'
   });
 
-  const adoptionRequests = getUserAdoptionRequests();
+  const { data: adoptionRequests = [], isLoading } = useQuery({
+    queryKey: ['userAdoptionRequests'],
+    queryFn: getUserAdoptionRequests,
+  });
 
   const handleSave = () => {
     // Aquí iría la lógica para guardar los datos
@@ -211,7 +215,12 @@ const Profile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {adoptionRequests.length === 0 ? (
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin h-8 w-8 border-b-2 border-purple-600 rounded-full mx-auto"></div>
+                  <p className="text-gray-500 mt-2">Cargando solicitudes...</p>
+                </div>
+              ) : adoptionRequests.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Heart className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <p>No has realizado ninguna solicitud de adopción aún.</p>
@@ -222,17 +231,17 @@ const Profile = () => {
                   {adoptionRequests.map((request) => (
                     <div key={request.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50">
                       <img
-                        src={request.petImage}
-                        alt={request.petName}
+                        src={request.pet_image}
+                        alt={request.pet_name}
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{request.petName}</h4>
-                        <p className="text-sm text-gray-600">{request.shelterName}</p>
+                        <h4 className="font-semibold text-gray-900">{request.pet_name}</h4>
+                        <p className="text-sm text-gray-600">{request.shelter_name}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <Clock className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-500">
-                            {new Date(request.createdAt).toLocaleDateString()}
+                            {new Date(request.created_at).toLocaleDateString()}
                           </span>
                         </div>
                       </div>

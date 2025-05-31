@@ -69,7 +69,7 @@ const HostDetailsModal = ({
   const handleBooking = async () => {
     setIsLoading(true);
     try {
-      const booking = createBooking(host.id, host);
+      const booking = await createBooking(host.id, host);
       toast({
         title: "¡Reserva creada exitosamente!",
         description: `Tu reserva con ${host.name} ha sido registrada. Revisa tu historial de reservas.`,

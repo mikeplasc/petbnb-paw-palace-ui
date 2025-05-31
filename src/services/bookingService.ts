@@ -1,63 +1,67 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Tables, TablesInsert } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
-export type Booking = Tables<'bookings'>;
+export type Booking = Database['public']['Tables']['bookings']['Row'];
 
-export const createBooking = async (bookingData: {
-  hostId: string;
-  hostName: string;
-  hostImage: string;
-  petInfo?: any;
-  petType: string;
-  startDate: string;
-  endDate: string;
-  totalPrice: number;
-  location: string;
-  services: string[];
-  type?: string;
-  serviceType?: string;
-  preferredTime?: string;
-  notes?: string;
-}) => {
+export const createBooking = async (
+  hostId: string, 
+  hostData: any, 
+  type: 'host' | 'veterinary' = 'host',
+  formData?: any
+): Promise<Booking> => {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User must be authenticated to create a booking');
+  }
+
+  const bookingData = {
+    host_id: hostId,
+    user_id: user.id,
+    host_name: hostData.name,
+    host_image: Array.isArray(hostData.images) ? hostData.images[0] : hostData.image || '',
+    pet_type: formData?.selectedPetId ? 'pet' : 'general',
+    start_date: formData?.preferredDate || new Date().toISOString().split('T')[0],
+    end_date: formData?.preferredDate || new Date().toISOString().split('T')[0],
+    total_price: hostData.pricePerNight || hostData.price_per_night || 0,
+    location: hostData.location || hostData.city || '',
+    services: JSON.stringify(hostData.services || []),
+    type,
+    service_type: formData?.serviceType || '',
+    preferred_time: formData?.preferredTime || '',
+    notes: formData?.notes || '',
+    pet_info: formData?.selectedPetId ? JSON.stringify({ petId: formData.selectedPetId }) : null,
+    status: 'pending'
+  };
+
   const { data, error } = await supabase
     .from('bookings')
-    .insert({
-      host_id: bookingData.hostId,
-      host_name: bookingData.hostName,
-      host_image: bookingData.hostImage,
-      pet_info: bookingData.petInfo,
-      pet_type: bookingData.petType,
-      start_date: bookingData.startDate,
-      end_date: bookingData.endDate,
-      total_price: bookingData.totalPrice,
-      location: bookingData.location,
-      services: bookingData.services,
-      type: bookingData.type || 'host',
-      service_type: bookingData.serviceType,
-      preferred_time: bookingData.preferredTime,
-      notes: bookingData.notes,
-      status: 'pending'
-    })
+    .insert(bookingData)
     .select()
     .single();
 
   if (error) {
-    console.error('Error creating booking:', error);
     throw error;
   }
 
   return data;
 };
 
-export const getUserBookings = async () => {
+export const getUserBookings = async (): Promise<Booking[]> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('bookings')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching user bookings:', error);
+    console.error('Error fetching bookings:', error);
     return [];
   }
 
