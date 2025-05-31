@@ -15,8 +15,8 @@ import { petTypes, cities } from '@/data/mockData';
 import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
 import type { Host as SupabaseHost } from '@/services/hostService';
 
-// Define the Host type to match what HostCard expects
-interface Host {
+// Define the Component Host type to match what HostCard expects
+interface ComponentHost {
   id: string;
   name: string;
   type: "veterinary" | "individual";
@@ -37,8 +37,8 @@ interface Host {
   specialties: string[];
 }
 
-// Helper function to convert Supabase host to Host format
-const convertSupabaseHostToHost = (supabaseHost: SupabaseHost): Host => {
+// Helper function to convert Supabase host to ComponentHost format
+const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): ComponentHost => {
   const acceptedPets = Array.isArray(supabaseHost.accepted_pets) 
     ? supabaseHost.accepted_pets as string[]
     : [];
@@ -51,7 +51,7 @@ const convertSupabaseHostToHost = (supabaseHost: SupabaseHost): Host => {
     ? supabaseHost.images as string[]
     : [];
 
-  // Map database type values to expected Host type values, excluding family
+  // Map database type values to expected ComponentHost type values, excluding family
   const mapHostType = (dbType: string): "veterinary" | "individual" => {
     switch (dbType) {
       case 'veterinary':
@@ -96,7 +96,7 @@ const SearchResults = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedHost, setSelectedHost] = useState<Host | null>(null);
+  const [selectedHost, setSelectedHost] = useState<ComponentHost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filters state
@@ -121,10 +121,10 @@ const SearchResults = () => {
     }),
   });
 
-  // Convert Supabase hosts to Host format and filter out family hosts
+  // Convert Supabase hosts to ComponentHost format and filter out family hosts
   const hosts = supabaseHosts
     .filter(host => host.type !== 'family') // Remove family hosts
-    .map(convertSupabaseHostToHost);
+    .map(convertSupabaseHostToComponentHost);
 
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,8 +7,84 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, MapPin, Star, Calendar, Shield, Stethoscope } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import HostCard from '@/components/HostCard';
-import { mockHosts } from '@/data/mockData';
 import { getPets } from '@/services/petService';
+import { getHosts } from '@/services/hostService';
+import type { Host as SupabaseHost } from '@/services/hostService';
+
+// Define the Component Host type to match what HostCard expects
+interface ComponentHost {
+  id: string;
+  name: string;
+  type: "veterinary" | "individual";
+  location: string;
+  city: string;
+  rating: number;
+  reviewCount: number;
+  pricePerNight: number;
+  image: string;
+  images: string[];
+  services: string[];
+  acceptedPets: string[];
+  availability: boolean;
+  responseTime: string;
+  experience: string;
+  description: string;
+  certifications: string[];
+  specialties: string[];
+}
+
+// Helper function to convert Supabase host to ComponentHost format
+const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): ComponentHost => {
+  const acceptedPets = Array.isArray(supabaseHost.accepted_pets) 
+    ? supabaseHost.accepted_pets as string[]
+    : [];
+  
+  const services = Array.isArray(supabaseHost.services)
+    ? supabaseHost.services as string[]
+    : [];
+
+  const images = Array.isArray(supabaseHost.images)
+    ? supabaseHost.images as string[]
+    : [];
+
+  // Map database type values to expected ComponentHost type values, excluding family
+  const mapHostType = (dbType: string): "veterinary" | "individual" => {
+    switch (dbType) {
+      case 'veterinary':
+        return 'veterinary';
+      case 'family':
+      case 'individual':
+      case 'sitter':
+      default:
+        return 'individual'; // Map all non-veterinary types to individual
+    }
+  };
+
+  return {
+    id: supabaseHost.id,
+    name: supabaseHost.name,
+    type: mapHostType(supabaseHost.type),
+    location: supabaseHost.location,
+    city: supabaseHost.city,
+    rating: Number(supabaseHost.rating),
+    reviewCount: supabaseHost.review_count,
+    pricePerNight: supabaseHost.price_per_night,
+    image: images[0] || 'https://images.unsplash.com/photo-1582562124811-c09040d0a901',
+    images: images,
+    services: services,
+    acceptedPets: acceptedPets,
+    availability: supabaseHost.availability,
+    responseTime: supabaseHost.response_time,
+    experience: supabaseHost.experience || '',
+    description: supabaseHost.description,
+    certifications: Array.isArray(supabaseHost.certifications) 
+      ? supabaseHost.certifications as string[]
+      : [],
+    specialties: Array.isArray(supabaseHost.specialties)
+      ? supabaseHost.specialties as string[]
+      : []
+  };
+};
 
 const Favorites = () => {
   const [hostFavorites, setHostFavorites] = useState<string[]>([]);
@@ -21,6 +96,17 @@ const Favorites = () => {
     queryKey: ['pets'],
     queryFn: () => getPets(),
   });
+
+  // Fetch hosts using React Query
+  const { data: supabaseHosts = [] } = useQuery({
+    queryKey: ['hosts-favorites'],
+    queryFn: () => getHosts(),
+  });
+
+  // Convert Supabase hosts to ComponentHost format and filter out family hosts
+  const allHosts = supabaseHosts
+    .filter(host => host.type !== 'family') // Remove family hosts
+    .map(convertSupabaseHostToComponentHost);
 
   // Mock data for veterinaries - in real app this would come from a service
   const mockVeterinaries = [
@@ -135,7 +221,7 @@ const Favorites = () => {
     });
   };
 
-  const favoriteHosts = mockHosts.filter(host => hostFavorites.includes(host.id));
+  const favoriteHosts = allHosts.filter(host => hostFavorites.includes(host.id));
   const favoriteVeterinaries = mockVeterinaries.filter(vet => veterinaryFavorites.includes(vet.id));
   const favoritePets = allPets.filter(pet => petFavorites.includes(pet.id));
 
