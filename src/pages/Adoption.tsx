@@ -1,55 +1,75 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, MapPin, Calendar, Shield, AlertTriangle } from 'lucide-react';
-import AdoptionModal from '@/components/AdoptionModal';
-import { getPets, createAdoptionRequest, type Pet } from '@/services/adoptionService';
-import { toast } from 'sonner';
-import { useDebounce } from '@/hooks/useDebounce';
-import { useFavorites } from '@/hooks/useFavorites';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Heart, MapPin, Calendar, Shield, AlertTriangle } from "lucide-react";
+import AdoptionModal from "@/components/AdoptionModal";
+import {
+  getPets,
+  createAdoptionRequest,
+  type Pet,
+} from "@/services/adoptionService";
+import { toast } from "sonner";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const Adoption = () => {
-  const [searchLocation, setSearchLocation] = useState('');
-  const [petTypeFilter, setPetTypeFilter] = useState('all');
-  const [sizeFilter, setSizeFilter] = useState('all');
+  const [searchLocation, setSearchLocation] = useState("");
+  const [petTypeFilter, setPetTypeFilter] = useState("all");
+  const [sizeFilter, setSizeFilter] = useState("all");
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const { formatPrice } = useCurrency();
   // Debounce the search location to avoid searching on every keystroke
   const debouncedSearchLocation = useDebounce(searchLocation, 2000);
 
   const queryClient = useQueryClient();
-  const { toggleFavorite, isFavorite } = useFavorites('pet');
+  const { toggleFavorite, isFavorite } = useFavorites("pet");
 
-  const { data: pets = [], isLoading, error } = useQuery({
-    queryKey: ['pets', debouncedSearchLocation, petTypeFilter, sizeFilter],
-    queryFn: () => getPets({
-      location: debouncedSearchLocation || undefined,
-      type: petTypeFilter === 'all' ? undefined : petTypeFilter,
-      size: sizeFilter === 'all' ? undefined : sizeFilter,
-    }),
+  const {
+    data: pets = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["pets", debouncedSearchLocation, petTypeFilter, sizeFilter],
+    queryFn: () =>
+      getPets({
+        location: debouncedSearchLocation || undefined,
+        type: petTypeFilter === "all" ? undefined : petTypeFilter,
+        size: sizeFilter === "all" ? undefined : sizeFilter,
+      }),
   });
 
   const adoptionMutation = useMutation({
-    mutationFn: async ({ pet, userInfo }: {
-      pet: Pet;
-      userInfo: any;
-    }) => {
+    mutationFn: async ({ pet, userInfo }: { pet: Pet; userInfo: any }) => {
       return await createAdoptionRequest(pet, userInfo);
     },
     onSuccess: () => {
-      toast.success('Solicitud de adopción enviada exitosamente');
+      toast.success("Solicitud de adopción enviada exitosamente");
       setIsModalOpen(false);
       setSelectedPet(null);
-      queryClient.invalidateQueries({ queryKey: ['adoption-requests'] });
+      queryClient.invalidateQueries({ queryKey: ["adoption-requests"] });
     },
     onError: (error) => {
-      console.error('Error submitting adoption request:', error);
-      toast.error('Error al enviar la solicitud de adopción');
+      console.error("Error submitting adoption request:", error);
+      toast.error("Error al enviar la solicitud de adopción");
     },
   });
 
@@ -60,21 +80,21 @@ const Adoption = () => {
 
   const handleSubmitAdoption = async (petId: string, userInfo: any) => {
     if (!selectedPet) return;
-    
+
     adoptionMutation.mutate({
       pet: selectedPet,
-      userInfo
+      userInfo,
     });
   };
 
   const handleToggleFavorite = (petId: string) => {
-    toggleFavorite(petId, 'pet');
+    toggleFavorite(petId, "pet");
   };
 
   const currentUser = {
-    name: 'Usuario',
-    email: 'usuario@email.com',
-    phone: '+34 123 456 789'
+    name: "Usuario",
+    email: "usuario@email.com",
+    phone: "+34 123 456 789",
   };
 
   if (isLoading) {
@@ -102,7 +122,9 @@ const Adoption = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-8">
         <Heart className="h-8 w-8 text-pink-600" />
-        <h1 className="text-3xl font-bold text-gray-900">Adopción de Mascotas</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Adopción de Mascotas
+        </h1>
       </div>
 
       {/* Filtros */}
@@ -153,13 +175,13 @@ const Adoption = () => {
             </Select>
           </div>
           <div className="flex items-end">
-            <Button 
+            <Button
               onClick={() => {
-                setSearchLocation('');
-                setPetTypeFilter('all');
-                setSizeFilter('all');
+                setSearchLocation("");
+                setPetTypeFilter("all");
+                setSizeFilter("all");
               }}
-              variant="outline" 
+              variant="outline"
               className="w-full"
             >
               Limpiar
@@ -171,14 +193,22 @@ const Adoption = () => {
       {/* Lista de mascotas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {pets.map((pet) => {
-          const characteristics = Array.isArray(pet.characteristics) ? pet.characteristics as string[] : [];
-          const isCurrentlyFavorite = isFavorite(pet.id, 'pet');
+          const characteristics = Array.isArray(pet.characteristics)
+            ? (pet.characteristics as string[])
+            : [];
+          const isCurrentlyFavorite = isFavorite(pet.id, "pet");
 
           return (
-            <Card key={pet.id} className="group hover:shadow-lg transition-shadow">
+            <Card
+              key={pet.id}
+              className="group hover:shadow-lg transition-shadow"
+            >
               <div className="relative">
                 <img
-                  src={pet.image || 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop'}
+                  src={
+                    pet.image ||
+                    "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop"
+                  }
                   alt={pet.name}
                   className="w-full h-48 object-cover rounded-t-lg"
                 />
@@ -188,7 +218,9 @@ const Adoption = () => {
                 >
                   <Heart
                     className={`h-5 w-5 ${
-                      isCurrentlyFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'
+                      isCurrentlyFavorite
+                        ? "fill-red-500 text-red-500"
+                        : "text-gray-400"
                     }`}
                   />
                 </button>
@@ -253,26 +285,18 @@ const Adoption = () => {
                 <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(pet.created_at || '').toLocaleDateString()}</span>
+                    <span>
+                      {new Date(pet.created_at || "").toLocaleDateString()}
+                    </span>
                   </div>
                   <div className="font-medium text-green-600">
-                    €{pet.adoption_fee || 0}
+                    {formatPrice(pet.adoption_fee || 0)}
                   </div>
                 </div>
 
                 <div className="flex gap-2">
-                  <Button 
-                    onClick={() => handleAdopt(pet)}
-                    className="flex-1"
-                  >
+                  <Button onClick={() => handleAdopt(pet)} className="flex-1">
                     Adoptar
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleAdopt(pet)}
-                  >
-                    Más info
                   </Button>
                 </div>
               </CardContent>
@@ -284,7 +308,9 @@ const Adoption = () => {
       {pets.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <Heart className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600">No se encontraron mascotas con los filtros aplicados.</p>
+          <p className="text-gray-600">
+            No se encontraron mascotas con los filtros aplicados.
+          </p>
         </div>
       )}
 
@@ -299,7 +325,7 @@ const Adoption = () => {
           pet={selectedPet}
           onSubmitAdoption={handleSubmitAdoption}
           onToggleFavorite={() => handleToggleFavorite(selectedPet.id)}
-          isFavorite={isFavorite(selectedPet.id, 'pet')}
+          isFavorite={isFavorite(selectedPet.id, "pet")}
           currentUser={currentUser}
         />
       )}

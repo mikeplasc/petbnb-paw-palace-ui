@@ -1,21 +1,33 @@
+import { Calendar, Clock, MapPin, Star, Stethoscope } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Host, getVeterinaries } from "@/services/hostService";
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Star, MapPin, Clock, Phone, Calendar, Stethoscope } from 'lucide-react';
-import VeterinaryBookingModal from '@/components/VeterinaryBookingModal';
-import { getVeterinaries, Host } from '@/services/hostService';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import VeterinaryBookingModal from "@/components/VeterinaryBookingModal";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 const Veterinaries = () => {
-  const [searchLocation, setSearchLocation] = useState('');
+  const [searchInput, setSearchInput] = useState("");
+  const searchLocation = useDebounce(searchInput, 1500); // 1.5 seconds debounce
   const [selectedVet, setSelectedVet] = useState<Host | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-  const { data: veterinaries = [], isLoading, error } = useQuery({
-    queryKey: ['veterinaries', searchLocation],
+  const {
+    data: veterinaries = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["veterinaries", searchLocation],
     queryFn: () => getVeterinaries(searchLocation || undefined),
   });
 
@@ -61,15 +73,12 @@ const Veterinaries = () => {
             </label>
             <Input
               placeholder="Ciudad o región"
-              value={searchLocation}
-              onChange={(e) => setSearchLocation(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
           </div>
           <div className="flex items-end">
-            <Button 
-              onClick={() => setSearchLocation('')}
-              variant="outline"
-            >
+            <Button onClick={() => setSearchInput("")} variant="outline">
               Limpiar
             </Button>
           </div>
@@ -79,16 +88,27 @@ const Veterinaries = () => {
       {/* Lista de veterinarias */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {veterinaries.map((vet) => {
-          const images = Array.isArray(vet.images) ? vet.images as string[] : [];
-          const services = Array.isArray(vet.services) ? vet.services as string[] : [];
-          const certifications = Array.isArray(vet.certifications) ? vet.certifications as string[] : [];
-          const specialties = Array.isArray(vet.specialties) ? vet.specialties as string[] : [];
+          const images = Array.isArray(vet.images)
+            ? (vet.images as string[])
+            : [];
+          const services = Array.isArray(vet.services)
+            ? (vet.services as string[])
+            : [];
+          const certifications = Array.isArray(vet.certifications)
+            ? (vet.certifications as string[])
+            : [];
+          const specialties = Array.isArray(vet.specialties)
+            ? (vet.specialties as string[])
+            : [];
 
           return (
-            <Card key={vet.id} className="group hover:shadow-lg transition-shadow">
+            <Card
+              key={vet.id}
+              className="group hover:shadow-lg transition-shadow"
+            >
               <div className="relative">
                 <img
-                  src={images[0] || '/placeholder.svg'}
+                  src={images[0] || "/placeholder.svg"}
                   alt={vet.name}
                   className="w-full h-48 object-cover rounded-t-lg"
                 />
@@ -103,8 +123,12 @@ const Veterinaries = () => {
                   <CardTitle className="text-lg">{vet.name}</CardTitle>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{Number(vet.rating).toFixed(1)}</span>
-                    <span className="text-sm text-gray-500">({vet.review_count})</span>
+                    <span className="text-sm font-medium">
+                      {Number(vet.rating).toFixed(1)}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      ({vet.review_count})
+                    </span>
                   </div>
                 </div>
                 <CardDescription className="flex items-center gap-1">
@@ -120,10 +144,16 @@ const Veterinaries = () => {
 
                 {specialties.length > 0 && (
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Especialidades:</h4>
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">
+                      Especialidades:
+                    </h4>
                     <div className="flex flex-wrap gap-1">
                       {specialties.map((specialty, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {specialty}
                         </Badge>
                       ))}
@@ -151,10 +181,13 @@ const Veterinaries = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="text-lg font-bold text-blue-600">
-                    €{vet.price_per_night}<span className="text-sm font-normal text-gray-500">/consulta</span>
+                    €{vet.price_per_night}
+                    <span className="text-sm font-normal text-gray-500">
+                      /consulta
+                    </span>
                   </div>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     onClick={() => handleBookAppointment(vet)}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
@@ -171,7 +204,9 @@ const Veterinaries = () => {
       {veterinaries.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <Stethoscope className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600">No se encontraron veterinarias en esta ubicación.</p>
+          <p className="text-gray-600">
+            No se encontraron veterinarias en esta ubicación.
+          </p>
         </div>
       )}
 

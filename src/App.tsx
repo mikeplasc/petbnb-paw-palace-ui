@@ -1,28 +1,28 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CurrencyProvider } from "@/contexts/CurrencyContext";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Navbar from "./components/Navbar";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import Hosts from "./pages/Hosts";
-import BecomeHost from "./pages/BecomeHost";
-import Veterinaries from "./pages/Veterinaries";
+
 import Adoption from "./pages/Adoption";
-import SearchResults from "./pages/SearchResults";
-import Profile from "./pages/Profile";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "@/contexts/AuthContext";
+import BecomeHost from "./pages/BecomeHost";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import Favorites from "./pages/Favorites";
+import Hosts from "./pages/Hosts";
+import Index from "./pages/Index";
 import MyBookings from "./pages/MyBookings";
 import MyPets from "./pages/MyPets";
 import MyVeterinaries from "./pages/MyVeterinaries";
-import Favorites from "./pages/Favorites";
-import Settings from "./pages/Settings";
+import Navbar from "./components/Navbar";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import ResetPassword from "./pages/ResetPassword";
+import SearchResults from "./pages/SearchResults";
+import Settings from "./pages/Settings";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import Veterinaries from "./pages/Veterinaries";
 
 const queryClient = new QueryClient();
 
@@ -38,78 +38,114 @@ const App = () => (
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/hosts" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <Hosts />
-                  </ProtectedRoute>
-                } />
-                <Route path="/become-host" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <BecomeHost />
-                  </ProtectedRoute>
-                } />
-                <Route path="/veterinaries" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <Veterinaries />
-                  </ProtectedRoute>
-                } />
-                <Route path="/adoption" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <Adoption />
-                  </ProtectedRoute>
-                } />
-                <Route path="/search" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <SearchResults />
-                  </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <Profile />
-                  </ProtectedRoute>
-                } />
-                <Route path="/my-bookings" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <MyBookings />
-                  </ProtectedRoute>
-                } />
-                <Route path="/my-pets" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <MyPets />
-                  </ProtectedRoute>
-                } />
-                <Route path="/my-veterinaries" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <MyVeterinaries />
-                  </ProtectedRoute>
-                } />
-                <Route path="/favorites" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <Favorites />
-                  </ProtectedRoute>
-                } />
-                <Route path="/settings" element={
-                  <ProtectedRoute>
-                    <Navbar />
-                    <Settings />
-                  </ProtectedRoute>
-                } />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <Index />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/hosts"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <Hosts />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/become-host"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <BecomeHost />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/veterinaries"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <Veterinaries />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/adoption"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <Adoption />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/search"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <SearchResults />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-bookings"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <MyBookings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-pets"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <MyPets />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-veterinaries"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <MyVeterinaries />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/favorites"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <Favorites />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
