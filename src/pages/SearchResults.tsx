@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
 import SearchBar, { SearchFilters } from '@/components/SearchBar';
 import HostCard from '@/components/HostCard';
+import HostDetailsModal from '@/components/HostDetailsModal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,11 +14,12 @@ import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
-  const [currentPage, setCurrentPage] = useState('search');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedHost, setSelectedHost] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filters state
   const [selectedPetTypes, setSelectedPetTypes] = useState<string[]>([]);
@@ -33,10 +33,6 @@ const SearchResults = () => {
   const petTypeParam = searchParams.get('petType') || '';
   const startDateParam = searchParams.get('startDate') || '';
   const endDateParam = searchParams.get('endDate') || '';
-
-  const handleNavigation = (page: string) => {
-    setCurrentPage(page);
-  };
 
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);
@@ -52,7 +48,16 @@ const SearchResults = () => {
   };
 
   const handleViewDetails = (hostId: string) => {
-    console.log('Ver detalles del host:', hostId);
+    const host = mockHosts.find(h => h.id === hostId);
+    if (host) {
+      setSelectedHost(host);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedHost(null);
   };
 
   // Filter and sort hosts
@@ -130,8 +135,6 @@ const SearchResults = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header currentPage={currentPage} onNavigate={handleNavigation} />
-      
       {/* Search Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200 py-4">
         <div className="container mx-auto px-4">
@@ -380,33 +383,44 @@ const SearchResults = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className={viewMode === 'grid' 
-                ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' 
-                : 'space-y-4'
-              }>
-                {filteredAndSortedHosts.map((host) => (
-                  <HostCard
-                    key={host.id}
-                    host={host}
-                    onViewDetails={handleViewDetails}
-                    onToggleFavorite={handleToggleFavorite}
-                    isFavorite={favorites.includes(host.id)}
-                  />
-                ))}
-              </div>
-            )}
+              <>
+                <div className={viewMode === 'grid' 
+                  ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' 
+                  : 'space-y-4'
+                }>
+                  {filteredAndSortedHosts.map((host) => (
+                    <HostCard
+                      key={host.id}
+                      host={host}
+                      onViewDetails={handleViewDetails}
+                      onToggleFavorite={handleToggleFavorite}
+                      isFavorite={favorites.includes(host.id)}
+                    />
+                  ))}
+                </div>
 
-            {/* Load More Button */}
-            {filteredAndSortedHosts.length > 0 && (
-              <div className="text-center mt-12">
-                <Button variant="outline" className="px-8">
-                  Cargar más resultados
-                </Button>
-              </div>
+                {/* Load More Button - Only show if there are results */}
+                {filteredAndSortedHosts.length > 0 && (
+                  <div className="text-center mt-12">
+                    <Button variant="outline" className="px-8">
+                      Cargar más resultados
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
       </div>
+
+      {/* Host Details Modal */}
+      <HostDetailsModal
+        host={selectedHost}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onToggleFavorite={handleToggleFavorite}
+        isFavorite={selectedHost ? favorites.includes(selectedHost.id) : false}
+      />
     </div>
   );
 };
