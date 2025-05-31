@@ -43,12 +43,34 @@ const AdoptionModal = ({
   };
   const [userInfo, setUserInfo] = useState(initialUserInfo);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   // Reset form when modal closes
   const handleClose = () => {
     setUserInfo(initialUserInfo);
     setShowAdoptionForm(false);
+    setEmailError('');
     onClose();
+  };
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setEmailError('El email es requerido');
+      return false;
+    }
+    if (!emailRegex.test(email)) {
+      setEmailError('Por favor ingresa un email válido');
+      return false;
+    }
+    setEmailError('');
+    return true;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setUserInfo(prev => ({ ...prev, email: newEmail }));
+    validateEmail(newEmail);
   };
 
   if (!pet) return null;
@@ -64,6 +86,10 @@ const AdoptionModal = ({
       !userInfo.phone ||
       !onSubmitAdoption
     ) {
+      return;
+    }
+
+    if (!validateEmail(userInfo.email)) {
       return;
     }
 
@@ -266,15 +292,14 @@ const AdoptionModal = ({
                         id="email"
                         type="email"
                         value={userInfo.email}
-                        onChange={(e) =>
-                          setUserInfo((prev) => ({
-                            ...prev,
-                            email: e.target.value,
-                          }))
-                        }
+                        onChange={handleEmailChange}
                         placeholder="tu@email.com"
                         required
+                        className={emailError ? 'border-red-500 focus:ring-red-500' : ''}
                       />
+                      {emailError && (
+                        <p className="text-sm text-red-500 mt-1">{emailError}</p>
+                      )}
                     </div>
                   </div>
 
