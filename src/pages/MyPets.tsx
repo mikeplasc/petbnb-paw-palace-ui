@@ -7,9 +7,26 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit2, Trash2, Camera, Heart, Activity } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface Pet {
+  id: number;
+  name: string;
+  type: string;
+  breed: string;
+  age: number;
+  weight: number;
+  image: string;
+  description: string;
+  vaccinated: boolean;
+  neutered: boolean;
+  microchip: string;
+  emergencyContact: string;
+}
 
 const MyPets = () => {
-  const [pets, setPets] = useState([
+  const { toast } = useToast();
+  const [pets, setPets] = useState<Pet[]>([
     {
       id: 1,
       name: 'Luna',
@@ -43,7 +60,39 @@ const MyPets = () => {
   const [isAddingPet, setIsAddingPet] = useState(false);
   const [editingPet, setEditingPet] = useState<number | null>(null);
 
-  const PetCard = ({ pet }: { pet: any }) => (
+  const addPet = (petData: Omit<Pet, 'id'>) => {
+    const newPet: Pet = {
+      ...petData,
+      id: Math.max(...pets.map(p => p.id), 0) + 1
+    };
+    setPets([...pets, newPet]);
+    toast({
+      title: "Mascota agregada",
+      description: `${petData.name} ha sido agregada exitosamente.`,
+    });
+    setIsAddingPet(false);
+  };
+
+  const updatePet = (petData: Pet) => {
+    setPets(pets.map(pet => pet.id === petData.id ? petData : pet));
+    toast({
+      title: "Mascota actualizada",
+      description: `Los datos de ${petData.name} han sido actualizados.`,
+    });
+    setEditingPet(null);
+  };
+
+  const deletePet = (petId: number) => {
+    const pet = pets.find(p => p.id === petId);
+    setPets(pets.filter(pet => pet.id !== petId));
+    toast({
+      title: "Mascota eliminada",
+      description: `${pet?.name} ha sido eliminada de tu lista.`,
+      variant: "destructive",
+    });
+  };
+
+  const PetCard = ({ pet }: { pet: Pet }) => (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
         <div className="h-48 bg-gradient-to-br from-petbnb-100 to-primary-100 flex items-center justify-center">
@@ -70,7 +119,12 @@ const MyPets = () => {
             <Button size="sm" variant="ghost" onClick={() => setEditingPet(pet.id)}>
               <Edit2 className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" className="text-red-600">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="text-red-600"
+              onClick={() => deletePet(pet.id)}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
@@ -117,39 +171,55 @@ const MyPets = () => {
     </Card>
   );
 
-  const PetForm = ({ pet, onSave, onCancel }: { pet?: any, onSave: (petData: any) => void, onCancel: () => void }) => {
+  const PetForm = ({ pet, onSave, onCancel }: { pet?: Pet, onSave: (petData: any) => void, onCancel: () => void }) => {
     const [formData, setFormData] = useState(pet || {
       name: '',
       type: 'Perro',
       breed: '',
-      age: '',
-      weight: '',
+      age: 0,
+      weight: 0,
       description: '',
       vaccinated: false,
       neutered: false,
       microchip: '',
-      emergencyContact: ''
+      emergencyContact: '',
+      image: '/placeholder-pet.jpg'
     });
 
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!formData.name || !formData.breed || !formData.age || !formData.weight) {
+        toast({
+          title: "Error",
+          description: "Por favor completa todos los campos obligatorios.",
+          variant: "destructive",
+        });
+        return;
+      }
+      onSave(formData);
+    };
+
     return (
-      <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="name">Nombre</Label>
+            <Label htmlFor="name">Nombre *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
               placeholder="Nombre de tu mascota"
+              required
             />
           </div>
           <div>
-            <Label htmlFor="type">Tipo</Label>
+            <Label htmlFor="type">Tipo *</Label>
             <select 
               id="type"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={formData.type}
               onChange={(e) => setFormData({...formData, type: e.target.value})}
+              required
             >
               <option value="Perro">Perro</option>
               <option value="Gato">Gato</option>
@@ -160,24 +230,62 @@ const MyPets = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="breed">Raza</Label>
+            <Label htmlFor="breed">Raza *</Label>
             <Input
               id="breed"
               value={formData.breed}
               onChange={(e) => setFormData({...formData, breed: e.target.value})}
               placeholder="Raza de tu mascota"
+              required
             />
           </div>
           <div>
-            <Label htmlFor="age">Edad (años)</Label>
+            <Label htmlFor="age">Edad (años) *</Label>
             <Input
               id="age"
               type="number"
               value={formData.age}
-              onChange={(e) => setFormData({...formData, age: parseInt(e.target.value)})}
+              onChange={(e) => setFormData({...formData, age: parseInt(e.target.value) || 0})}
               placeholder="Edad"
+              required
+              min="0"
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="weight">Peso (kg) *</Label>
+            <Input
+              id="weight"
+              type="number"
+              step="0.1"
+              value={formData.weight}
+              onChange={(e) => setFormData({...formData, weight: parseFloat(e.target.value) || 0})}
+              placeholder="Peso"
+              required
+              min="0"
+            />
+          </div>
+          <div>
+            <Label htmlFor="microchip">Microchip</Label>
+            <Input
+              id="microchip"
+              value={formData.microchip}
+              onChange={(e) => setFormData({...formData, microchip: e.target.value})}
+              placeholder="Número de microchip"
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="emergencyContact">Contacto de emergencia</Label>
+          <Input
+            id="emergencyContact"
+            value={formData.emergencyContact}
+            onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
+            placeholder="Veterinario o contacto de emergencia"
+          />
         </div>
 
         <div>
@@ -191,17 +299,42 @@ const MyPets = () => {
           />
         </div>
 
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="vaccinated"
+              checked={formData.vaccinated}
+              onChange={(e) => setFormData({...formData, vaccinated: e.target.checked})}
+              className="h-4 w-4"
+            />
+            <Label htmlFor="vaccinated">Vacunado</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="neutered"
+              checked={formData.neutered}
+              onChange={(e) => setFormData({...formData, neutered: e.target.checked})}
+              className="h-4 w-4"
+            />
+            <Label htmlFor="neutered">Esterilizado</Label>
+          </div>
+        </div>
+
         <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button onClick={() => onSave(formData)}>
+          <Button type="submit">
             {pet ? 'Actualizar' : 'Agregar'} Mascota
           </Button>
         </div>
-      </div>
+      </form>
     );
   };
+
+  const editingPetData = pets.find(pet => pet.id === editingPet);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -223,15 +356,31 @@ const MyPets = () => {
               </DialogDescription>
             </DialogHeader>
             <PetForm 
-              onSave={(petData) => {
-                // Aquí agregarías la mascota a la lista
-                setIsAddingPet(false);
-              }}
+              onSave={addPet}
               onCancel={() => setIsAddingPet(false)}
             />
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Edit Pet Dialog */}
+      <Dialog open={!!editingPet} onOpenChange={() => setEditingPet(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Mascota</DialogTitle>
+            <DialogDescription>
+              Actualiza la información de tu mascota.
+            </DialogDescription>
+          </DialogHeader>
+          {editingPetData && (
+            <PetForm 
+              pet={editingPetData}
+              onSave={updatePet}
+              onCancel={() => setEditingPet(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {pets.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
