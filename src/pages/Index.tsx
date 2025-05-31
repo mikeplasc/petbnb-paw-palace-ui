@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -70,9 +69,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-petbnb-50 via-white to-warm-50">
-      <Header currentPage={currentPage} onNavigate={handleNavigation} />
-      
+    <div className="bg-gradient-to-br from-petbnb-50 via-white to-warm-50">
       <HeroSection onSearch={handleSearch} />
       <CategoriesSection />
       <FeaturedHostsSection 

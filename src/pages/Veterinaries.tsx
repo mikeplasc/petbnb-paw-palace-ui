@@ -51,7 +51,7 @@ const Veterinaries = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-petbnb-50 to-warm-50">
+    <div className="bg-gradient-to-br from-petbnb-50 to-warm-50">
       {/* Hero Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-petbnb-600 to-primary-600">
         <div className="container mx-auto text-center text-white">
