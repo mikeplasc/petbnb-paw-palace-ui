@@ -1,5 +1,4 @@
 import { Pet } from '@/services/adoptionService';
-import { mockPets } from '@/data/mockPets';
 
 const names = ['Buddy', 'Bella', 'Charlie', 'Daisy', 'Rocky', 'Molly', 'Jack', 'Maggie', 'Toby', 'Sophie', 'Coco', 'Lola', 'Oscar', 'Zoey', 'Teddy', 'Chloe', 'Duke', 'Penny', 'Zeus', 'Ruby', 'Milo', 'Sadie', 'Otis', 'Stella', 'Leo', 'Nala', 'Simba', 'Princess', 'Tiger', 'Angel'];
 
@@ -40,9 +39,9 @@ const otherImages = [
 ];
 
 export const generatePets = (): Pet[] => {
-  const allPets = [...mockPets];
+  const allPets: Pet[] = [];
 
-  for (let i = 4; i <= 100; i++) {
+  for (let i = 1; i <= 100; i++) {
     const isPet = Math.random() > 0.2;
     const isDog = isPet && Math.random() > 0.3;
     
