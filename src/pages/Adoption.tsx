@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Heart, MapPin, Calendar, Shield, AlertTriangle } from 'lucide-react';
 import AdoptionModal from '@/components/AdoptionModal';
 import { getPets, Pet } from '@/services/petService';
-import { submitAdoptionRequest } from '@/services/adoptionService';
+import { createAdoptionRequest } from '@/services/adoptionService';
 import { toast } from 'sonner';
 
 const Adoption = () => {
@@ -34,13 +34,12 @@ const Adoption = () => {
   });
 
   const adoptionMutation = useMutation({
-    mutationFn: ({ petId, petName, petImage, shelterName, userInfo }: {
-      petId: string;
-      petName: string;
-      petImage: string;
-      shelterName: string;
+    mutationFn: async ({ pet, userInfo }: {
+      pet: Pet;
       userInfo: any;
-    }) => submitAdoptionRequest(petId, petName, petImage, shelterName, userInfo),
+    }) => {
+      return await createAdoptionRequest(pet, userInfo);
+    },
     onSuccess: () => {
       toast.success('Solicitud de adopción enviada exitosamente');
       setIsModalOpen(false);
@@ -62,10 +61,7 @@ const Adoption = () => {
     if (!selectedPet) return;
     
     adoptionMutation.mutate({
-      petId,
-      petName: selectedPet.name,
-      petImage: selectedPet.image,
-      shelterName: selectedPet.shelter_name,
+      pet: selectedPet,
       userInfo
     });
   };

@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,12 +9,18 @@ import { Heart, MapPin, Star, Calendar, Shield, Stethoscope } from 'lucide-react
 import { toast } from '@/hooks/use-toast';
 import HostCard from '@/components/HostCard';
 import { mockHosts } from '@/data/mockData';
-import { getPets } from '@/services/adoptionService';
+import { getPets } from '@/services/petService';
 
 const Favorites = () => {
   const [hostFavorites, setHostFavorites] = useState<string[]>([]);
   const [veterinaryFavorites, setVeterinaryFavorites] = useState<string[]>([]);
   const [petFavorites, setPetFavorites] = useState<string[]>([]);
+
+  // Fetch pets using React Query
+  const { data: allPets = [] } = useQuery({
+    queryKey: ['pets'],
+    queryFn: () => getPets(),
+  });
 
   // Mock data for veterinaries - in real app this would come from a service
   const mockVeterinaries = [
@@ -130,7 +137,7 @@ const Favorites = () => {
 
   const favoriteHosts = mockHosts.filter(host => hostFavorites.includes(host.id));
   const favoriteVeterinaries = mockVeterinaries.filter(vet => veterinaryFavorites.includes(vet.id));
-  const favoritePets = getPets().filter(pet => petFavorites.includes(pet.id));
+  const favoritePets = allPets.filter(pet => petFavorites.includes(pet.id));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -257,70 +264,79 @@ const Favorites = () => {
           <TabsContent value="pets" className="mt-6">
             {favoritePets.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {favoritePets.map((pet) => (
-                  <Card key={pet.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative">
-                      <img
-                        src={pet.image}
-                        alt={pet.name}
-                        className="w-full h-48 object-cover"
-                      />
-                      {pet.urgent && (
-                        <Badge className="absolute top-2 left-2 bg-red-500 text-white">
-                          URGENTE
-                        </Badge>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => togglePetFavorite(pet.id)}
-                        className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                      >
-                        <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-                      </Button>
-                    </div>
+                {favoritePets.map((pet) => {
+                  const characteristics = Array.isArray(pet.characteristics) ? pet.characteristics as string[] : [];
 
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold">{pet.name}</h3>
-                        <Badge variant="outline">{pet.type}</Badge>
-                      </div>
-
-                      <p className="text-sm text-gray-600 mb-2">{pet.breed} • {pet.age}</p>
-                      
-                      <div className="flex items-center text-sm text-gray-500 mb-2">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {pet.location}
-                      </div>
-
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {pet.vaccinated && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Shield className="w-3 h-3 mr-1" />
-                            Vacunado
+                  return (
+                    <Card key={pet.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="relative">
+                        <img
+                          src={pet.image}
+                          alt={pet.name}
+                          className="w-full h-48 object-cover"
+                        />
+                        {pet.urgent && (
+                          <Badge className="absolute top-2 left-2 bg-red-500 text-white">
+                            URGENTE
                           </Badge>
                         )}
-                        {pet.sterilized && (
-                          <Badge variant="secondary" className="text-xs">
-                            Esterilizado
-                          </Badge>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => togglePetFavorite(pet.id)}
+                          className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                        >
+                          <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                        </Button>
                       </div>
 
-                      <div className="text-lg font-bold text-green-600 mb-3">
-                        €{pet.adoptionFee} cuota de adopción
-                      </div>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-semibold">{pet.name}</h3>
+                          <Badge variant="outline">{pet.type}</Badge>
+                        </div>
 
-                      <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                        Ver detalles
-                      </Button>
+                        <p className="text-sm text-gray-600 mb-2">{pet.breed} • {pet.age}</p>
+                        
+                        <div className="flex items-center text-sm text-gray-500 mb-2">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {pet.location}
+                        </div>
 
-                      <div className="mt-2 text-xs text-gray-500">
-                        Por {pet.shelterName}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {pet.vaccinated && (
+                            <Badge variant="secondary" className="text-xs">
+                              <Shield className="w-3 h-3 mr-1" />
+                              Vacunado
+                            </Badge>
+                          )}
+                          {pet.sterilized && (
+                            <Badge variant="secondary" className="text-xs">
+                              Esterilizado
+                            </Badge>
+                          )}
+                          {characteristics.slice(0, 2).map((char, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {char}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <div className="text-lg font-bold text-green-600 mb-3">
+                          €{pet.adoption_fee} cuota de adopción
+                        </div>
+
+                        <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                          Ver detalles
+                        </Button>
+
+                        <div className="mt-2 text-xs text-gray-500">
+                          Por {pet.shelter_name}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
