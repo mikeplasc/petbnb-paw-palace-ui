@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,10 +26,12 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-gradient-to-br from-petbnb-400 to-primary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">🐾</span>
-          </div>
+        <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+          <img 
+            src="/lovable-uploads/8ce9ae46-8233-4060-a032-afdcc9bd5d24.png" 
+            alt="Petbnb Logo" 
+            className="w-10 h-10 object-contain"
+          />
           <span className="text-2xl font-bold bg-gradient-to-r from-petbnb-600 to-primary-600 bg-clip-text text-transparent">
             Petbnb
           </span>
