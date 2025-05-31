@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -10,12 +11,14 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import Favorites from "./pages/Favorites";
 import Hosts from "./pages/Hosts";
 import Index from "./pages/Index";
+import LostPets from "./pages/LostPets";
 import MyAdoptions from "./pages/MyAdoptions";
 import MyBookings from "./pages/MyBookings";
 import MyPets from "./pages/MyPets";
 import MyVeterinaries from "./pages/MyVeterinaries";
 import Navbar from "./components/Navbar";
 import NotFound from "./pages/NotFound";
+import PetTracking from "./pages/PetTracking";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
@@ -99,6 +102,24 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <MyAdoptions />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pet-tracking"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <PetTracking />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/lost-pets"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <LostPets />
                     </ProtectedRoute>
                   }
                 />
