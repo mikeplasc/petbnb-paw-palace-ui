@@ -80,12 +80,6 @@ const AdoptionConfirmModal = ({
               <strong>{pet.shelter_name}</strong>
               con tu información de perfil.
             </p>
-            <p className="text-sm text-gray-600">
-              Cuota de adopción:{" "}
-              <span className="font-semibold text-green-600">
-                €{pet.adoption_fee}
-              </span>
-            </p>
           </div>
 
           <div className="flex gap-3 pt-4">

@@ -33,6 +33,30 @@ const getCharacteristics = (type: string): string[] => {
     'Pájaro': ['Cantarín', 'Colorido', 'Social']
   };
 
+    const pet: Pet = {
+      id: i.toString(),
+      name,
+      breed,
+      age,
+      size,
+      gender,
+      type,
+      description: `${name} es un${gender === 'Hembra' ? 'a' : ''} ${type.toLowerCase()} muy especial que busca una familia amorosa.`,
+      image: imageArray[Math.floor(Math.random() * imageArray.length)],
+      location: `${city}, España`,
+      vaccinated: Math.random() > 0.2,
+      sterilized: Math.random() > 0.3,
+      urgent: Math.random() > 0.8,
+      shelter_name: shelter,
+      shelter_contact: `contacto@${shelter.toLowerCase().replace(/\s+/g, '')}.org`,
+      adoption_fee: 0,
+      created_at: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
+      updated_at: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
+      characteristics: petCharacteristics,
+      pet_category: 'adoption',
+      owner_id: null
+    };
+
   const available = [...commonCharacteristics, ...(typeSpecific[type as keyof typeof typeSpecific] || [])];
   return faker.helpers.arrayElements(available, { min: 2, max: 4 });
 };
