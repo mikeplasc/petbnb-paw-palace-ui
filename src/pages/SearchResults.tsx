@@ -14,31 +14,10 @@ import { getHosts } from '@/services/hostService';
 import { petTypes, cities } from '@/data/mockData';
 import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
 import type { Host as SupabaseHost } from '@/services/hostService';
+import type { Host } from '@/data/mockData';
 
-// Define the expected Host type for the component based on what HostCard expects
-interface ComponentHost {
-  id: string;
-  name: string;
-  type: "veterinary" | "sitter";
-  location: string;
-  city: string;
-  rating: number;
-  reviewCount: number;
-  pricePerNight: number;
-  image: string;
-  images: string[];
-  services: string[];
-  acceptedPets: string[];
-  availability: string;
-  responseTime: string;
-  experience: string;
-  description: string;
-  certifications: string[];
-  specialties: string[];
-}
-
-// Helper function to convert Supabase host to ComponentHost format
-const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): ComponentHost => {
+// Helper function to convert Supabase host to Host format
+const convertSupabaseHostToHost = (supabaseHost: SupabaseHost): Host => {
   const acceptedPets = Array.isArray(supabaseHost.accepted_pets) 
     ? supabaseHost.accepted_pets as string[]
     : [];
@@ -51,16 +30,18 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
     ? supabaseHost.images as string[]
     : [];
 
-  // Map database type values to expected ComponentHost type values
-  const mapHostType = (dbType: string): "veterinary" | "sitter" => {
+  // Map database type values to expected Host type values
+  const mapHostType = (dbType: string): "veterinary" | "family" | "individual" => {
     switch (dbType) {
       case 'veterinary':
         return 'veterinary';
       case 'family':
+        return 'family';
       case 'individual':
+        return 'individual';
       case 'sitter':
       default:
-        return 'sitter'; // Default fallback for family, individual, and other types
+        return 'individual'; // Default fallback for sitter and other types
     }
   };
 
@@ -77,7 +58,7 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
     images: images,
     services: services,
     acceptedPets: acceptedPets,
-    availability: supabaseHost.availability ? 'Disponible' : 'No disponible',
+    availability: supabaseHost.availability, // Keep as boolean
     responseTime: supabaseHost.response_time,
     experience: supabaseHost.experience || '',
     description: supabaseHost.description,
@@ -96,7 +77,7 @@ const SearchResults = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedHost, setSelectedHost] = useState<ComponentHost | null>(null);
+  const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filters state
@@ -121,8 +102,8 @@ const SearchResults = () => {
     }),
   });
 
-  // Convert Supabase hosts to ComponentHost format
-  const hosts = supabaseHosts.map(convertSupabaseHostToComponentHost);
+  // Convert Supabase hosts to Host format
+  const hosts = supabaseHosts.map(convertSupabaseHostToHost);
 
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);
@@ -508,7 +489,7 @@ const SearchResults = () => {
                   {filteredAndSortedHosts.map((host) => (
                     <HostCard
                       key={host.id}
-                      host={{...host, availability: host.availability === 'Disponible'}}
+                      host={host}
                       onViewDetails={handleViewDetails}
                       onToggleFavorite={handleToggleFavorite}
                       isFavorite={favorites.includes(host.id)}
@@ -532,7 +513,7 @@ const SearchResults = () => {
 
       {/* Host Details Modal */}
       <HostDetailsModal
-        host={{...selectedHost, type: selectedHost.type === 'sitter' ? 'individual' : selectedHost.type} : null}
+        host={selectedHost}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onToggleFavorite={handleToggleFavorite}
