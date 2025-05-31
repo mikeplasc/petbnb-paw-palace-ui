@@ -13,7 +13,6 @@ import AdoptionModal from '@/components/AdoptionModal';
 import AdoptionConfirmModal from '@/components/AdoptionConfirmModal';
 import AddPetForm from '@/components/AddPetForm';
 import EditPetForm from '@/components/EditPetForm';
-import CurrencySelector from '@/components/CurrencySelector';
 
 const PETS_PER_PAGE = 12;
 const CURRENT_USER_EMAIL = 'juan.perez@email.com'; // Simular usuario actual
@@ -251,9 +250,8 @@ const Adoption = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Add Pet Form and Currency Selector */}
-        <div className="mb-6 flex justify-between items-center">
-          <CurrencySelector />
+        {/* Add Pet Form */}
+        <div className="mb-6 flex justify-end">
           <AddPetForm onAddPet={handleAddPet} />
         </div>
 
