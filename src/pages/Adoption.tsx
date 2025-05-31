@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +42,10 @@ const Adoption = () => {
     const allPets = getPets();
     setPets(allPets);
     setFilteredPets(allPets);
+    
+    // Load favorites from localStorage
+    const savedFavorites = JSON.parse(localStorage.getItem('petFavorites') || '[]');
+    setFavorites(savedFavorites);
   }, []);
 
   useEffect(() => {
@@ -86,11 +89,17 @@ const Adoption = () => {
   }, [pets, filters, searchTerm]);
 
   const toggleFavorite = (petId: string) => {
-    setFavorites(prev => 
-      prev.includes(petId) 
-        ? prev.filter(id => id !== petId)
-        : [...prev, petId]
-    );
+    const updatedFavorites = favorites.includes(petId) 
+      ? favorites.filter(id => id !== petId)
+      : [...favorites, petId];
+    
+    setFavorites(updatedFavorites);
+    localStorage.setItem('petFavorites', JSON.stringify(updatedFavorites));
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('favoritesUpdated', { 
+      detail: { type: 'pet', favorites: updatedFavorites } 
+    }));
     
     toast({
       title: favorites.includes(petId) ? "Eliminado de favoritos" : "Añadido a favoritos",
