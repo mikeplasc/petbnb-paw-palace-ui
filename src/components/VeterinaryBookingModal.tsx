@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -279,11 +280,14 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
                 <SelectValue placeholder="Selecciona el servicio" />
               </SelectTrigger>
               <SelectContent>
-                {veterinary.services.map((service: string, index: number) => (
-                  <SelectItem key={index} value={service.toLowerCase()}>
-                    {service}
-                  </SelectItem>
-                ))}
+                {veterinary.services && veterinary.services.filter((service: string) => service && service.trim()).map((service: string, index: number) => {
+                  const serviceValue = service.toLowerCase().replace(/\s+/g, '-');
+                  return (
+                    <SelectItem key={index} value={serviceValue || `service-${index}`}>
+                      {service}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
