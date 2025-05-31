@@ -46,35 +46,41 @@ const Adoption = () => {
   }, []);
 
   useEffect(() => {
-    let filtered = pets;
+    let filtered = [...pets];
 
-    // Aplicar filtros
-    if (filters.type) {
-      filtered = filtered.filter(pet => pet.type === filters.type);
-    }
-
-    if (filters.size) {
-      filtered = filtered.filter(pet => pet.size === filters.size);
-    }
-
-    if (filters.location) {
-      filtered = filtered.filter(pet => 
-        pet.location.toLowerCase().includes(filters.location.toLowerCase())
-      );
-    }
-
-    if (filters.urgent) {
-      filtered = filtered.filter(pet => pet.urgent);
-    }
-
-    // Aplicar búsqueda por nombre o raza
-    if (searchTerm) {
+    // Apply search term filter
+    if (searchTerm.trim()) {
       filtered = filtered.filter(pet => 
         pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pet.breed.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
+    // Apply type filter
+    if (filters.type && filters.type !== '') {
+      filtered = filtered.filter(pet => pet.type === filters.type);
+    }
+
+    // Apply size filter
+    if (filters.size && filters.size !== '') {
+      filtered = filtered.filter(pet => pet.size === filters.size);
+    }
+
+    // Apply location filter
+    if (filters.location && filters.location.trim() !== '') {
+      filtered = filtered.filter(pet => 
+        pet.location.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+
+    // Apply urgent filter
+    if (filters.urgent) {
+      filtered = filtered.filter(pet => pet.urgent === true);
+    }
+
+    console.log('Applying filters:', { searchTerm, filters });
+    console.log('Filtered pets count:', filtered.length);
+    
     setFilteredPets(filtered);
     setCurrentPage(1);
   }, [pets, filters, searchTerm]);
