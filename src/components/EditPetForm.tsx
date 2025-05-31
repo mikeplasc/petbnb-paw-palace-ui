@@ -76,7 +76,7 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
       const updatedPet = {
         ...petData,
         adoption_fee: typeof petData.adoption_fee === 'string' ? parseInt(petData.adoption_fee) || 0 : petData.adoption_fee,
-      };
+      } as unknown as Pet;
 
       onUpdatePet(updatedPet);
       

@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart, Star, MapPin, Clock, CheckCircle } from 'lucide-react';
 
+import logo from "@/assets/logo.jpeg";
+
 interface Host {
   id: string;
   name: string;
@@ -31,7 +33,12 @@ interface HostCardProps {
   isFavorite?: boolean;
 }
 
-const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }: HostCardProps) => {
+const HostCard = ({
+  host,
+  onViewDetails,
+  onToggleFavorite,
+  isFavorite = false,
+}: HostCardProps) => {
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'host':
@@ -45,12 +52,12 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'individual':
-        return 'bg-sage-100 text-sage-800';
-      case 'veterinary':
-        return 'bg-petbnb-100 text-petbnb-800';
+      case "individual":
+        return "bg-sage-100 text-sage-800";
+      case "veterinary":
+        return "bg-petbnb-100 text-petbnb-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -59,12 +66,15 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
       <div className="relative">
         <div className="aspect-[4/3] overflow-hidden">
           <img
-            src={host.images?.[0] || host.image || '/placeholder.svg'}
+            src={host.images?.[0] || host.image || logo}
             alt={host.name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+              e.currentTarget.src = logo;
+            }}
           />
         </div>
-        
+
         {/* Favorite button */}
         <button
           onClick={() => onToggleFavorite?.(host.id)}
@@ -72,7 +82,9 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
         >
           <Heart
             className={`w-4 h-4 transition-colors ${
-              isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
+              isFavorite
+                ? "fill-red-500 text-red-500"
+                : "text-gray-600 hover:text-red-500"
             }`}
           />
         </button>
@@ -93,6 +105,15 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
             </Badge>
           </div>
         )}
+
+        {/* Certification badge - fixed styling */}
+        {host.certifications && host.certifications.length > 0 && (
+          <div className="absolute bottom-3 left-3">
+            <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium cursor-default">
+              Certificado
+            </div>
+          </div>
+        )}
       </div>
 
       <CardContent className="p-4">
@@ -108,16 +129,20 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
                 {host.location}
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-medium text-gray-900">{host.rating}</span>
-              <span className="text-xs text-gray-500">({host.reviewCount})</span>
+              <span className="text-sm font-medium text-gray-900">
+                {host.rating}
+              </span>
+              <span className="text-xs text-gray-500">
+                ({host.reviewCount})
+              </span>
             </div>
           </div>
 
           {/* Services preview */}
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 mb-3">
             {host.services?.slice(0, 2).map((service, index) => (
               <Badge
                 key={index}
@@ -128,16 +153,32 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
               </Badge>
             ))}
             {host.services && host.services.length > 2 && (
-              <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+              <Badge
+                variant="secondary"
+                className="text-xs bg-gray-100 text-gray-700"
+              >
                 +{host.services.length - 2} más
               </Badge>
             )}
           </div>
 
           {/* Accepted pets */}
-          <div className="flex items-center text-sm text-gray-600">
-            <span className="mr-2">🐾</span>
-            <span>{host.acceptedPets?.join(', ') || 'No especificado'}</span>
+          <div className="flex flex-wrap gap-1 mb-3">
+            <span className="text-sm font-medium text-gray-700 mb-1 w-full">
+              Acepta:
+            </span>
+            {host.acceptedPets?.map((pet, index) => (
+              <Badge
+                key={index}
+                variant="outline"
+                className="text-xs bg-purple-50 text-purple-700 border-purple-200"
+              >
+                {pet}
+              </Badge>
+            ))}
+            {(!host.acceptedPets || host.acceptedPets.length === 0) && (
+              <span className="text-sm text-gray-500">No especificado</span>
+            )}
           </div>
 
           {/* Experience and response time */}
@@ -152,10 +193,12 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
           {/* Price and CTA */}
           <div className="flex items-center justify-between pt-2 border-t border-gray-100">
             <div>
-              <span className="text-xl font-bold text-gray-900">${host.pricePerNight}</span>
+              <span className="text-xl font-bold text-gray-900">
+                ${host.pricePerNight}
+              </span>
               <span className="text-sm text-gray-500 ml-1">/ noche</span>
             </div>
-            
+
             <Button
               onClick={() => onViewDetails?.(host.id)}
               className="bg-gradient-to-r from-petbnb-500 to-primary-600 hover:from-petbnb-600 hover:to-primary-700 text-white px-6 rounded-lg font-medium transition-all duration-200"

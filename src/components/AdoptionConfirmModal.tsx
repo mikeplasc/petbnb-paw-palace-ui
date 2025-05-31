@@ -1,9 +1,15 @@
+import { AlertTriangle, Heart, Info } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Heart, Info } from 'lucide-react';
-import { Pet } from '@/services/petService';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Pet } from "@/services/petService";
+import logo from "@/assets/logo.jpeg";
 
 interface AdoptionConfirmModalProps {
   pet: Pet | null;
@@ -12,7 +18,12 @@ interface AdoptionConfirmModalProps {
   onConfirm: () => void;
 }
 
-const AdoptionConfirmModal = ({ pet, isOpen, onClose, onConfirm }: AdoptionConfirmModalProps) => {
+const AdoptionConfirmModal = ({
+  pet,
+  isOpen,
+  onClose,
+  onConfirm,
+}: AdoptionConfirmModalProps) => {
   if (!pet) return null;
 
   return (
@@ -28,15 +39,20 @@ const AdoptionConfirmModal = ({ pet, isOpen, onClose, onConfirm }: AdoptionConfi
         <div className="space-y-4">
           <div className="flex justify-center">
             <img
-              src={pet.image}
+              src={pet.image || logo}
               alt={pet.name}
               className="w-32 h-32 object-cover rounded-lg"
+              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                e.currentTarget.src = logo;
+              }}
             />
           </div>
 
           <div className="text-center space-y-2">
             <h3 className="text-lg font-semibold">{pet.name}</h3>
-            <p className="text-gray-600">{pet.breed} • {pet.age}</p>
+            <p className="text-gray-600">
+              {pet.breed} • {pet.age}
+            </p>
             <div className="flex justify-center">
               <Badge variant="outline">{pet.type}</Badge>
             </div>
@@ -46,10 +62,13 @@ const AdoptionConfirmModal = ({ pet, isOpen, onClose, onConfirm }: AdoptionConfi
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div className="space-y-2">
-                <h4 className="font-semibold text-blue-900">Recomendación importante</h4>
+                <h4 className="font-semibold text-blue-900">
+                  Recomendación importante
+                </h4>
                 <p className="text-sm text-blue-800">
-                  Te recomendamos leer toda la información detallada de {pet.name} antes de proceder con la adopción. 
-                  Puedes hacerlo haciendo clic en "Ver detalles" en la tarjeta de la mascota.
+                  Te recomendamos leer toda la información detallada de{" "}
+                  {pet.name} antes de proceder con la adopción. Puedes hacerlo
+                  haciendo clic en "Ver detalles" en la tarjeta de la mascota.
                 </p>
               </div>
             </div>
@@ -57,20 +76,20 @@ const AdoptionConfirmModal = ({ pet, isOpen, onClose, onConfirm }: AdoptionConfi
 
           <div className="space-y-2">
             <p className="text-sm text-gray-700">
-              Al confirmar, enviaremos tu solicitud de adopción al refugio <strong>{pet.shelter_name}</strong> 
+              Al confirmar, enviaremos tu solicitud de adopción al refugio{" "}
+              <strong>{pet.shelter_name}</strong>
               con tu información de perfil.
             </p>
             <p className="text-sm text-gray-600">
-              Cuota de adopción: <span className="font-semibold text-green-600">€{pet.adoption_fee}</span>
+              Cuota de adopción:{" "}
+              <span className="font-semibold text-green-600">
+                €{pet.adoption_fee}
+              </span>
             </p>
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
+            <Button variant="outline" onClick={onClose} className="flex-1">
               Cancelar
             </Button>
             <Button

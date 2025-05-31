@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import Adoption from "./pages/Adoption";
+import AdoptionStories from "./pages/AdoptionStories";
 import Auth from "./pages/Auth";
 import { AuthProvider } from "@/contexts/AuthContext";
 import BecomeHost from "./pages/BecomeHost";
@@ -9,6 +10,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import Favorites from "./pages/Favorites";
 import Hosts from "./pages/Hosts";
 import Index from "./pages/Index";
+import MyAdoptions from "./pages/MyAdoptions";
 import MyBookings from "./pages/MyBookings";
 import MyPets from "./pages/MyPets";
 import MyVeterinaries from "./pages/MyVeterinaries";
@@ -80,6 +82,23 @@ const App = () => (
                     <ProtectedRoute>
                       <Navbar />
                       <Adoption />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/adoption/stories"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <AdoptionStories />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/adoption/my-requests"
+                  element={
+                    <ProtectedRoute>
+                      <MyAdoptions />
                     </ProtectedRoute>
                   }
                 />

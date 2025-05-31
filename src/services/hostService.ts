@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 
@@ -11,6 +12,7 @@ export const getHosts = async (filters?: {
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
+  certified?: boolean;
 }) => {
   let query = supabase
     .from('hosts')
@@ -40,6 +42,11 @@ export const getHosts = async (filters?: {
 
   if (filters?.minRating !== undefined && filters.minRating > 0) {
     query = query.gte('rating', filters.minRating);
+  }
+
+  if (filters?.certified) {
+    // Filter hosts that have certifications (non-empty array)
+    query = query.not('certifications', 'is', null).neq('certifications', '{}');
   }
 
   const { data, error } = await query.order('rating', { ascending: false });

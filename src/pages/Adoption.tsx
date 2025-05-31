@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Heart, MapPin, Calendar, Shield, AlertTriangle } from "lucide-react";
+import { Heart, MapPin, Calendar, Shield, AlertTriangle, Clock } from "lucide-react";
 import AdoptionModal from "@/components/AdoptionModal";
 import {
   getPets,
@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { Link } from 'react-router-dom';
+import logo from "@/assets/logo.jpeg";
 
 const Adoption = () => {
   const [searchLocation, setSearchLocation] = useState("");
@@ -120,14 +122,35 @@ const Adoption = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Heart className="h-8 w-8 text-pink-600" />
-        <h1 className="text-3xl font-bold text-gray-900">
-          Adopción de Mascotas
-        </h1>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Adopta una mascota
+          </h1>
+          <p className="text-gray-600">
+            Dale un hogar a una mascota que lo necesita
+          </p>
+        </div>
+        <div className="mt-4 md:mt-0 flex gap-4">
+          <Link
+            to="/adoption/my-requests"
+            className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+          >
+            <Clock className="h-5 w-5 mr-2" />
+            Mis solicitudes
+          </Link>
+          <Link
+            to="/adoption/stories"
+            className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+          >
+            <Heart className="h-5 w-5 mr-2" />
+            Historias de adopción
+          </Link>
+        </div>
       </div>
 
-      {/* Filtros */}
+      {/* Filters Section */}
       <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
@@ -201,7 +224,7 @@ const Adoption = () => {
           return (
             <Card
               key={pet.id}
-              className="group hover:shadow-lg transition-shadow"
+              className="group hover:shadow-lg transition-shadow flex flex-col"
             >
               <div className="relative">
                 <img
@@ -211,6 +234,9 @@ const Adoption = () => {
                   }
                   alt={pet.name}
                   className="w-full h-48 object-cover rounded-t-lg"
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                    e.currentTarget.src = logo;
+                  }}
                 />
                 <button
                   onClick={() => handleToggleFavorite(pet.id)}
@@ -243,7 +269,7 @@ const Adoption = () => {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="flex-1">
                 <div className="grid grid-cols-2 gap-2 text-sm mb-4">
                   <div>
                     <span className="font-medium">Raza:</span> {pet.breed}
@@ -282,24 +308,27 @@ const Adoption = () => {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      {new Date(pet.created_at || "").toLocaleDateString()}
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Calendar className="h-4 w-4" />
+                  <span>
+                    {new Date(pet.created_at || "").toLocaleDateString()}
+                  </span>
+                </div>
+              </CardContent>
+
+              <div className="border-t mt-auto">
+                <div className="p-4 flex items-center justify-between">
+                  <div className="text-lg font-bold text-primary">
+                    {formatPrice(pet.adoption_fee || 0)}
+                    <span className="text-sm font-normal text-gray-500">
+                      cuota
                     </span>
                   </div>
-                  <div className="font-medium text-green-600">
-                    {formatPrice(pet.adoption_fee || 0)}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={() => handleAdopt(pet)} className="flex-1">
+                  <Button onClick={() => handleAdopt(pet)} size="sm">
                     Adoptar
                   </Button>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           );
         })}

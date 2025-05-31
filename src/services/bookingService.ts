@@ -13,7 +13,7 @@ export const createBooking = async (
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    throw new Error('User must be authenticated to create a booking');
+    throw new Error('Debes iniciar sesión para crear una reserva');
   }
 
   const bookingData = {
@@ -24,16 +24,18 @@ export const createBooking = async (
     pet_type: formData?.selectedPetId ? 'pet' : 'general',
     start_date: formData?.preferredDate || new Date().toISOString().split('T')[0],
     end_date: formData?.preferredDate || new Date().toISOString().split('T')[0],
-    total_price: hostData.pricePerNight || hostData.price_per_night || 0,
+    total_price: hostData.price_per_night || 0,
     location: hostData.location || hostData.city || '',
     services: JSON.stringify(hostData.services || []),
     type,
-    service_type: formData?.serviceType || '',
+    service_type: formData?.serviceType || 'cuidado_general',
     preferred_time: formData?.preferredTime || '',
     notes: formData?.notes || '',
     pet_info: formData?.selectedPetId ? JSON.stringify({ petId: formData.selectedPetId }) : null,
     status: 'pending'
   };
+
+  console.log('Creating booking with data:', bookingData);
 
   const { data, error } = await supabase
     .from('bookings')
@@ -42,9 +44,11 @@ export const createBooking = async (
     .single();
 
   if (error) {
-    throw error;
+    console.error('Error creating booking:', error);
+    throw new Error('Error al crear la reserva: ' + error.message);
   }
 
+  console.log('Booking created successfully:', data);
   return data;
 };
 

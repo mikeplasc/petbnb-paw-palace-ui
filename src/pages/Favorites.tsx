@@ -1,15 +1,24 @@
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, MapPin, Star, Calendar, Shield, Stethoscope } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import HostCard from '@/components/HostCard';
-import { getPets } from '@/services/petService';
-import { getHosts } from '@/services/hostService';
-import { useFavorites } from '@/hooks/useFavorites';
-import type { Host as SupabaseHost } from '@/services/hostService';
+import {
+  Calendar,
+  Heart,
+  MapPin,
+  Shield,
+  Star,
+  Stethoscope,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import HostCard from "@/components/HostCard";
+import type { Host as SupabaseHost } from "@/services/hostService";
+import { getHosts } from "@/services/hostService";
+import { getPets } from "@/services/petService";
+import logo from "@/assets/logo.jpeg";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 // Define the Component Host type to match what HostCard expects
 interface ComponentHost {
@@ -34,17 +43,19 @@ interface ComponentHost {
 }
 
 // Helper function to convert Supabase host to ComponentHost format
-const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): ComponentHost => {
-  const acceptedPets = Array.isArray(supabaseHost.accepted_pets) 
-    ? supabaseHost.accepted_pets as string[]
+const convertSupabaseHostToComponentHost = (
+  supabaseHost: SupabaseHost
+): ComponentHost => {
+  const acceptedPets = Array.isArray(supabaseHost.accepted_pets)
+    ? (supabaseHost.accepted_pets as string[])
     : [];
-  
+
   const services = Array.isArray(supabaseHost.services)
-    ? supabaseHost.services as string[]
+    ? (supabaseHost.services as string[])
     : [];
 
   const images = Array.isArray(supabaseHost.images)
-    ? supabaseHost.images as string[]
+    ? (supabaseHost.images as string[])
     : [];
 
   // Map database type values to expected ComponentHost type values
@@ -66,96 +77,115 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
     rating: Number(supabaseHost.rating),
     reviewCount: supabaseHost.review_count,
     pricePerNight: supabaseHost.price_per_night,
-    image: images[0] || 'https://images.unsplash.com/photo-1582562124811-c09040d0a901',
+    image:
+      images[0] ||
+      "https://images.unsplash.com/photo-1582562124811-c09040d0a901",
     images: images,
     services: services,
     acceptedPets: acceptedPets,
     availability: supabaseHost.availability,
     responseTime: supabaseHost.response_time,
-    experience: supabaseHost.experience || '',
+    experience: supabaseHost.experience || "",
     description: supabaseHost.description,
-    certifications: Array.isArray(supabaseHost.certifications) 
-      ? supabaseHost.certifications as string[]
+    certifications: Array.isArray(supabaseHost.certifications)
+      ? (supabaseHost.certifications as string[])
       : [],
     specialties: Array.isArray(supabaseHost.specialties)
-      ? supabaseHost.specialties as string[]
-      : []
+      ? (supabaseHost.specialties as string[])
+      : [],
   };
 };
 
 const Favorites = () => {
   const { toast } = useToast();
-  const { favorites: allFavorites, toggleFavorite, isFavorite } = useFavorites();
+  const {
+    favorites: allFavorites,
+    toggleFavorite,
+    isFavorite,
+  } = useFavorites();
 
   // Fetch pets using React Query
   const { data: allPets = [] } = useQuery({
-    queryKey: ['pets'],
+    queryKey: ["pets"],
     queryFn: () => getPets(),
   });
 
   // Fetch hosts using React Query
   const { data: supabaseHosts = [] } = useQuery({
-    queryKey: ['hosts-favorites'],
+    queryKey: ["hosts-favorites"],
     queryFn: () => getHosts(),
   });
 
   // Convert Supabase hosts to ComponentHost format and filter out family hosts
   const allHosts = supabaseHosts
-    .filter(host => host.type !== 'family') // Remove family hosts
+    .filter((host) => host.type !== "family") // Remove family hosts
     .map(convertSupabaseHostToComponentHost);
 
   // Filter favorites by type
-  const hostFavoriteIds = allFavorites.filter(fav => fav.item_type === 'host').map(fav => fav.item_id);
-  const petFavoriteIds = allFavorites.filter(fav => fav.item_type === 'pet').map(fav => fav.item_id);
+  const hostFavoriteIds = allFavorites
+    .filter((fav) => fav.item_type === "host")
+    .map((fav) => fav.item_id);
+  const petFavoriteIds = allFavorites
+    .filter((fav) => fav.item_type === "pet")
+    .map((fav) => fav.item_id);
 
-  const favoriteHosts = allHosts.filter(host => hostFavoriteIds.includes(host.id));
-  const favoritePets = allPets.filter(pet => petFavoriteIds.includes(pet.id));
+  const favoriteHosts = allHosts.filter((host) =>
+    hostFavoriteIds.includes(host.id)
+  );
+  const favoritePets = allPets.filter((pet) => petFavoriteIds.includes(pet.id));
 
   // Mock data for veterinaries - in real app this would come from a service
   const mockVeterinaries = [
     {
-      id: 'vet1',
-      name: 'Clínica Veterinaria San José',
-      location: 'Madrid, España',
+      id: "vet1",
+      name: "Clínica Veterinaria San José",
+      location: "Madrid, España",
       rating: 4.8,
       reviewCount: 156,
-      image: '/placeholder.svg',
-      services: ['Consulta general', 'Cirugía', 'Vacunación'],
-      pricePerNight: 45
+      image: "/placeholder.svg",
+      services: ["Consulta general", "Cirugía", "Vacunación"],
+      pricePerNight: 45,
     },
     {
-      id: 'vet2',
-      name: 'Hospital Veterinario Central',
-      location: 'Barcelona, España',
+      id: "vet2",
+      name: "Hospital Veterinario Central",
+      location: "Barcelona, España",
       rating: 4.9,
       reviewCount: 203,
-      image: '/placeholder.svg',
-      services: ['Emergencias 24h', 'Radiografía', 'Análisis'],
-      pricePerNight: 55
-    }
+      image: "/placeholder.svg",
+      services: ["Emergencias 24h", "Radiografía", "Análisis"],
+      pricePerNight: 55,
+    },
   ];
 
   const toggleHostFavorite = (hostId: string) => {
-    toggleFavorite(hostId, 'host');
+    toggleFavorite(hostId, "host");
   };
 
   const togglePetFavorite = (petId: string) => {
-    toggleFavorite(petId, 'pet');
+    toggleFavorite(petId, "pet");
   };
 
   const toggleVeterinaryFavorite = (vetId: string) => {
-    const updatedFavorites = localStorage.getItem('veterinaryFavorites');
-    const veterinaryFavorites = updatedFavorites ? JSON.parse(updatedFavorites) : [];
+    const updatedFavorites = localStorage.getItem("veterinaryFavorites");
+    const veterinaryFavorites = updatedFavorites
+      ? JSON.parse(updatedFavorites)
+      : [];
     const isCurrentlyFavorite = veterinaryFavorites.includes(vetId);
-  
+
     const updatedVetFavorites = isCurrentlyFavorite
       ? veterinaryFavorites.filter((id: string) => id !== vetId)
       : [...veterinaryFavorites, vetId];
-  
-    localStorage.setItem('veterinaryFavorites', JSON.stringify(updatedVetFavorites));
-  
+
+    localStorage.setItem(
+      "veterinaryFavorites",
+      JSON.stringify(updatedVetFavorites)
+    );
+
     toast({
-      title: isCurrentlyFavorite ? "Eliminado de favoritos" : "Añadido a favoritos",
+      title: isCurrentlyFavorite
+        ? "Eliminado de favoritos"
+        : "Añadido a favoritos",
       description: isCurrentlyFavorite
         ? "La veterinaria se eliminó de tus favoritos"
         : "La veterinaria se añadió a tus favoritos",
@@ -167,9 +197,7 @@ const Favorites = () => {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-pink-600 to-purple-600 text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Mis Favoritos
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">Mis Favoritos</h1>
           <p className="text-xl md:text-2xl opacity-90">
             Todos tus lugares y servicios favoritos en un solo lugar
           </p>
@@ -199,7 +227,9 @@ const Favorites = () => {
                     host={host}
                     isFavorite={true}
                     onToggleFavorite={toggleHostFavorite}
-                    onViewDetails={(hostId) => console.log('Ver detalles:', hostId)}
+                    onViewDetails={(hostId) =>
+                      console.log("Ver detalles:", hostId)
+                    }
                   />
                 ))}
               </div>
@@ -209,7 +239,7 @@ const Favorites = () => {
                 <p className="text-gray-500 text-lg mb-4">
                   No tienes cuidadores favoritos aún
                 </p>
-                <Button onClick={() => window.location.href = '/'}>
+                <Button onClick={() => (window.location.href = "/")}>
                   Explorar cuidadores
                 </Button>
               </div>
@@ -220,17 +250,31 @@ const Favorites = () => {
             {mockVeterinaries.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {mockVeterinaries.map((vet) => {
-                  const updatedFavorites = localStorage.getItem('veterinaryFavorites');
-                  const veterinaryFavorites = updatedFavorites ? JSON.parse(updatedFavorites) : [];
-                  const isCurrentlyFavorite = veterinaryFavorites.includes(vet.id);
+                  const updatedFavorites = localStorage.getItem(
+                    "veterinaryFavorites"
+                  );
+                  const veterinaryFavorites = updatedFavorites
+                    ? JSON.parse(updatedFavorites)
+                    : [];
+                  const isCurrentlyFavorite = veterinaryFavorites.includes(
+                    vet.id
+                  );
 
                   return (
-                    <Card key={vet.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <Card
+                      key={vet.id}
+                      className="overflow-hidden hover:shadow-lg transition-shadow"
+                    >
                       <div className="relative">
                         <img
-                          src={vet.image}
+                          src={vet.image || logo}
                           alt={vet.name}
                           className="w-full h-48 object-cover"
+                          onError={(
+                            e: React.SyntheticEvent<HTMLImageElement>
+                          ) => {
+                            e.currentTarget.src = logo;
+                          }}
                         />
                         <Button
                           variant="ghost"
@@ -238,7 +282,13 @@ const Favorites = () => {
                           onClick={() => toggleVeterinaryFavorite(vet.id)}
                           className="absolute top-2 right-2 bg-white/80 hover:bg-white"
                         >
-                          <Heart className={`w-4 h-4 ${isCurrentlyFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+                          <Heart
+                            className={`w-4 h-4 ${
+                              isCurrentlyFavorite
+                                ? "fill-red-500 text-red-500"
+                                : ""
+                            }`}
+                          />
                         </Button>
                       </div>
 
@@ -247,7 +297,9 @@ const Favorites = () => {
                           <h3 className="text-lg font-semibold">{vet.name}</h3>
                           <div className="flex items-center space-x-1">
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{vet.rating}</span>
+                            <span className="text-sm font-medium">
+                              {vet.rating}
+                            </span>
                           </div>
                         </div>
 
@@ -258,7 +310,11 @@ const Favorites = () => {
 
                         <div className="flex flex-wrap gap-1 mb-3">
                           {vet.services.slice(0, 2).map((service, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {service}
                             </Badge>
                           ))}
@@ -268,9 +324,7 @@ const Favorites = () => {
                           <span className="text-xl font-bold text-green-600">
                             €{vet.pricePerNight}/consulta
                           </span>
-                          <Button size="sm">
-                            Ver detalles
-                          </Button>
+                          <Button size="sm">Ver detalles</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -283,7 +337,9 @@ const Favorites = () => {
                 <p className="text-gray-500 text-lg mb-4">
                   No tienes veterinarias favoritas aún
                 </p>
-                <Button onClick={() => window.location.href = '/veterinaries'}>
+                <Button
+                  onClick={() => (window.location.href = "/veterinaries")}
+                >
                   Explorar veterinarias
                 </Button>
               </div>
@@ -294,15 +350,25 @@ const Favorites = () => {
             {favoritePets.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {favoritePets.map((pet) => {
-                  const characteristics = Array.isArray(pet.characteristics) ? pet.characteristics as string[] : [];
+                  const characteristics = Array.isArray(pet.characteristics)
+                    ? (pet.characteristics as string[])
+                    : [];
 
                   return (
-                    <Card key={pet.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <Card
+                      key={pet.id}
+                      className="overflow-hidden hover:shadow-lg transition-shadow"
+                    >
                       <div className="relative">
                         <img
-                          src={pet.image}
+                          src={pet.image || logo}
                           alt={pet.name}
                           className="w-full h-48 object-cover"
+                          onError={(
+                            e: React.SyntheticEvent<HTMLImageElement>
+                          ) => {
+                            e.currentTarget.src = logo;
+                          }}
                         />
                         {pet.urgent && (
                           <Badge className="absolute top-2 left-2 bg-red-500 text-white">
@@ -325,8 +391,10 @@ const Favorites = () => {
                           <Badge variant="outline">{pet.type}</Badge>
                         </div>
 
-                        <p className="text-sm text-gray-600 mb-2">{pet.breed} • {pet.age}</p>
-                        
+                        <p className="text-sm text-gray-600 mb-2">
+                          {pet.breed} • {pet.age}
+                        </p>
+
                         <div className="flex items-center text-sm text-gray-500 mb-2">
                           <MapPin className="w-4 h-4 mr-1" />
                           {pet.location}
@@ -345,7 +413,11 @@ const Favorites = () => {
                             </Badge>
                           )}
                           {characteristics.slice(0, 2).map((char, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {char}
                             </Badge>
                           ))}
@@ -373,7 +445,7 @@ const Favorites = () => {
                 <p className="text-gray-500 text-lg mb-4">
                   No tienes mascotas favoritas para adopción aún
                 </p>
-                <Button onClick={() => window.location.href = '/adoption'}>
+                <Button onClick={() => (window.location.href = "/adoption")}>
                   Explorar mascotas
                 </Button>
               </div>

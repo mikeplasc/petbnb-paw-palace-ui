@@ -10,6 +10,7 @@ import { createBooking } from '@/services/bookingService';
 import { sendMessage } from '@/services/messageService';
 import { toast } from '@/hooks/use-toast';
 import ChatWidget from './ChatWidget';
+import logo from "@/assets/logo.jpeg";
 
 interface Host {
   id: string;
@@ -37,15 +38,15 @@ interface HostDetailsModalProps {
   isFavorite: boolean;
 }
 
-const HostDetailsModal = ({ 
-  host, 
-  isOpen, 
-  onClose, 
-  onToggleFavorite, 
-  isFavorite 
+const HostDetailsModal = ({
+  host,
+  isOpen,
+  onClose,
+  onToggleFavorite,
+  isFavorite,
 }: HostDetailsModalProps) => {
   const [showMessageForm, setShowMessageForm] = useState(false);
-  const [messageContent, setMessageContent] = useState('');
+  const [messageContent, setMessageContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [chatData, setChatData] = useState<{
@@ -97,12 +98,12 @@ const HostDetailsModal = ({
     setIsLoading(true);
     try {
       const message = sendMessage(host.id, host.name, messageContent);
-      
+
       // Set up chat data and open chat widget
       setChatData({
         hostId: host.id,
         hostName: host.name,
-        initialMessage: messageContent
+        initialMessage: messageContent,
       });
       setShowChat(true);
       
@@ -112,7 +113,10 @@ const HostDetailsModal = ({
       
       toast({
         title: "¡Mensaje enviado!",
-        description: `${host.name} respondió: "${message.response.substring(0, 50)}..."`,
+        description: `${host.name} respondió: "${message.response.substring(
+          0,
+          50
+        )}..."`,
       });
       onClose(); // Close the modal when chat opens
     } catch (error) {
@@ -148,15 +152,21 @@ const HostDetailsModal = ({
             <div className="flex flex-col md:flex-row gap-6">
               <div className="md:w-1/3">
                 <img
-                  src={host.image}
+                  src={host.image || logo}
                   alt={host.name}
                   className="w-full h-48 object-cover rounded-lg"
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                    e.currentTarget.src = logo;
+                  }}
                 />
               </div>
-              
+
               <div className="md:w-2/3 space-y-4">
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-100 text-blue-800"
+                  >
                     {getHostTypeLabel(host.type)}
                   </Badge>
                   <Button
@@ -165,7 +175,11 @@ const HostDetailsModal = ({
                     onClick={() => onToggleFavorite(host.id)}
                     className="text-gray-500 hover:text-red-500"
                   >
-                    <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart
+                      className={`w-5 h-5 ${
+                        isFavorite ? "fill-red-500 text-red-500" : ""
+                      }`}
+                    />
                   </Button>
                 </div>
 
@@ -173,7 +187,9 @@ const HostDetailsModal = ({
                   <div className="flex items-center">
                     <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                     <span className="ml-1 font-semibold">{host.rating}</span>
-                    <span className="ml-1 text-gray-600">({host.reviewCount} reseñas)</span>
+                    <span className="ml-1 text-gray-600">
+                      ({host.reviewCount} reseñas)
+                    </span>
                   </div>
                 </div>
 
@@ -191,9 +207,12 @@ const HostDetailsModal = ({
             {/* Description */}
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Descripción</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Descripción
+                </h3>
                 <p className="text-gray-700">
-                  {host.description || `${host.name} ofrece servicios de cuidado de mascotas con gran experiencia y dedicación. Nuestro objetivo es brindar el mejor cuidado para tu mascota mientras estás fuera.`}
+                  {host.description ||
+                    `${host.name} ofrece servicios de cuidado de mascotas con gran experiencia y dedicación. Nuestro objetivo es brindar el mejor cuidado para tu mascota mientras estás fuera.`}
                 </p>
               </CardContent>
             </Card>
@@ -201,10 +220,16 @@ const HostDetailsModal = ({
             {/* Services */}
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Servicios ofrecidos</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Servicios ofrecidos
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {host.services.map((service) => (
-                    <Badge key={service} variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Badge
+                      key={service}
+                      variant="outline"
+                      className="bg-green-50 text-green-700 border-green-200"
+                    >
                       {service}
                     </Badge>
                   ))}
@@ -215,10 +240,16 @@ const HostDetailsModal = ({
             {/* Accepted Pets */}
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Mascotas aceptadas</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Mascotas aceptadas
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {host.acceptedPets.map((pet) => (
-                    <Badge key={pet} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    <Badge
+                      key={pet}
+                      variant="outline"
+                      className="bg-blue-50 text-blue-700 border-blue-200"
+                    >
                       {pet}
                     </Badge>
                   ))}
@@ -229,7 +260,9 @@ const HostDetailsModal = ({
             {/* Contact Information */}
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-3">Información de contacto</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Información de contacto
+                </h3>
                 <div className="space-y-2">
                   {host.phone && (
                     <div className="flex items-center text-gray-700">
@@ -251,7 +284,9 @@ const HostDetailsModal = ({
             {showMessageForm && (
               <Card>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">Enviar mensaje</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    Enviar mensaje
+                  </h3>
                   <div className="space-y-3">
                     <Textarea
                       placeholder="Escribe tu mensaje aquí..."
@@ -266,7 +301,7 @@ const HostDetailsModal = ({
                         className="flex-1"
                       >
                         <Send className="w-4 h-4 mr-2" />
-                        {isLoading ? 'Enviando...' : 'Enviar mensaje'}
+                        {isLoading ? "Enviando..." : "Enviar mensaje"}
                       </Button>
                       <Button
                         variant="outline"
@@ -282,19 +317,19 @@ const HostDetailsModal = ({
 
             {/* Action Buttons */}
             <div className="flex gap-4">
-              <Button 
+              <Button
                 className="flex-1 bg-primary-600 hover:bg-primary-700"
                 onClick={handleBooking}
                 disabled={isLoading}
               >
-                {isLoading ? 'Creando reserva...' : 'Reservar ahora'}
+                {isLoading ? "Creando reserva..." : "Reservar ahora"}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-1"
                 onClick={() => setShowMessageForm(!showMessageForm)}
               >
-                {showMessageForm ? 'Cancelar mensaje' : 'Enviar mensaje'}
+                {showMessageForm ? "Cancelar mensaje" : "Enviar mensaje"}
               </Button>
             </div>
           </div>
