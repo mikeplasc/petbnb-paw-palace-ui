@@ -317,13 +317,7 @@ const Adoption = () => {
               </CardContent>
 
               <div className="border-t mt-auto">
-                <div className="p-4 flex items-center justify-between">
-                  <div className="text-lg font-bold text-primary">
-                    {formatPrice(pet.adoption_fee || 0)}
-                    <span className="text-sm font-normal text-gray-500">
-                      cuota
-                    </span>
-                  </div>
+                <div className="p-4 flex items-center justify-end">
                   <Button onClick={() => handleAdopt(pet)} size="sm">
                     Adoptar
                   </Button>

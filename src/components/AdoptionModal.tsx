@@ -151,10 +151,6 @@ const AdoptionModal = ({
                 </div>
               </div>
 
-              <div className="text-2xl font-bold text-green-600">
-                €{pet.adoption_fee || 0} cuota de adopción
-              </div>
-
               <div className="flex flex-wrap gap-2">
                 {pet.vaccinated && (
                   <Badge

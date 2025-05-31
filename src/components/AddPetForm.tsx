@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -345,18 +344,6 @@ const AddPetForm = ({ onAddPet }: AddPetFormProps) => {
                     onChange={(e) => setPetData(prev => ({ ...prev, shelterContact: e.target.value }))}
                     placeholder="contacto@refugio.com"
                     required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="adoptionFee">Cuota de adopción (€)</Label>
-                  <Input
-                    id="adoptionFee"
-                    type="number"
-                    value={petData.adoptionFee}
-                    onChange={(e) => setPetData(prev => ({ ...prev, adoptionFee: e.target.value }))}
-                    placeholder="150"
-                    min="0"
                   />
                 </div>
               </div>

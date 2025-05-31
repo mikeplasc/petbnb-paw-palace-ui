@@ -192,6 +192,10 @@ const Favorites = () => {
     });
   };
 
+  const handleRemoveFavorite = (petId: string) => {
+    toggleFavorite(petId, "pet");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -423,13 +427,15 @@ const Favorites = () => {
                           ))}
                         </div>
 
-                        <div className="text-lg font-bold text-green-600 mb-3">
-                          €{pet.adoption_fee} cuota de adopción
+                        <div className="flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleFavorite(pet.id, "pet")}
+                          >
+                            Eliminar de favoritos
+                          </Button>
                         </div>
-
-                        <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                          Ver detalles
-                        </Button>
 
                         <div className="mt-2 text-xs text-gray-500">
                           Por {pet.shelter_name}

@@ -1,7 +1,25 @@
 
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Search, 
+  Heart, 
+  User, 
+  PawPrint, 
+  Home, 
+  Users,
+  Stethoscope,
+  Calendar,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  MapPin,
+  AlertTriangle
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,227 +27,151 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Calendar, Settings, Menu, Stethoscope, Heart, LogOut } from 'lucide-react';
-import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Navbar = () => {
-  const location = useLocation();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { signOut, user } = useAuth();
-  const { toast } = useToast();
-
-  const isActive = (path: string) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
-    return false;
-  };
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión exitosamente",
-      });
-      navigate('/auth');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo cerrar la sesión",
-        variant: "destructive",
-      });
-    }
+    await signOut();
+    navigate('/auth');
   };
 
-  return (
-    <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
-          <img 
-            src="/lovable-uploads/bb2c3452-303e-4f9f-add6-c37afcaa7cd8.png" 
-            alt="Petbnb Logo" 
-            className="w-10 h-10 object-contain"
-          />
-          <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-            Petbnb
-          </span>
+  const isActivePath = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const navigationItems = [
+    { path: '/', label: 'Inicio', icon: Home },
+    { path: '/hosts', label: 'Cuidadores', icon: Users },
+    { path: '/veterinaries', label: 'Veterinarias', icon: Stethoscope },
+    { path: '/adoption', label: 'Adopción', icon: Heart },
+    { path: '/pet-tracking', label: 'Rastreo', icon: MapPin },
+    { path: '/lost-pets', label: 'Perdidas', icon: AlertTriangle },
+  ];
+
+  const NavigationLinks = ({ mobile = false }) => (
+    <div className={mobile ? "flex flex-col space-y-4" : "hidden md:flex items-center space-x-6"}>
+      {navigationItems.map(({ path, label, icon: Icon }) => (
+        <Link
+          key={path}
+          to={path}
+          className={`flex items-center space-x-2 text-sm font-medium transition-colors hover:text-purple-600 ${
+            isActivePath(path) 
+              ? 'text-purple-600 border-b-2 border-purple-600 pb-1' 
+              : 'text-gray-700'
+          } ${mobile ? 'p-2 rounded-lg hover:bg-gray-100' : ''}`}
+          onClick={() => mobile && setIsOpen(false)}
+        >
+          <Icon className="h-4 w-4" />
+          <span>{label}</span>
         </Link>
+      ))}
+    </div>
+  );
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link
-            to="/"
-            className={`text-sm font-medium transition-colors hover:text-primary-600 ${
-              isActive('/') ? 'text-primary-600' : 'text-gray-600'
-            }`}
-          >
-            Buscar
+  return (
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <PawPrint className="h-8 w-8 text-purple-600" />
+            <span className="text-xl font-bold text-gray-900">PetCare</span>
           </Link>
-          <Link
-            to="/hosts"
-            className={`text-sm font-medium transition-colors hover:text-primary-600 ${
-              isActive('/hosts') ? 'text-primary-600' : 'text-gray-600'
-            }`}
-          >
-            Cuidadores
-          </Link>
-          <Link
-            to="/become-host"
-            className={`text-sm font-medium transition-colors hover:text-primary-600 ${
-              isActive('/become-host') ? 'text-primary-600' : 'text-gray-600'
-            }`}
-          >
-            Convertirse en cuidador
-          </Link>
-          <Link
-            to="/veterinaries"
-            className={`text-sm font-medium transition-colors hover:text-primary-600 ${
-              isActive('/veterinaries') ? 'text-primary-600' : 'text-gray-600'
-            }`}
-          >
-            Veterinarias
-          </Link>
-          <Link
-            to="/adoption"
-            className={`text-sm font-medium transition-colors hover:text-primary-600 ${
-              isActive('/adoption') ? 'text-primary-600' : 'text-gray-600'
-            }`}
-          >
-            Adopción
-          </Link>
-        </div>
 
-        {/* User Menu */}
-        <div className="flex items-center space-x-4">
-          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="relative h-10 w-10 rounded-full border border-gray-300 hover:shadow-md transition-shadow"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-user.jpg" alt="Usuario" />
-                  <AvatarFallback className="bg-gradient-to-br from-primary-100 to-accent-100 text-primary-700">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-white border border-gray-200 shadow-lg" align="end">
-              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
-                <Link to="/profile">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Mi perfil</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
-                <Link to="/my-bookings">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  <span>Mis reservas</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
-                <Link to="/my-pets">
-                  <span className="mr-2">🐕</span>
-                  <span>Mis mascotas</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
-                <Link to="/my-veterinaries">
-                  <Stethoscope className="mr-2 h-4 w-4" />
-                  <span>Mis veterinarias</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
-                <Link to="/favorites">
-                  <Heart className="mr-2 h-4 w-4" />
-                  <span>Favoritos</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
-                <Link to="/settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configuración</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="cursor-pointer hover:bg-gray-50 text-red-600"
-                onClick={handleSignOut}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Cerrar sesión</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Desktop Navigation */}
+          <NavigationLinks />
 
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
+          {/* Search and User Menu */}
+          <div className="flex items-center space-x-4">
+            {/* Search - hidden on small screens */}
+            <div className="hidden lg:block">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Buscar..."
+                  className="pl-10 w-64"
+                />
+              </div>
+            </div>
 
-      {/* Mobile Navigation */}
-      <div className="md:hidden border-t border-gray-200 bg-white">
-        <div className="container mx-auto px-4 py-2 flex space-x-4 overflow-x-auto">
-          <Link
-            to="/"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
-              isActive('/') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
-            }`}
-          >
-            Buscar
-          </Link>
-          <Link
-            to="/hosts"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
-              isActive('/hosts') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
-            }`}
-          >
-            Cuidadores
-          </Link>
-          <Link
-            to="/become-host"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
-              isActive('/become-host') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
-            }`}
-          >
-            Cuidador
-          </Link>
-          <Link
-            to="/veterinaries"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
-              isActive('/veterinaries') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
-            }`}
-          >
-            Veterinarias
-          </Link>
-          <Link
-            to="/my-veterinaries"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
-              isActive('/my-veterinaries') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
-            }`}
-          >
-            Mis Vet.
-          </Link>
-          <Link
-            to="/adoption"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
-              isActive('/adoption') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
-            }`}
-          >
-            Adopción
-          </Link>
+            {/* User Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/my-pets" className="flex items-center">
+                    <PawPrint className="mr-2 h-4 w-4" />
+                    <span>Mis Mascotas</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/my-bookings" className="flex items-center">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    <span>Mis Reservas</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/favorites" className="flex items-center">
+                    <Heart className="mr-2 h-4 w-4" />
+                    <span>Favoritos</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="flex items-center">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configuración</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Cerrar sesión</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Mobile Menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <div className="flex flex-col space-y-6 mt-6">
+                  {/* Mobile Search */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Buscar..."
+                      className="pl-10 w-full"
+                    />
+                  </div>
+                  
+                  {/* Mobile Navigation */}
+                  <NavigationLinks mobile />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </nav>

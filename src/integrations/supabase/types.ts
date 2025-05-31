@@ -308,6 +308,109 @@ export type Database = {
           },
         ]
       }
+      lost_pets: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          id: string
+          last_seen_date: string
+          last_seen_latitude: number | null
+          last_seen_location: string
+          last_seen_longitude: number | null
+          owner_id: string
+          pet_id: string
+          reward_amount: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_seen_date: string
+          last_seen_latitude?: number | null
+          last_seen_location: string
+          last_seen_longitude?: number | null
+          owner_id: string
+          pet_id: string
+          reward_amount?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_seen_date?: string
+          last_seen_latitude?: number | null
+          last_seen_location?: string
+          last_seen_longitude?: number | null
+          owner_id?: string
+          pet_id?: string
+          reward_amount?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lost_pets_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pet_locations: {
+        Row: {
+          accuracy: number | null
+          battery_level: number | null
+          created_at: string
+          device_id: string | null
+          id: string
+          latitude: number
+          longitude: number
+          pet_id: string
+          timestamp: string
+        }
+        Insert: {
+          accuracy?: number | null
+          battery_level?: number | null
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+          pet_id: string
+          timestamp?: string
+        }
+        Update: {
+          accuracy?: number | null
+          battery_level?: number | null
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          pet_id?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_locations_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pets: {
         Row: {
           adoption_fee: number | null
@@ -319,6 +422,7 @@ export type Database = {
           gender: string
           id: string
           image: string | null
+          is_lost: boolean | null
           location: string
           name: string
           owner_id: string | null
@@ -342,6 +446,7 @@ export type Database = {
           gender: string
           id?: string
           image?: string | null
+          is_lost?: boolean | null
           location: string
           name: string
           owner_id?: string | null
@@ -365,6 +470,7 @@ export type Database = {
           gender?: string
           id?: string
           image?: string | null
+          is_lost?: boolean | null
           location?: string
           name?: string
           owner_id?: string | null
