@@ -9,25 +9,68 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Star, MapPin, Clock, Shield, Stethoscope, Phone, Mail, Calendar } from 'lucide-react';
+import { Star, MapPin, Clock, Shield, Stethoscope, Phone, Mail, Calendar, Heart } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface VeterinaryProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   veterinary: any;
   onBooking: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (vetId: string) => void;
 }
 
-const VeterinaryProfileModal = ({ isOpen, onClose, veterinary, onBooking }: VeterinaryProfileModalProps) => {
+const VeterinaryProfileModal = ({ 
+  isOpen, 
+  onClose, 
+  veterinary, 
+  onBooking, 
+  isFavorite = false,
+  onToggleFavorite 
+}: VeterinaryProfileModalProps) => {
   if (!veterinary) return null;
+
+  const handleToggleFavorite = () => {
+    if (onToggleFavorite) {
+      onToggleFavorite(veterinary.id);
+    } else {
+      // Default behavior if no handler is provided
+      const currentFavorites = JSON.parse(localStorage.getItem('veterinaryFavorites') || '[]');
+      const updatedFavorites = currentFavorites.includes(veterinary.id)
+        ? currentFavorites.filter((id: string) => id !== veterinary.id)
+        : [...currentFavorites, veterinary.id];
+      
+      localStorage.setItem('veterinaryFavorites', JSON.stringify(updatedFavorites));
+      
+      toast({
+        title: currentFavorites.includes(veterinary.id) ? "Eliminado de favoritos" : "Añadido a favoritos",
+        description: currentFavorites.includes(veterinary.id) 
+          ? "La veterinaria se eliminó de tus favoritos" 
+          : "La veterinaria se añadió a tus favoritos",
+      });
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-900">
-            {veterinary.name}
-          </DialogTitle>
+          <div className="flex justify-between items-start">
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              {veterinary.name}
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleFavorite}
+              className="hover:bg-gray-100"
+            >
+              <Heart className={`w-5 h-5 ${
+                isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
+              }`} />
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">

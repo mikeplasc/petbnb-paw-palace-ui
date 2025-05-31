@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import MyBookings from "./pages/MyBookings";
 import MyPets from "./pages/MyPets";
 import Settings from "./pages/Settings";
+import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/my-bookings" element={<MyBookings />} />
               <Route path="/my-pets" element={<MyPets />} />
+              <Route path="/favorites" element={<Favorites />} />
               <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
