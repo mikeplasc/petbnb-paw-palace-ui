@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +25,7 @@ interface VeterinaryFormData {
   certifications: string[];
   specialties: string[];
   responseTime: string;
+  acceptedPets: string[];
 }
 
 interface VeterinaryFormProps {
@@ -48,7 +48,8 @@ const VeterinaryForm = ({ isOpen, onClose, onSubmit, initialData, mode }: Veteri
     images: [],
     certifications: [],
     specialties: [],
-    responseTime: 'Menos de 1 hora'
+    responseTime: 'Menos de 1 hora',
+    acceptedPets: []
   });
 
   const [newService, setNewService] = useState('');
@@ -71,7 +72,8 @@ const VeterinaryForm = ({ isOpen, onClose, onSubmit, initialData, mode }: Veteri
         images: [],
         certifications: [],
         specialties: [],
-        responseTime: 'Menos de 1 hora'
+        responseTime: 'Menos de 1 hora',
+        acceptedPets: []
       });
     }
   }, [initialData, mode]);
@@ -83,7 +85,7 @@ const VeterinaryForm = ({ isOpen, onClose, onSubmit, initialData, mode }: Veteri
     }));
   };
 
-  const addItem = (field: 'services' | 'certifications' | 'specialties' | 'images', value: string, setter: (value: string) => void) => {
+  const addItem = (field: 'services' | 'certifications' | 'specialties' | 'images' | 'acceptedPets', value: string, setter: (value: string) => void) => {
     if (value.trim()) {
       setFormData(prev => ({
         ...prev,
@@ -93,7 +95,7 @@ const VeterinaryForm = ({ isOpen, onClose, onSubmit, initialData, mode }: Veteri
     }
   };
 
-  const removeItem = (field: 'services' | 'certifications' | 'specialties' | 'images', index: number) => {
+  const removeItem = (field: 'services' | 'certifications' | 'specialties' | 'images' | 'acceptedPets', index: number) => {
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index)
@@ -138,6 +140,17 @@ const VeterinaryForm = ({ isOpen, onClose, onSubmit, initialData, mode }: Veteri
     'Oftalmología',
     'Traumatología',
     'Medicina Preventiva'
+  ];
+
+  const animalTypes = [
+    'Perros',
+    'Gatos',
+    'Aves',
+    'Conejos',
+    'Hámsters',
+    'Reptiles',
+    'Peces',
+    'Animales exóticos'
   ];
 
   return (
@@ -221,6 +234,50 @@ const VeterinaryForm = ({ isOpen, onClose, onSubmit, initialData, mode }: Veteri
                     onChange={(e) => handleInputChange('reviewCount', Number(e.target.value))}
                     min="0"
                   />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Accepted Pets */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Tipos de Animales Aceptados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Selecciona los tipos de animales que aceptas:</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {animalTypes.map((animal) => (
+                      <Button
+                        key={animal}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (!formData.acceptedPets.includes(animal)) {
+                            addItem('acceptedPets', animal, () => {});
+                          }
+                        }}
+                        disabled={formData.acceptedPets.includes(animal)}
+                      >
+                        {animal}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {formData.acceptedPets.map((pet, index) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                      {pet}
+                      <X
+                        className="w-3 h-3 cursor-pointer"
+                        onClick={() => removeItem('acceptedPets', index)}
+                      />
+                    </Badge>
+                  ))}
                 </div>
               </div>
             </CardContent>
