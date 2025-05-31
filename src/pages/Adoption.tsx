@@ -5,18 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Heart, MapPin, Calendar, Shield, Star, Search, Filter } from 'lucide-react';
 import { getPets, Pet, createAdoptionRequest } from '@/services/adoptionService';
 import { toast } from '@/hooks/use-toast';
 import AdoptionModal from '@/components/AdoptionModal';
+import AdoptionConfirmModal from '@/components/AdoptionConfirmModal';
+
+const PETS_PER_PAGE = 12;
 
 const Adoption = () => {
   const [pets, setPets] = useState<Pet[]>([]);
   const [filteredPets, setFilteredPets] = useState<Pet[]>([]);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [petToAdopt, setPetToAdopt] = useState<Pet | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     type: '',
     size: '',
@@ -24,6 +31,13 @@ const Adoption = () => {
     urgent: false
   });
   const [showFilters, setShowFilters] = useState(false);
+
+  // Mock user data - in real app this would come from authentication
+  const currentUser = {
+    name: 'Juan Pérez',
+    email: 'juan.perez@email.com',
+    phone: '+34 612 345 678'
+  };
 
   useEffect(() => {
     const allPets = getPets();
@@ -62,6 +76,7 @@ const Adoption = () => {
     }
 
     setFilteredPets(filtered);
+    setCurrentPage(1);
   }, [pets, filters, searchTerm]);
 
   const toggleFavorite = (petId: string) => {
@@ -77,6 +92,38 @@ const Adoption = () => {
         ? "La mascota se eliminó de tu lista de favoritos" 
         : "La mascota se añadió a tu lista de favoritos",
     });
+  };
+
+  const handleQuickAdopt = (pet: Pet) => {
+    setPetToAdopt(pet);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmAdoption = () => {
+    if (petToAdopt) {
+      try {
+        createAdoptionRequest(petToAdopt.id, {
+          name: currentUser.name,
+          email: currentUser.email,
+          phone: currentUser.phone,
+          message: `Solicitud rápida de adopción para ${petToAdopt.name}`
+        });
+        
+        toast({
+          title: "¡Solicitud enviada!",
+          description: "Tu solicitud de adopción ha sido enviada al refugio. Te contactarán pronto.",
+        });
+        
+        setIsConfirmModalOpen(false);
+        setPetToAdopt(null);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo enviar la solicitud. Intenta nuevamente.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleAdoptionRequest = (petId: string, userInfo: any) => {
@@ -104,6 +151,17 @@ const Adoption = () => {
       urgent: false
     });
     setSearchTerm('');
+  };
+
+  // Paginación
+  const totalPages = Math.ceil(filteredPets.length / PETS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PETS_PER_PAGE;
+  const endIndex = startIndex + PETS_PER_PAGE;
+  const currentPets = filteredPets.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -199,15 +257,18 @@ const Adoption = () => {
         )}
 
         {/* Results Counter */}
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <p className="text-gray-600">
-            Mostrando {filteredPets.length} de {pets.length} mascotas disponibles
+            Mostrando {startIndex + 1}-{Math.min(endIndex, filteredPets.length)} de {filteredPets.length} mascotas
+          </p>
+          <p className="text-sm text-gray-500">
+            Página {currentPage} de {totalPages}
           </p>
         </div>
 
         {/* Pets Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredPets.map((pet) => (
+          {currentPets.map((pet) => (
             <Card key={pet.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="relative">
                 <img
@@ -269,11 +330,8 @@ const Adoption = () => {
 
                 <div className="flex gap-2">
                   <Button
-                    className="flex-1"
-                    onClick={() => {
-                      setSelectedPet(pet);
-                      setIsModalOpen(true);
-                    }}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                    onClick={() => handleQuickAdopt(pet)}
                   >
                     Adoptar
                   </Button>
@@ -296,6 +354,41 @@ const Adoption = () => {
           ))}
         </div>
 
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => handlePageChange(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+
         {filteredPets.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
@@ -308,7 +401,7 @@ const Adoption = () => {
         )}
       </div>
 
-      {/* Adoption Modal */}
+      {/* Details Modal */}
       {selectedPet && (
         <AdoptionModal
           pet={selectedPet}
@@ -320,8 +413,20 @@ const Adoption = () => {
           onSubmitAdoption={handleAdoptionRequest}
           isFavorite={favorites.includes(selectedPet.id)}
           onToggleFavorite={() => toggleFavorite(selectedPet.id)}
+          currentUser={currentUser}
         />
       )}
+
+      {/* Confirmation Modal */}
+      <AdoptionConfirmModal
+        pet={petToAdopt}
+        isOpen={isConfirmModalOpen}
+        onClose={() => {
+          setIsConfirmModalOpen(false);
+          setPetToAdopt(null);
+        }}
+        onConfirm={handleConfirmAdoption}
+      />
     </div>
   );
 };

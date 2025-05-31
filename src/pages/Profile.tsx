@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X, Heart, Clock } from 'lucide-react';
+import { getUserAdoptionRequests } from '@/services/adoptionService';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -18,6 +20,8 @@ const Profile = () => {
     bio: 'Amante de los animales con más de 5 años de experiencia cuidando mascotas.'
   });
 
+  const adoptionRequests = getUserAdoptionRequests();
+
   const handleSave = () => {
     // Aquí iría la lógica para guardar los datos
     setIsEditing(false);
@@ -28,8 +32,26 @@ const Profile = () => {
     // Aquí restaurarías los datos originales
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending': return 'Pendiente';
+      case 'approved': return 'Aprobada';
+      case 'rejected': return 'Rechazada';
+      default: return status;
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Mi Perfil</h1>
         {!isEditing ? (
@@ -89,13 +111,17 @@ const Profile = () => {
                   <span className="text-gray-600">Mascotas registradas</span>
                   <span className="font-semibold">2</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Solicitudes de adopción</span>
+                  <span className="font-semibold">{adoptionRequests.length}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Información detallada */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-xl">Información Personal</CardTitle>
@@ -170,6 +196,53 @@ const Profile = () => {
                   placeholder="Cuéntanos un poco sobre ti y tu experiencia con mascotas..."
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Solicitudes de Adopción */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Heart className="h-5 w-5 text-purple-600" />
+                Mis Solicitudes de Adopción
+              </CardTitle>
+              <CardDescription>
+                Historial de todas tus solicitudes de adopción
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {adoptionRequests.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Heart className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No has realizado ninguna solicitud de adopción aún.</p>
+                  <p className="text-sm">¡Visita nuestra sección de adopción para encontrar tu compañero perfecto!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {adoptionRequests.map((request) => (
+                    <div key={request.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50">
+                      <img
+                        src={request.petImage}
+                        alt={request.petName}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{request.petName}</h4>
+                        <p className="text-sm text-gray-600">{request.shelterName}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-500">
+                            {new Date(request.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <Badge className={getStatusColor(request.status)}>
+                        {getStatusText(request.status)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

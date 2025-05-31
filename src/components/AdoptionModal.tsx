@@ -17,6 +17,11 @@ interface AdoptionModalProps {
   onSubmitAdoption: (petId: string, userInfo: any) => void;
   onToggleFavorite: () => void;
   isFavorite: boolean;
+  currentUser: {
+    name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 const AdoptionModal = ({ 
@@ -25,13 +30,14 @@ const AdoptionModal = ({
   onClose, 
   onSubmitAdoption,
   onToggleFavorite,
-  isFavorite 
+  isFavorite,
+  currentUser
 }: AdoptionModalProps) => {
   const [showAdoptionForm, setShowAdoptionForm] = useState(false);
   const [userInfo, setUserInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
+    name: currentUser.name,
+    email: currentUser.email,
+    phone: currentUser.phone,
     message: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +52,12 @@ const AdoptionModal = ({
     setIsLoading(true);
     try {
       await onSubmitAdoption(pet.id, userInfo);
-      setUserInfo({ name: '', email: '', phone: '', message: '' });
+      setUserInfo({ 
+        name: currentUser.name, 
+        email: currentUser.email, 
+        phone: currentUser.phone, 
+        message: '' 
+      });
       setShowAdoptionForm(false);
     } finally {
       setIsLoading(false);

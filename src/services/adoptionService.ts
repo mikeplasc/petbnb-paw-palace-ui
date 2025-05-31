@@ -1,4 +1,3 @@
-
 export interface Pet {
   id: string;
   name: string;
@@ -18,6 +17,22 @@ export interface Pet {
   adoptionFee: number;
   dateAdded: string;
   characteristics: string[];
+}
+
+export interface AdoptionRequest {
+  id: string;
+  petId: string;
+  petName: string;
+  petImage: string;
+  userInfo: {
+    name: string;
+    email: string;
+    phone: string;
+    message: string;
+  };
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  shelterName: string;
 }
 
 const mockPets: Pet[] = [
@@ -83,7 +98,7 @@ const mockPets: Pet[] = [
   }
 ];
 
-// Generar más mascotas hasta llegar a 100
+// Mejorar la generación de mascotas con mejores imágenes
 const generatePets = (): Pet[] => {
   const names = ['Buddy', 'Bella', 'Charlie', 'Daisy', 'Rocky', 'Molly', 'Jack', 'Maggie', 'Toby', 'Sophie', 'Coco', 'Lola', 'Oscar', 'Zoey', 'Teddy', 'Chloe', 'Duke', 'Penny', 'Zeus', 'Ruby', 'Milo', 'Sadie', 'Otis', 'Stella', 'Leo', 'Nala', 'Simba', 'Princess', 'Tiger', 'Angel'];
   const dogBreeds = ['Labrador', 'Golden Retriever', 'Pastor Alemán', 'Bulldog', 'Mestizo', 'Beagle', 'Poodle', 'Husky', 'Chihuahua', 'Border Collie'];
@@ -92,25 +107,56 @@ const generatePets = (): Pet[] => {
   const shelters = ['Refugio Esperanza', 'Protectora Local', 'Asociación Animal', 'Casa de Mascotas', 'Refugio del Corazón'];
   const characteristics = ['Sociable', 'Activo', 'Tranquilo', 'Cariñoso', 'Juguetón', 'Obediente', 'Protector', 'Inteligente', 'Leal', 'Energético'];
 
+  // Imágenes específicas para cada tipo de mascota
+  const dogImages = [
+    'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1546975490-e8b92a360b24?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=300&fit=crop'
+  ];
+
+  const catImages = [
+    'https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1513245543132-31f507417b26?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&h=300&fit=crop'
+  ];
+
+  const otherImages = [
+    'https://images.unsplash.com/photo-1452960962994-acf4fd70b632?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1441057206919-63d19fac2369?w=400&h=300&fit=crop',
+    'https://images.unsplash.com/photo-1501286353178-1ec881214838?w=400&h=300&fit=crop'
+  ];
+
   const allPets = [...mockPets];
 
   for (let i = 4; i <= 100; i++) {
-    const isPet = Math.random() > 0.2; // 80% perros/gatos, 20% otras mascotas
-    const isDog = isPet && Math.random() > 0.3; // 70% perros, 30% gatos entre perros/gatos
+    const isPet = Math.random() > 0.2;
+    const isDog = isPet && Math.random() > 0.3;
     
     let type: Pet['type'];
     let breed: string;
+    let imageArray: string[];
     
     if (isDog) {
       type = 'Perro';
       breed = dogBreeds[Math.floor(Math.random() * dogBreeds.length)];
+      imageArray = dogImages;
     } else if (isPet) {
       type = 'Gato';
       breed = catBreeds[Math.floor(Math.random() * catBreeds.length)];
+      imageArray = catImages;
     } else {
       const otherTypes: Pet['type'][] = ['Ave', 'Conejo', 'Hámster'];
       type = otherTypes[Math.floor(Math.random() * otherTypes.length)];
       breed = type === 'Ave' ? 'Canario' : type === 'Conejo' ? 'Holland Lop' : 'Sirio';
+      imageArray = otherImages;
     }
 
     const name = names[Math.floor(Math.random() * names.length)];
@@ -138,11 +184,7 @@ const generatePets = (): Pet[] => {
       gender,
       type,
       description: `${name} es un${gender === 'Hembra' ? 'a' : ''} ${type.toLowerCase()} muy especial que busca una familia amorosa.`,
-      image: type === 'Perro' 
-        ? `https://images.unsplash.com/photo-${1500000000000 + i}?w=400&h=300&fit=crop` 
-        : type === 'Gato'
-        ? `https://images.unsplash.com/photo-${1600000000000 + i}?w=400&h=300&fit=crop`
-        : `https://images.unsplash.com/photo-${1400000000000 + i}?w=400&h=300&fit=crop`,
+      image: imageArray[Math.floor(Math.random() * imageArray.length)],
       location: `${city}, España`,
       vaccinated: Math.random() > 0.2,
       sterilized: Math.random() > 0.3,
@@ -161,6 +203,9 @@ const generatePets = (): Pet[] => {
 };
 
 const pets = generatePets();
+
+// Storage para las solicitudes de adopción del usuario
+let userAdoptionRequests: AdoptionRequest[] = [];
 
 export const getPets = (filters?: {
   type?: Pet['type'];
@@ -206,16 +251,22 @@ export const createAdoptionRequest = (petId: string, userInfo: {
     throw new Error('Mascota no encontrada');
   }
 
-  const request = {
+  const request: AdoptionRequest = {
     id: Date.now().toString(),
     petId,
     petName: pet.name,
+    petImage: pet.image,
     userInfo,
     status: 'pending' as const,
     createdAt: new Date().toISOString(),
     shelterName: pet.shelterName
   };
 
+  userAdoptionRequests.push(request);
   console.log('Solicitud de adopción creada:', request);
   return request;
+};
+
+export const getUserAdoptionRequests = () => {
+  return userAdoptionRequests;
 };
