@@ -15,14 +15,14 @@ const CategoriesSection = () => {
 
   const { data: caregivers = [] } = useQuery({
     queryKey: ['caregivers'],
-    queryFn: () => getHosts({ type: 'individual' }),
+    queryFn: () => getHosts({ type: 'host' }),
   });
 
   const handleCategoryClick = (categoryType: string) => {
     if (categoryType === 'veterinary') {
       navigate('/search?hostType=veterinary');
-    } else if (categoryType === 'individual') {
-      navigate('/search?hostType=individual');
+    } else if (categoryType === 'host') {
+      navigate('/search?hostType=host');
     }
   };
 
@@ -41,7 +41,7 @@ const CategoriesSection = () => {
       icon: '👨‍⚕️',
       count: `${caregivers.length}+ cuidadores`,
       color: 'from-sage-400 to-sage-500',
-      type: 'individual'
+      type: 'host'
     }
   ];
 
