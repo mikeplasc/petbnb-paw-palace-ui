@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import VeterinaryBookingModal from "@/components/VeterinaryBookingModal";
+import logo from "@/assets/logo.jpeg";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -21,6 +23,8 @@ const Veterinaries = () => {
   const searchLocation = useDebounce(searchInput, 1500); // 1.5 seconds debounce
   const [selectedVet, setSelectedVet] = useState<Host | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+
+  const { formatPrice } = useCurrency();
 
   const {
     data: veterinaries = [],
@@ -108,9 +112,13 @@ const Veterinaries = () => {
             >
               <div className="relative">
                 <img
-                  src={images[0] || "/placeholder.svg"}
+                  src={images[0] || logo}
                   alt={vet.name}
                   className="w-full h-48 object-cover rounded-t-lg"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = logo;
+                  }}
                 />
                 <Badge className="absolute top-4 left-4 bg-blue-500 text-white">
                   <Stethoscope className="h-3 w-3 mr-1" />
@@ -181,7 +189,7 @@ const Veterinaries = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="text-lg font-bold text-blue-600">
-                    €{vet.price_per_night}
+                    {formatPrice(vet.price_per_night)}
                     <span className="text-sm font-normal text-gray-500">
                       /consulta
                     </span>
