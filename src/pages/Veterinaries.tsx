@@ -108,7 +108,8 @@ const Veterinaries = () => {
           return (
             <Card
               key={vet.id}
-              className="group hover:shadow-lg transition-shadow flex flex-col"
+              className="group hover:shadow-lg transition-shadow flex flex-col cursor-pointer"
+              onClick={() => handleBookAppointment(vet)}
             >
               <div className="relative">
                 <img
@@ -178,9 +179,6 @@ const Veterinaries = () => {
                       /consulta
                     </span>
                   </div>
-                  <Button size="sm" onClick={() => handleBookAppointment(vet)}>
-                    Ver perfil
-                  </Button>
                 </div>
               </div>
             </Card>

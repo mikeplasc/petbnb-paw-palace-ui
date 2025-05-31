@@ -224,7 +224,8 @@ const Adoption = () => {
           return (
             <Card
               key={pet.id}
-              className="group hover:shadow-lg transition-shadow flex flex-col"
+              className="group hover:shadow-lg transition-shadow flex flex-col cursor-pointer"
+              onClick={() => handleAdopt(pet)}
             >
               <div className="relative">
                 <img
@@ -239,7 +240,10 @@ const Adoption = () => {
                   }}
                 />
                 <button
-                  onClick={() => handleToggleFavorite(pet.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleFavorite(pet.id);
+                  }}
                   className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50"
                 >
                   <Heart
@@ -315,14 +319,6 @@ const Adoption = () => {
                   </span>
                 </div>
               </CardContent>
-
-              <div className="border-t mt-auto">
-                <div className="p-4 flex items-center justify-end">
-                  <Button onClick={() => handleAdopt(pet)} size="sm">
-                    Adoptar
-                  </Button>
-                </div>
-              </div>
             </Card>
           );
         })}

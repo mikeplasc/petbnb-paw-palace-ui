@@ -62,7 +62,10 @@ const HostCard = ({
   };
 
   return (
-    <Card className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 pet-card-hover">
+    <Card 
+      className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 pet-card-hover cursor-pointer"
+      onClick={() => onViewDetails?.(host.id)}
+    >
       <div className="relative">
         <div className="aspect-[4/3] overflow-hidden">
           <img
@@ -77,7 +80,10 @@ const HostCard = ({
 
         {/* Favorite button */}
         <button
-          onClick={() => onToggleFavorite?.(host.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite?.(host.id);
+          }}
           className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
         >
           <Heart
@@ -198,13 +204,6 @@ const HostCard = ({
               </span>
               <span className="text-sm text-gray-500 ml-1">/ noche</span>
             </div>
-
-            <Button
-              onClick={() => onViewDetails?.(host.id)}
-              className="bg-gradient-to-r from-petbnb-500 to-primary-600 hover:from-petbnb-600 hover:to-primary-700 text-white px-6 rounded-lg font-medium transition-all duration-200"
-            >
-              Ver detalles
-            </Button>
           </div>
         </div>
       </CardContent>
