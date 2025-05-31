@@ -61,6 +61,14 @@ const Navbar = () => {
           >
             Veterinarias
           </Link>
+          <Link
+            to="/adoption"
+            className={`text-sm font-medium transition-colors hover:text-primary-600 ${
+              isActive('/adoption') ? 'text-primary-600' : 'text-gray-600'
+            }`}
+          >
+            Adopción
+          </Link>
         </div>
 
         {/* User Menu */}
@@ -134,10 +142,10 @@ const Navbar = () => {
 
       {/* Mobile Navigation (could be expanded in the future) */}
       <div className="md:hidden border-t border-gray-200 bg-white">
-        <div className="container mx-auto px-4 py-2 flex space-x-4">
+        <div className="container mx-auto px-4 py-2 flex space-x-4 overflow-x-auto">
           <Link
             to="/"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors ${
+            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
               isActive('/') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
             }`}
           >
@@ -145,7 +153,7 @@ const Navbar = () => {
           </Link>
           <Link
             to="/become-host"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors ${
+            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
               isActive('/become-host') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
             }`}
           >
@@ -153,11 +161,19 @@ const Navbar = () => {
           </Link>
           <Link
             to="/veterinaries"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors ${
+            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
               isActive('/veterinaries') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
             }`}
           >
             Veterinarias
+          </Link>
+          <Link
+            to="/adoption"
+            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
+              isActive('/adoption') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
+            }`}
+          >
+            Adopción
           </Link>
         </div>
       </div>

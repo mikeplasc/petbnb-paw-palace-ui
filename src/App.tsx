@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
 import BecomeHost from "./pages/BecomeHost";
 import Veterinaries from "./pages/Veterinaries";
+import Adoption from "./pages/Adoption";
 import SearchResults from "./pages/SearchResults";
 import Profile from "./pages/Profile";
 import MyBookings from "./pages/MyBookings";
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/become-host" element={<BecomeHost />} />
             <Route path="/veterinaries" element={<Veterinaries />} />
+            <Route path="/adoption" element={<Adoption />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/my-bookings" element={<MyBookings />} />
