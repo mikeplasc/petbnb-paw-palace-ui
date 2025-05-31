@@ -1,75 +1,47 @@
 
-import { Pet, AdoptionRequest } from '@/types/adoption';
-import { generatePets } from '@/utils/petGenerator';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables, TablesInsert } from '@/integrations/supabase/types';
 
-const pets = generatePets();
+export type AdoptionRequest = Tables<'adoption_requests'>;
 
-// Storage para las solicitudes de adopción del usuario
-let userAdoptionRequests: AdoptionRequest[] = [];
+export const submitAdoptionRequest = async (
+  petId: string,
+  petName: string,
+  petImage: string,
+  shelterName: string,
+  userInfo: any
+) => {
+  const { data, error } = await supabase
+    .from('adoption_requests')
+    .insert({
+      pet_id: petId,
+      pet_name: petName,
+      pet_image: petImage,
+      shelter_name: shelterName,
+      user_info: userInfo,
+      status: 'pending'
+    })
+    .select()
+    .single();
 
-export const getPets = (filters?: {
-  type?: Pet['type'];
-  size?: Pet['size'];
-  location?: string;
-  urgent?: boolean;
-}) => {
-  let filteredPets = pets;
-
-  if (filters?.type) {
-    filteredPets = filteredPets.filter(pet => pet.type === filters.type);
+  if (error) {
+    console.error('Error submitting adoption request:', error);
+    throw error;
   }
 
-  if (filters?.size) {
-    filteredPets = filteredPets.filter(pet => pet.size === filters.size);
-  }
-
-  if (filters?.location) {
-    filteredPets = filteredPets.filter(pet => 
-      pet.location.toLowerCase().includes(filters.location!.toLowerCase())
-    );
-  }
-
-  if (filters?.urgent) {
-    filteredPets = filteredPets.filter(pet => pet.urgent);
-  }
-
-  return filteredPets;
+  return data;
 };
 
-export const getPetById = (id: string) => {
-  return pets.find(pet => pet.id === id);
-};
+export const getUserAdoptionRequests = async () => {
+  const { data, error } = await supabase
+    .from('adoption_requests')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-export const createAdoptionRequest = (petId: string, userInfo: {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-}) => {
-  const pet = getPetById(petId);
-  if (!pet) {
-    throw new Error('Mascota no encontrada');
+  if (error) {
+    console.error('Error fetching adoption requests:', error);
+    throw error;
   }
 
-  const request: AdoptionRequest = {
-    id: Date.now().toString(),
-    petId,
-    petName: pet.name,
-    petImage: pet.image,
-    userInfo,
-    status: 'pending' as const,
-    createdAt: new Date().toISOString(),
-    shelterName: pet.shelterName
-  };
-
-  userAdoptionRequests.push(request);
-  console.log('Solicitud de adopción creada:', request);
-  return request;
+  return data || [];
 };
-
-export const getUserAdoptionRequests = () => {
-  return userAdoptionRequests;
-};
-
-// Re-export types for convenience
-export type { Pet, AdoptionRequest };

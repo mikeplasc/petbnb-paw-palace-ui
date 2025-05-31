@@ -9,6 +9,262 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      adoption_requests: {
+        Row: {
+          created_at: string
+          id: string
+          pet_id: string | null
+          pet_image: string
+          pet_name: string
+          shelter_name: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          user_info: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pet_id?: string | null
+          pet_image: string
+          pet_name: string
+          shelter_name: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          user_info: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pet_id?: string | null
+          pet_image?: string
+          pet_name?: string
+          shelter_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          user_info?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adoption_requests_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          created_at: string
+          end_date: string
+          host_id: string | null
+          host_image: string
+          host_name: string
+          id: string
+          location: string
+          notes: string | null
+          pet_info: Json | null
+          pet_type: string
+          preferred_time: string | null
+          service_type: string | null
+          services: Json
+          start_date: string
+          status: string
+          total_price: number
+          type: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          host_id?: string | null
+          host_image: string
+          host_name: string
+          id?: string
+          location: string
+          notes?: string | null
+          pet_info?: Json | null
+          pet_type: string
+          preferred_time?: string | null
+          service_type?: string | null
+          services?: Json
+          start_date: string
+          status?: string
+          total_price: number
+          type?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          host_id?: string | null
+          host_image?: string
+          host_name?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          pet_info?: Json | null
+          pet_type?: string
+          preferred_time?: string | null
+          service_type?: string | null
+          services?: Json
+          start_date?: string
+          status?: string
+          total_price?: number
+          type?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hosts: {
+        Row: {
+          accepted_pets: Json | null
+          availability: boolean
+          certifications: Json
+          city: string
+          created_at: string
+          description: string
+          experience: string | null
+          id: string
+          images: Json
+          location: string
+          name: string
+          price_per_night: number
+          rating: number
+          response_time: string
+          review_count: number
+          services: Json
+          specialties: Json | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_pets?: Json | null
+          availability?: boolean
+          certifications?: Json
+          city: string
+          created_at?: string
+          description: string
+          experience?: string | null
+          id?: string
+          images?: Json
+          location: string
+          name: string
+          price_per_night: number
+          rating?: number
+          response_time: string
+          review_count?: number
+          services?: Json
+          specialties?: Json | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_pets?: Json | null
+          availability?: boolean
+          certifications?: Json
+          city?: string
+          created_at?: string
+          description?: string
+          experience?: string | null
+          id?: string
+          images?: Json
+          location?: string
+          name?: string
+          price_per_night?: number
+          rating?: number
+          response_time?: string
+          review_count?: number
+          services?: Json
+          specialties?: Json | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pets: {
+        Row: {
+          adoption_fee: number
+          age: string
+          breed: string
+          characteristics: Json
+          created_at: string
+          date_added: string
+          description: string
+          gender: string
+          id: string
+          image: string
+          location: string
+          name: string
+          shelter_contact: string
+          shelter_name: string
+          size: string
+          sterilized: boolean
+          type: string
+          updated_at: string
+          urgent: boolean
+          vaccinated: boolean
+        }
+        Insert: {
+          adoption_fee?: number
+          age: string
+          breed: string
+          characteristics?: Json
+          created_at?: string
+          date_added?: string
+          description: string
+          gender: string
+          id?: string
+          image: string
+          location: string
+          name: string
+          shelter_contact: string
+          shelter_name: string
+          size: string
+          sterilized?: boolean
+          type: string
+          updated_at?: string
+          urgent?: boolean
+          vaccinated?: boolean
+        }
+        Update: {
+          adoption_fee?: number
+          age?: string
+          breed?: string
+          characteristics?: Json
+          created_at?: string
+          date_added?: string
+          description?: string
+          gender?: string
+          id?: string
+          image?: string
+          location?: string
+          name?: string
+          shelter_contact?: string
+          shelter_name?: string
+          size?: string
+          sterilized?: boolean
+          type?: string
+          updated_at?: string
+          urgent?: boolean
+          vaccinated?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -35,6 +291,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string
+          created_at: string
+          date: string
+          host_id: string | null
+          id: string
+          pet_name: string
+          rating: number
+          user_avatar: string | null
+          user_name: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          date?: string
+          host_id?: string | null
+          id?: string
+          pet_name: string
+          rating: number
+          user_avatar?: string | null
+          user_name: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          date?: string
+          host_id?: string | null
+          id?: string
+          pet_name?: string
+          rating?: number
+          user_avatar?: string | null
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "hosts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

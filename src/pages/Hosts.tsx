@@ -1,242 +1,195 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, MapPin, Star, Heart } from 'lucide-react';
-import HostCard from '@/components/HostCard';
-import HostDetailsModal from '@/components/HostDetailsModal';
-import { mockHosts } from '@/data/mockData';
-import { toast } from '@/hooks/use-toast';
+import { Star, Heart, MapPin, Clock, Shield } from 'lucide-react';
+import { getHosts, Host } from '@/services/hostService';
 
 const Hosts = () => {
-  const [hosts] = useState(mockHosts);
-  const [filteredHosts, setFilteredHosts] = useState(mockHosts);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('all');
-  const [selectedLocation, setSelectedLocation] = useState('all');
-  const [sortBy, setSortBy] = useState('rating');
+  const [searchLocation, setSearchLocation] = useState('');
+  const [petType, setPetType] = useState('');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [selectedHost, setSelectedHost] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Load favorites from localStorage
-  useEffect(() => {
-    const savedFavorites = JSON.parse(localStorage.getItem('hostFavorites') || '[]');
-    setFavorites(savedFavorites);
-  }, []);
-
-  // Filter and sort hosts
-  useEffect(() => {
-    let filtered = hosts.filter(host => {
-      const matchesSearch = host.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           host.location.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = selectedType === 'all' || host.type === selectedType;
-      const matchesLocation = selectedLocation === 'all' || host.location.includes(selectedLocation);
-      
-      return matchesSearch && matchesType && matchesLocation;
-    });
-
-    // Sort hosts
-    filtered = filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return a.pricePerNight - b.pricePerNight;
-        case 'price-high':
-          return b.pricePerNight - a.pricePerNight;
-        case 'rating':
-          return b.rating - a.rating;
-        case 'reviews':
-          return b.reviewCount - a.reviewCount;
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredHosts(filtered);
-  }, [hosts, searchTerm, selectedType, selectedLocation, sortBy]);
+  const { data: hosts = [], isLoading, error } = useQuery({
+    queryKey: ['hosts', searchLocation, petType],
+    queryFn: () => getHosts({
+      location: searchLocation || undefined,
+      petType: petType || undefined,
+      type: 'sitter'
+    }),
+  });
 
   const handleToggleFavorite = (hostId: string) => {
-    const updatedFavorites = favorites.includes(hostId)
-      ? favorites.filter(id => id !== hostId)
-      : [...favorites, hostId];
-    
-    setFavorites(updatedFavorites);
-    localStorage.setItem('hostFavorites', JSON.stringify(updatedFavorites));
-    
-    // Dispatch event to notify other components
-    window.dispatchEvent(new CustomEvent('favoritesUpdated', { 
-      detail: { type: 'host', favorites: updatedFavorites } 
-    }));
-    
-    toast({
-      title: favorites.includes(hostId) ? "Eliminado de favoritos" : "Añadido a favoritos",
-      description: favorites.includes(hostId) 
-        ? "El cuidador se eliminó de tus favoritos" 
-        : "El cuidador se añadió a tus favoritos",
-    });
+    setFavorites(prev => 
+      prev.includes(hostId) 
+        ? prev.filter(id => id !== hostId)
+        : [...prev, hostId]
+    );
   };
 
-  const handleViewDetails = (hostId: string) => {
-    const host = hosts.find(h => h.id === hostId);
-    if (host) {
-      setSelectedHost(host);
-      setIsModalOpen(true);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedHost(null);
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'family': return 'Familia';
-      case 'individual': return 'Cuidador individual';
-      case 'veterinary': return 'Veterinaria';
-      default: return type;
-    }
-  };
-
-  const uniqueLocations = [...new Set(hosts.map(host => host.location.split(',')[0].trim()))];
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-petbnb-500 to-primary-600 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Encuentra el Cuidador Perfecto
-          </h1>
-          <p className="text-xl md:text-2xl opacity-90 mb-8">
-            Conecta con cuidadores de confianza para tu mascota
-          </p>
-        </div>
-      </div>
-
+  if (isLoading) {
+    return (
       <div className="container mx-auto px-4 py-8">
-        {/* Search and Filters */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <Input
-                  placeholder="Buscar por nombre o ubicación..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Filters */}
-              <div className="flex gap-4">
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Tipo de cuidador" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los tipos</SelectItem>
-                    <SelectItem value="family">Familia</SelectItem>
-                    <SelectItem value="individual">Cuidador individual</SelectItem>
-                    <SelectItem value="veterinary">Veterinaria</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Ubicación" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las ubicaciones</SelectItem>
-                    {uniqueLocations.map((location) => (
-                      <SelectItem key={location} value={location}>
-                        {location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Ordenar por" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rating">Mejor calificación</SelectItem>
-                    <SelectItem value="price-low">Precio: menor a mayor</SelectItem>
-                    <SelectItem value="price-high">Precio: mayor a menor</SelectItem>
-                    <SelectItem value="reviews">Más reseñas</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Results Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Cuidadores Disponibles
-            </h2>
-            <p className="text-gray-600">
-              {filteredHosts.length} cuidadores encontrados
-            </p>
-          </div>
-        </div>
-
-        {/* Hosts Grid */}
-        {filteredHosts.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <div className="text-gray-400 mb-4">
-                <Heart className="w-12 h-12 mx-auto" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No se encontraron cuidadores
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Intenta ajustar tus filtros de búsqueda
-              </p>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedType('all');
-                  setSelectedLocation('all');
-                }}
-              >
-                Limpiar filtros
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredHosts.map((host) => (
-              <HostCard
-                key={host.id}
-                host={host}
-                onViewDetails={handleViewDetails}
-                onToggleFavorite={handleToggleFavorite}
-                isFavorite={favorites.includes(host.id)}
-              />
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <Card key={index}>
+                <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Cuidadores de Mascotas</h1>
+
+      {/* Filtros */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Ubicación
+            </label>
+            <Input
+              placeholder="Ciudad o región"
+              value={searchLocation}
+              onChange={(e) => setSearchLocation(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo de mascota
+            </label>
+            <Select value={petType} onValueChange={setPetType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="Perros">Perros</SelectItem>
+                <SelectItem value="Gatos">Gatos</SelectItem>
+                <SelectItem value="Aves">Aves</SelectItem>
+                <SelectItem value="Conejos">Conejos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-end">
+            <Button 
+              onClick={() => {
+                setSearchLocation('');
+                setPetType('');
+              }}
+              variant="outline" 
+              className="w-full"
+            >
+              Limpiar filtros
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Host Details Modal */}
-      <HostDetailsModal
-        host={selectedHost}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onToggleFavorite={handleToggleFavorite}
-        isFavorite={selectedHost ? favorites.includes(selectedHost.id) : false}
-      />
+      {/* Lista de cuidadores */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {hosts.map((host) => {
+          const images = Array.isArray(host.images) ? host.images : [];
+          const services = Array.isArray(host.services) ? host.services : [];
+          const certifications = Array.isArray(host.certifications) ? host.certifications : [];
+          const isFavorite = favorites.includes(host.id);
+
+          return (
+            <Card key={host.id} className="group hover:shadow-lg transition-shadow">
+              <div className="relative">
+                <img
+                  src={images[0] || '/placeholder.svg'}
+                  alt={host.name}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                />
+                <button
+                  onClick={() => handleToggleFavorite(host.id)}
+                  className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50"
+                >
+                  <Heart
+                    className={`h-5 w-5 ${
+                      isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'
+                    }`}
+                  />
+                </button>
+                {certifications.length > 0 && (
+                  <Badge className="absolute top-4 left-4 bg-green-500 text-white">
+                    <Shield className="h-3 w-3 mr-1" />
+                    Certificado
+                  </Badge>
+                )}
+              </div>
+
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{host.name}</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="text-sm font-medium">{host.rating}</span>
+                    <span className="text-sm text-gray-500">({host.review_count})</span>
+                  </div>
+                </div>
+                <CardDescription className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  {host.city}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {host.description}
+                </p>
+
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {services.slice(0, 3).map((service, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {service}
+                    </Badge>
+                  ))}
+                  {services.length > 3 && (
+                    <Badge variant="secondary" className="text-xs">
+                      +{services.length - 3}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                  <Clock className="h-4 w-4" />
+                  <span>Responde en {host.response_time}</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="text-lg font-bold text-primary">
+                    ${host.price_per_night}€<span className="text-sm font-normal text-gray-500">/noche</span>
+                  </div>
+                  <Button size="sm">Ver perfil</Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {hosts.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <p className="text-gray-600">No se encontraron cuidadores con los filtros aplicados.</p>
+        </div>
+      )}
     </div>
   );
 };

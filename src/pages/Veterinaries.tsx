@@ -1,380 +1,191 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Star, MapPin, Clock, Shield, Stethoscope, Search } from 'lucide-react';
-import { mockHosts, cities } from '@/data/mockData';
-import VeterinaryProfileModal from '@/components/VeterinaryProfileModal';
+import { Badge } from '@/components/ui/badge';
+import { Star, MapPin, Clock, Phone, Calendar, Stethoscope } from 'lucide-react';
 import VeterinaryBookingModal from '@/components/VeterinaryBookingModal';
+import { getVeterinaries, Host } from '@/services/hostService';
 
 const Veterinaries = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCity, setSelectedCity] = useState('all');
-  const [sortBy, setSortBy] = useState('rating');
-  const [selectedVeterinary, setSelectedVeterinary] = useState(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [searchLocation, setSearchLocation] = useState('');
+  const [selectedVet, setSelectedVet] = useState<Host | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [allVeterinaries, setAllVeterinaries] = useState<any[]>([]);
 
-  // Load veterinaries on component mount
-  useEffect(() => {
-    // Get mock veterinaries
-    const mockVeterinaries = mockHosts.filter(host => host.type === 'veterinary');
-    
-    // Get user's personal veterinaries from localStorage
-    const personalVeterinaries = JSON.parse(localStorage.getItem('myVeterinaries') || '[]');
-    
-    // Transform personal veterinaries to match the expected format
-    const transformedPersonalVets = personalVeterinaries.map((vet: any) => ({
-      ...vet,
-      type: 'veterinary',
-      city: vet.location.split(',')[0]?.trim() || vet.location,
-      reviewCount: vet.reviewCount || 0,
-      images: vet.images && vet.images.length > 0 ? vet.images : ['/placeholder.svg']
-    }));
-    
-    // Combine both arrays
-    const combined = [...mockVeterinaries, ...transformedPersonalVets];
-    setAllVeterinaries(combined);
-  }, []);
+  const { data: veterinaries = [], isLoading, error } = useQuery({
+    queryKey: ['veterinaries', searchLocation],
+    queryFn: () => getVeterinaries(searchLocation || undefined),
+  });
 
-  // Listen for updates to personal veterinaries
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const mockVeterinaries = mockHosts.filter(host => host.type === 'veterinary');
-      const personalVeterinaries = JSON.parse(localStorage.getItem('myVeterinaries') || '[]');
-      
-      const transformedPersonalVets = personalVeterinaries.map((vet: any) => ({
-        ...vet,
-        type: 'veterinary',
-        city: vet.location.split(',')[0]?.trim() || vet.location,
-        reviewCount: vet.reviewCount || 0,
-        images: vet.images && vet.images.length > 0 ? vet.images : ['/placeholder.svg']
-      }));
-      
-      const combined = [...mockVeterinaries, ...transformedPersonalVets];
-      setAllVeterinaries(combined);
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  const filteredVeterinaries = allVeterinaries
-    .filter(vet => {
-      const matchesSearch = vet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           vet.location.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCity = selectedCity === 'all' || vet.city === selectedCity;
-      return matchesSearch && matchesCity;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'rating':
-          return b.rating - a.rating;
-        case 'price':
-          return a.pricePerNight - b.pricePerNight;
-        case 'reviews':
-          return b.reviewCount - a.reviewCount;
-        default:
-          return 0;
-      }
-    });
-
-  const handleViewDetails = (vet: any) => {
-    console.log('Ver detalles de veterinaria:', vet.id);
-    setSelectedVeterinary(vet);
-    setIsProfileModalOpen(true);
-  };
-
-  const handleBooking = (vet: any) => {
-    console.log('Reservar en veterinaria:', vet.id);
-    setSelectedVeterinary(vet);
+  const handleBookAppointment = (vet: Host) => {
+    setSelectedVet(vet);
     setIsBookingModalOpen(true);
   };
 
-  const handleBookingFromProfile = () => {
-    setIsProfileModalOpen(false);
-    setIsBookingModalOpen(true);
-  };
-
-  return (
-    <div className="bg-gradient-to-br from-petbnb-50 to-warm-50">
-      {/* Hero Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-petbnb-600 to-primary-600">
-        <div className="container mx-auto text-center text-white">
-          <div className="max-w-3xl mx-auto">
-            <Stethoscope className="w-16 h-16 mx-auto mb-6" />
-            <h1 className="text-5xl font-bold mb-6">
-              Veterinarias certificadas
-            </h1>
-            <p className="text-xl mb-8 text-petbnb-100">
-              Cuidado médico profesional 24/7 para tu mascota cuando más lo necesita
-            </p>
-            
-            {/* Quick stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">{allVeterinaries.length}+</div>
-                <div className="text-petbnb-100">Clínicas certificadas</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">24/7</div>
-                <div className="text-petbnb-100">Atención de emergencia</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">100%</div>
-                <div className="text-petbnb-100">Personal certificado</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Search and Filters */}
-      <section className="py-8 px-4 bg-white border-b border-gray-200">
-        <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                placeholder="Buscar por nombre o ubicación..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Todas las ciudades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las ciudades</SelectItem>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="rating">Mejor calificación</SelectItem>
-                <SelectItem value="price">Menor precio</SelectItem>
-                <SelectItem value="reviews">Más reseñas</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </section>
-
-      {/* Results */}
-      <section className="py-12 px-4">
-        <div className="container mx-auto">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {filteredVeterinaries.length} veterinarias encontradas
-            </h2>
-            <p className="text-gray-600">
-              Clínicas y hospitales veterinarios certificados para el cuidado de tu mascota
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {filteredVeterinaries.map((vet) => (
-              <Card key={vet.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div className="md:flex">
-                  <div className="md:w-1/3">
-                    <img
-                      src={vet.images[0]}
-                      alt={vet.name}
-                      className="w-full h-48 md:h-full object-cover"
-                    />
-                  </div>
-                  
-                  <div className="md:w-2/3">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg font-bold text-gray-900 mb-1">
-                            {vet.name}
-                          </CardTitle>
-                          <div className="flex items-center text-gray-600 text-sm mb-2">
-                            <MapPin className="w-4 h-4 mr-1" />
-                            {vet.location}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center mb-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
-                            <span className="font-semibold">{vet.rating}</span>
-                            <span className="text-gray-500 text-sm ml-1">
-                              ({vet.reviewCount})
-                            </span>
-                          </div>
-                          <div className="text-2xl font-bold text-petbnb-600">
-                            ${vet.pricePerNight}
-                            <span className="text-sm font-normal text-gray-500">/noche</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="pt-0">
-                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-                        {vet.description}
-                      </p>
-
-                      {/* Services */}
-                      <div className="mb-3">
-                        <div className="flex flex-wrap gap-1">
-                          {vet.services.slice(0, 3).map((service, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {service}
-                            </Badge>
-                          ))}
-                          {vet.services.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{vet.services.length - 3} más
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Certifications */}
-                      {vet.certifications && (
-                        <div className="mb-3">
-                          <div className="flex items-center text-green-600 text-sm">
-                            <Shield className="w-4 h-4 mr-1" />
-                            <span className="font-medium">Certificaciones:</span>
-                            <span className="ml-1">{vet.certifications.join(', ')}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Footer info */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center text-gray-600 text-sm">
-                          <Clock className="w-4 h-4 mr-1" />
-                          <span>Responde en {vet.responseTime}</span>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewDetails(vet)}
-                          >
-                            Ver perfil
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleBooking(vet)}
-                            className="bg-petbnb-600 hover:bg-petbnb-700"
-                          >
-                            Reservar
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </div>
-                </div>
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <Card key={index}>
+                <div className="h-48 bg-gray-200 rounded-t-lg"></div>
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </CardContent>
               </Card>
             ))}
           </div>
-
-          {filteredVeterinaries.length === 0 && (
-            <div className="text-center py-12">
-              <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                No se encontraron veterinarias
-              </h3>
-              <p className="text-gray-500">
-                Intenta ajustar tus filtros de búsqueda
-              </p>
-            </div>
-          )}
         </div>
-      </section>
+      </div>
+    );
+  }
 
-      {/* Why Choose Certified Vets Section */}
-      <section className="py-16 px-4 bg-white">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              ¿Por qué elegir veterinarias certificadas?
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Nuestras clínicas veterinarias ofrecen el más alto nivel de cuidado médico
-            </p>
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center gap-3 mb-8">
+        <Stethoscope className="h-8 w-8 text-blue-600" />
+        <h1 className="text-3xl font-bold text-gray-900">Veterinarias</h1>
+      </div>
+
+      {/* Buscador */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Buscar por ubicación
+            </label>
+            <Input
+              placeholder="Ciudad o región"
+              value={searchLocation}
+              onChange={(e) => setSearchLocation(e.target.value)}
+            />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Personal certificado</h3>
-                <p className="text-gray-600 text-sm">
-                  Todos nuestros veterinarios cuentan con cédulas profesionales y certificaciones vigentes
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Atención 24/7</h3>
-                <p className="text-gray-600 text-sm">
-                  Servicio de emergencia disponible las 24 horas, los 7 días de la semana
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Stethoscope className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Equipamiento moderno</h3>
-                <p className="text-gray-600 text-sm">
-                  Instalaciones con tecnología de vanguardia para diagnóstico y tratamiento
-                </p>
-              </CardContent>
-            </Card>
+          <div className="flex items-end">
+            <Button 
+              onClick={() => setSearchLocation('')}
+              variant="outline"
+            >
+              Limpiar
+            </Button>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Modals */}
-      <VeterinaryProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        veterinary={selectedVeterinary}
-        onBooking={handleBookingFromProfile}
-      />
+      {/* Lista de veterinarias */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {veterinaries.map((vet) => {
+          const images = Array.isArray(vet.images) ? vet.images : [];
+          const services = Array.isArray(vet.services) ? vet.services : [];
+          const certifications = Array.isArray(vet.certifications) ? vet.certifications : [];
+          const specialties = Array.isArray(vet.specialties) ? vet.specialties : [];
 
-      <VeterinaryBookingModal
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-        veterinary={selectedVeterinary}
-      />
+          return (
+            <Card key={vet.id} className="group hover:shadow-lg transition-shadow">
+              <div className="relative">
+                <img
+                  src={images[0] || '/placeholder.svg'}
+                  alt={vet.name}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                />
+                <Badge className="absolute top-4 left-4 bg-blue-500 text-white">
+                  <Stethoscope className="h-3 w-3 mr-1" />
+                  Veterinaria
+                </Badge>
+              </div>
+
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{vet.name}</CardTitle>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <span className="text-sm font-medium">{vet.rating}</span>
+                    <span className="text-sm text-gray-500">({vet.review_count})</span>
+                  </div>
+                </div>
+                <CardDescription className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  {vet.city}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {vet.description}
+                </p>
+
+                {specialties.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Especialidades:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {specialties.map((specialty, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {specialty}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {services.slice(0, 3).map((service, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {service}
+                    </Badge>
+                  ))}
+                  {services.length > 3 && (
+                    <Badge variant="secondary" className="text-xs">
+                      +{services.length - 3}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                  <Clock className="h-4 w-4" />
+                  <span>Responde en {vet.response_time}</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="text-lg font-bold text-blue-600">
+                    ${vet.price_per_night}€<span className="text-sm font-normal text-gray-500">/consulta</span>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleBookAppointment(vet)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Calendar className="h-4 w-4 mr-1" />
+                    Reservar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {veterinaries.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <Stethoscope className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-600">No se encontraron veterinarias en esta ubicación.</p>
+        </div>
+      )}
+
+      {/* Modal de reserva */}
+      {selectedVet && (
+        <VeterinaryBookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => {
+            setIsBookingModalOpen(false);
+            setSelectedVet(null);
+          }}
+          veterinary={selectedVet}
+        />
+      )}
     </div>
   );
 };

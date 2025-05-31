@@ -1,65 +1,25 @@
 
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, MapPin, Clock, User, Star, MessageCircle, Stethoscope } from 'lucide-react';
-import { getUserBookings } from '@/services/bookingService';
+import { getUserBookings, Booking } from '@/services/bookingService';
 
 const MyBookings = () => {
-  const [activeTab, setActiveTab] = useState('upcoming');
-  
-  // Get bookings from service
-  const allBookings = getUserBookings();
-  
-  // Separate bookings by status and add mock data for demonstration
-  const mockBookings = [
-    {
-      id: 1,
-      hostName: 'María García',
-      hostImage: '/placeholder-user.jpg',
-      petName: 'Luna',
-      service: 'Cuidado en casa del cuidador',
-      startDate: '2024-06-15',
-      endDate: '2024-06-18',
-      location: 'Barcelona, España',
-      status: 'confirmed',
-      price: 120,
-      rating: 4.9,
-      type: 'host'
-    },
-    {
-      id: 2,
-      hostName: 'Carlos López',
-      hostImage: '/placeholder-user.jpg',
-      petName: 'Max',
-      service: 'Paseo de perros',
-      startDate: '2024-06-20',
-      endDate: '2024-06-20',
-      location: 'Madrid, España',
-      status: 'pending',
-      price: 25,
-      rating: 4.7,
-      type: 'host'
-    }
-  ];
+  const { data: allBookings = [], isLoading, error } = useQuery({
+    queryKey: ['userBookings'],
+    queryFn: getUserBookings,
+  });
 
-  // Combine real bookings with mock data
-  const combinedUpcomingBookings = [
-    ...mockBookings.filter(booking => booking.status === 'confirmed' || booking.status === 'pending'),
-    ...allBookings.filter(booking => booking.status === 'confirmed' || booking.status === 'pending')
-  ];
+  const upcomingBookings = allBookings.filter(booking => 
+    booking.status === 'confirmed' || booking.status === 'pending'
+  );
 
-  const combinedPastBookings = [
-    ...mockBookings.filter(booking => booking.status === 'completed'),
-    ...allBookings.filter(booking => booking.status === 'completed')
-  ];
-
-  const bookings = {
-    upcoming: combinedUpcomingBookings,
-    past: combinedPastBookings
-  };
+  const pastBookings = allBookings.filter(booking => 
+    booking.status === 'completed'
+  );
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -83,10 +43,10 @@ const MyBookings = () => {
     );
   };
 
-  const BookingCard = ({ booking }: { booking: any }) => {
+  const BookingCard = ({ booking }: { booking: Booking }) => {
     const isVeterinary = booking.type === 'veterinary';
-    const petName = booking.petInfo?.name || booking.petName;
-    const serviceName = booking.serviceType || booking.service;
+    const petInfo = booking.pet_info as any;
+    const services = Array.isArray(booking.services) ? booking.services : [];
     
     return (
       <Card className="mb-4 hover:shadow-md transition-shadow">
@@ -105,10 +65,8 @@ const MyBookings = () => {
                 )}
               </div>
               <div>
-                <CardTitle className="text-lg">{booking.hostName}</CardTitle>
+                <CardTitle className="text-lg">{booking.host_name}</CardTitle>
                 <CardDescription className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  {booking.rating || 'N/A'}
                   {isVeterinary && (
                     <Badge variant="outline" className="ml-2 text-xs">
                       Veterinaria
@@ -123,35 +81,37 @@ const MyBookings = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="font-medium">🐕 Mascota:</span>
-                {petName}
-              </div>
+              {petInfo?.name && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="font-medium">🐕 Mascota:</span>
+                  {petInfo.name}
+                </div>
+              )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="font-medium">Servicio:</span>
-                {serviceName}
+                {booking.service_type || services[0] || 'Cuidado general'}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <MapPin className="h-4 w-4" />
                 {booking.location}
               </div>
-              {isVeterinary && booking.preferredTime && (
+              {isVeterinary && booking.preferred_time && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="h-4 w-4" />
-                  {booking.preferredTime}
+                  {booking.preferred_time}
                 </div>
               )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="h-4 w-4" />
-                {booking.startDate} {booking.endDate !== booking.startDate && `- ${booking.endDate}`}
+                {booking.start_date} {booking.end_date !== booking.start_date && `- ${booking.end_date}`}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="font-medium">Precio:</span>
-                ${booking.totalPrice || booking.price}
+                ${booking.total_price}
               </div>
-              {isVeterinary && booking.notes && (
+              {booking.notes && (
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Notas:</span>
                   <p className="text-xs mt-1">{booking.notes}</p>
@@ -165,7 +125,7 @@ const MyBookings = () => {
               <MessageCircle className="h-4 w-4" />
               Contactar
             </Button>
-            {booking.status === 'completed' && !booking.reviewed && (
+            {booking.status === 'completed' && (
               <Button size="sm" className="flex items-center gap-1">
                 <Star className="h-4 w-4" />
                 Valorar
@@ -182,11 +142,31 @@ const MyBookings = () => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Mis Reservas</h1>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs defaultValue="upcoming" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="upcoming">Próximas</TabsTrigger>
           <TabsTrigger value="past">Historial</TabsTrigger>
@@ -194,8 +174,8 @@ const MyBookings = () => {
 
         <TabsContent value="upcoming" className="mt-6">
           <div className="space-y-4">
-            {bookings.upcoming.length > 0 ? (
-              bookings.upcoming.map((booking) => (
+            {upcomingBookings.length > 0 ? (
+              upcomingBookings.map((booking) => (
                 <BookingCard key={booking.id} booking={booking} />
               ))
             ) : (
@@ -217,8 +197,8 @@ const MyBookings = () => {
 
         <TabsContent value="past" className="mt-6">
           <div className="space-y-4">
-            {bookings.past.length > 0 ? (
-              bookings.past.map((booking) => (
+            {pastBookings.length > 0 ? (
+              pastBookings.map((booking) => (
                 <BookingCard key={booking.id} booking={booking} />
               ))
             ) : (
