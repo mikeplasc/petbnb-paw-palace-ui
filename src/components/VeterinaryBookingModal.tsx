@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -19,23 +20,9 @@ import {
 } from '@/components/ui/select';
 import { Calendar, Clock, Star, MapPin, PlusCircle, AlertCircle } from 'lucide-react';
 import { createBooking } from '@/services/bookingService';
+import { getMyPets } from '@/services/petService';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-interface Pet {
-  id: number;
-  name: string;
-  type: string;
-  breed: string;
-  age: number;
-  weight: number;
-  image: string;
-  description: string;
-  vaccinated: boolean;
-  neutered: boolean;
-  microchip: string;
-  emergencyContact: string;
-}
 
 interface VeterinaryBookingModalProps {
   isOpen: boolean;
@@ -53,56 +40,13 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
     emergencyContact: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [userPets, setUserPets] = useState<Pet[]>([]);
   const { toast } = useToast();
 
-  // Simular obtener las mascotas del usuario desde localStorage o una API
-  useEffect(() => {
-    if (isOpen) {
-      // Simular datos de mascotas del usuario para testing
-      const mockUserPets: Pet[] = [
-        {
-          id: 1,
-          name: "Max",
-          type: "Perro",
-          breed: "Golden Retriever",
-          age: 3,
-          weight: 25,
-          image: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&h=100&fit=crop&crop=face",
-          description: "Perro muy cariñoso y juguetón",
-          vaccinated: true,
-          neutered: true,
-          microchip: "123456789",
-          emergencyContact: "555-0123"
-        },
-        {
-          id: 2,
-          name: "Luna",
-          type: "Gato",
-          breed: "Persa",
-          age: 2,
-          weight: 4,
-          image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=100&h=100&fit=crop&crop=face",
-          description: "Gata muy tranquila y elegante",
-          vaccinated: true,
-          neutered: false,
-          microchip: "987654321",
-          emergencyContact: "555-0124"
-        }
-      ];
-
-      // En una aplicación real, esto vendría de un contexto global o API
-      const savedPets = localStorage.getItem('userPets');
-      if (savedPets) {
-        const parsedPets = JSON.parse(savedPets);
-        setUserPets(parsedPets.length > 0 ? parsedPets : mockUserPets);
-      } else {
-        setUserPets(mockUserPets);
-        // Guardar las mascotas mock en localStorage para persistencia
-        localStorage.setItem('userPets', JSON.stringify(mockUserPets));
-      }
-    }
-  }, [isOpen]);
+  const { data: userPets = [], isLoading: petsLoading } = useQuery({
+    queryKey: ['my-pets'],
+    queryFn: getMyPets,
+    enabled: isOpen,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +72,7 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
     setIsSubmitting(true);
 
     try {
-      const selectedPet = userPets.find(pet => pet.id.toString() === formData.selectedPetId);
+      const selectedPet = userPets.find(pet => pet.id === formData.selectedPetId);
       
       // Create booking using the updated service
       const booking = await createBooking(
@@ -204,25 +148,33 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
               <h3 className="font-semibold text-lg">{veterinary.name}</h3>
               <div className="flex items-center text-gray-600 text-sm mb-1">
                 <MapPin className="w-4 h-4 mr-1" />
-                {veterinary.location}
+                {veterinary.city}
               </div>
               <div className="flex items-center text-sm">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
                 <span className="font-medium">{veterinary.rating}</span>
-                <span className="text-gray-500 ml-1">({veterinary.reviewCount} reseñas)</span>
+                <span className="text-gray-500 ml-1">({veterinary.review_count} reseñas)</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xl font-bold text-petbnb-600">
-                ${veterinary.pricePerNight}
+              <div className="text-xl font-bold text-blue-600">
+                €{veterinary.price_per_night}
                 <span className="text-sm font-normal text-gray-500">/consulta</span>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Loading state for pets */}
+        {petsLoading && (
+          <div className="text-center py-4">
+            <div className="animate-spin h-6 w-6 border-b-2 border-blue-600 rounded-full mx-auto"></div>
+            <p className="text-gray-500 mt-2">Cargando tus mascotas...</p>
+          </div>
+        )}
+
         {/* No pets alert */}
-        {userPets.length === 0 && (
+        {!petsLoading && userPets.length === 0 && (
           <Alert className="mb-6 border-orange-200 bg-orange-50">
             <AlertCircle className="h-4 w-4 text-orange-600" />
             <AlertDescription className="text-orange-800">
@@ -244,7 +196,7 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Pet Selection */}
-          {userPets.length > 0 && (
+          {!petsLoading && userPets.length > 0 && (
             <div>
               <Label htmlFor="selectedPet">Selecciona tu mascota</Label>
               <Select value={formData.selectedPetId} onValueChange={(value) => handleChange('selectedPetId', value)} required>
@@ -253,16 +205,16 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
                 </SelectTrigger>
                 <SelectContent>
                   {userPets.map((pet) => (
-                    <SelectItem key={pet.id} value={pet.id.toString()}>
+                    <SelectItem key={pet.id} value={pet.id}>
                       <div className="flex items-center space-x-3">
                         <img 
-                          src={pet.image} 
+                          src={pet.image || 'https://images.unsplash.com/photo-1415369629372-26f2fe60c467?w=400&h=300&fit=crop'} 
                           alt={pet.name}
                           className="w-8 h-8 rounded-full object-cover"
                         />
                         <div className="flex flex-col">
                           <span className="font-medium">{pet.name}</span>
-                          <span className="text-sm text-gray-500">{pet.breed} - {pet.age} años</span>
+                          <span className="text-sm text-gray-500">{pet.breed} - {pet.age}</span>
                         </div>
                       </div>
                     </SelectItem>
@@ -283,7 +235,6 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
                 {veterinary.services && veterinary.services
                   .filter((service: string) => service && typeof service === 'string' && service.trim())
                   .map((service: string, index: number) => {
-                    // Create a safe, non-empty value
                     const cleanService = service.trim();
                     const serviceValue = cleanService.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
                     const finalValue = serviceValue || `service-${index + 1}`;
@@ -356,7 +307,7 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
             />
           </div>
 
-          {/* Submit Button with padding */}
+          {/* Submit Button */}
           <div className="flex justify-end space-x-4 pt-6 pb-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
@@ -364,7 +315,7 @@ const VeterinaryBookingModal = ({ isOpen, onClose, veterinary }: VeterinaryBooki
             <Button 
               type="submit" 
               disabled={isSubmitting || userPets.length === 0}
-              className="bg-petbnb-600 hover:bg-petbnb-700"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               {isSubmitting ? 'Procesando...' : 'Confirmar reserva'}
             </Button>

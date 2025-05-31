@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Favorite {
@@ -26,7 +25,11 @@ export const getFavorites = async (itemType?: 'pet' | 'host'): Promise<Favorite[
     throw error;
   }
 
-  return data || [];
+  // Asegurar que item_type sea del tipo correcto
+  return (data || []).map(item => ({
+    ...item,
+    item_type: item.item_type as 'pet' | 'host'
+  }));
 };
 
 export const addToFavorites = async (itemId: string, itemType: 'pet' | 'host'): Promise<void> => {

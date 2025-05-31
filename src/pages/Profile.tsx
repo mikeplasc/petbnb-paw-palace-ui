@@ -1,6 +1,5 @@
-
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,31 +8,74 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X, Heart, Clock } from 'lucide-react';
 import { getUserAdoptionRequests } from '@/services/adoptionService';
+import { getUserProfile, updateUserProfile, UserProfile } from '@/services/profileService';
+import { toast } from 'sonner';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    name: 'Juan Pérez',
-    email: 'juan.perez@email.com',
-    phone: '+34 612 345 678',
-    location: 'Madrid, España',
-    joinDate: 'Enero 2023',
-    bio: 'Amante de los animales con más de 5 años de experiencia cuidando mascotas.'
+  const queryClient = useQueryClient();
+
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: getUserProfile,
   });
 
-  const { data: adoptionRequests = [], isLoading } = useQuery({
+  const { data: adoptionRequests = [], isLoading: requestsLoading } = useQuery({
     queryKey: ['userAdoptionRequests'],
     queryFn: getUserAdoptionRequests,
   });
 
+  const [formData, setFormData] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    location: '',
+    bio: ''
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        email: profile.email || '',
+        phone: '', // Estos campos se pueden agregar a la tabla profiles si se necesitan
+        location: '',
+        bio: ''
+      });
+    }
+  }, [profile]);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateUserProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      toast.success('Perfil actualizado exitosamente');
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      console.error('Error updating profile:', error);
+      toast.error('Error al actualizar el perfil');
+    },
+  });
+
   const handleSave = () => {
-    // Aquí iría la lógica para guardar los datos
-    setIsEditing(false);
+    updateProfileMutation.mutate({
+      full_name: formData.full_name,
+      email: formData.email,
+    });
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Aquí restaurarías los datos originales
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        email: profile.email || '',
+        phone: '',
+        location: '',
+        bio: ''
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -54,6 +96,39 @@ const Profile = () => {
     }
   };
 
+  if (profileLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1">
+              <div className="h-64 bg-gray-200 rounded"></div>
+            </div>
+            <div className="lg:col-span-2">
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="text-center">
+          <p className="text-gray-600">No se pudo cargar el perfil del usuario.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const joinDate = new Date(profile.created_at).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long'
+  });
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="flex items-center justify-between mb-8">
@@ -65,7 +140,11 @@ const Profile = () => {
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button onClick={handleSave} className="flex items-center gap-2">
+            <Button 
+              onClick={handleSave} 
+              className="flex items-center gap-2"
+              disabled={updateProfileMutation.isPending}
+            >
               <Save className="h-4 w-4" />
               Guardar
             </Button>
@@ -83,15 +162,15 @@ const Profile = () => {
           <Card>
             <CardHeader className="text-center">
               <Avatar className="w-32 h-32 mx-auto mb-4">
-                <AvatarImage src="/placeholder-user.jpg" alt={formData.name} />
+                <AvatarImage src={profile.avatar_url || "/placeholder-user.jpg"} alt={profile.full_name || 'Usuario'} />
                 <AvatarFallback className="text-2xl bg-gradient-to-br from-petbnb-100 to-primary-100 text-primary-700">
-                  {formData.name.split(' ').map(n => n[0]).join('')}
+                  {(profile.full_name || profile.email || 'U').split(' ').map(n => n[0]).join('').toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <CardTitle className="text-xl">{formData.name}</CardTitle>
+              <CardTitle className="text-xl">{profile.full_name || 'Usuario'}</CardTitle>
               <CardDescription className="flex items-center justify-center gap-1">
                 <Calendar className="h-4 w-4" />
-                Miembro desde {formData.joinDate}
+                Miembro desde {joinDate}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -105,15 +184,15 @@ const Profile = () => {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Reservas completadas</span>
-                  <span className="font-semibold">12</span>
+                  <span className="font-semibold">0</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Valoración promedio</span>
-                  <span className="font-semibold">4.8 ⭐</span>
+                  <span className="font-semibold">-</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Mascotas registradas</span>
-                  <span className="font-semibold">2</span>
+                  <span className="font-semibold">-</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Solicitudes de adopción</span>
@@ -142,8 +221,8 @@ const Profile = () => {
                   </Label>
                   <Input
                     id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                     disabled={!isEditing}
                   />
                 </div>
@@ -161,44 +240,6 @@ const Profile = () => {
                     disabled={!isEditing}
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Teléfono
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    disabled={!isEditing}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Ubicación
-                  </Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bio">Biografía</Label>
-                <textarea
-                  id="bio"
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={formData.bio}
-                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                  disabled={!isEditing}
-                  placeholder="Cuéntanos un poco sobre ti y tu experiencia con mascotas..."
-                />
               </div>
             </CardContent>
           </Card>
@@ -215,7 +256,7 @@ const Profile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {requestsLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin h-8 w-8 border-b-2 border-purple-600 rounded-full mx-auto"></div>
                   <p className="text-gray-500 mt-2">Cargando solicitudes...</p>
