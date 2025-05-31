@@ -1,3 +1,4 @@
+
 import {
   Calendar,
   Clock,
@@ -26,6 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import HostProfileModal from "@/components/HostProfileModal";
 import logo from "@/assets/logo.jpeg";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -41,6 +43,7 @@ interface HostFilters {
   type?: string;
   minRating?: number;
   maxPrice?: number;
+  certified?: boolean;
 }
 
 const Hosts = () => {
@@ -48,6 +51,7 @@ const Hosts = () => {
   const [petType, setPetType] = useState("all");
   const [minRating, setMinRating] = useState("all");
   const [maxPrice, setMaxPrice] = useState("");
+  const [certifiedOnly, setCertifiedOnly] = useState(false);
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -69,6 +73,7 @@ const Hosts = () => {
       petType,
       minRating,
       debouncedMaxPrice,
+      certifiedOnly,
     ],
     queryFn: () => {
       const filters: HostFilters = {};
@@ -87,6 +92,10 @@ const Hosts = () => {
 
       if (debouncedMaxPrice) {
         filters.maxPrice = parseFloat(debouncedMaxPrice);
+      }
+
+      if (certifiedOnly) {
+        filters.certified = true;
       }
 
       return getHosts(filters);
@@ -210,6 +219,25 @@ const Hosts = () => {
               onChange={(e) => setMaxPrice(e.target.value)}
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Certificación
+            </label>
+            <div className="flex items-center space-x-2 mt-3">
+              <Checkbox
+                id="certified"
+                checked={certifiedOnly}
+                onCheckedChange={(checked) => setCertifiedOnly(!!checked)}
+              />
+              <label
+                htmlFor="certified"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Solo certificados
+              </label>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-end mt-4">
@@ -219,6 +247,7 @@ const Hosts = () => {
               setPetType("all");
               setMinRating("all");
               setMaxPrice("");
+              setCertifiedOnly(false);
             }}
             variant="outline"
           >
@@ -277,10 +306,10 @@ const Hosts = () => {
                   />
                 </button>
                 {certifications.length > 0 && (
-                  <Badge className="absolute top-4 left-4 bg-green-500 text-white">
-                    <Shield className="h-3 w-3 mr-1" />
+                  <div className="absolute top-4 left-4 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 cursor-default">
+                    <Shield className="h-3 w-3" />
                     Certificado
-                  </Badge>
+                  </div>
                 )}
               </div>
 

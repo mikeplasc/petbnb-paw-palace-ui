@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Star, Heart, MapPin, Users } from 'lucide-react';
+import { Star, Heart, MapPin, Users, Shield } from 'lucide-react';
 import { getHosts, Host } from '@/services/hostService';
 
 interface FeaturedHostsSectionProps {
@@ -81,6 +81,7 @@ const FeaturedHostsSection = ({
           {featuredHosts.map((host) => {
             const images = Array.isArray(host.images) ? host.images as string[] : [];
             const services = Array.isArray(host.services) ? host.services as string[] : [];
+            const certifications = Array.isArray(host.certifications) ? host.certifications as string[] : [];
             const isFavorite = favorites.includes(host.id);
 
             return (
@@ -101,9 +102,16 @@ const FeaturedHostsSection = ({
                       }`}
                     />
                   </button>
-                  <Badge className="absolute top-4 left-4 bg-primary text-white">
-                    Verificado
-                  </Badge>
+                  {certifications.length > 0 ? (
+                    <div className="absolute top-4 left-4 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 cursor-default">
+                      <Shield className="h-3 w-3" />
+                      Certificado
+                    </div>
+                  ) : (
+                    <Badge className="absolute top-4 left-4 bg-primary text-white">
+                      Verificado
+                    </Badge>
+                  )}
                 </div>
 
                 <CardContent className="p-6">

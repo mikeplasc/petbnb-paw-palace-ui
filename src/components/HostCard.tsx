@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, Clock, Heart, MapPin, Star } from "lucide-react";
 
@@ -103,6 +104,15 @@ const HostCard = ({
               <CheckCircle className="w-3 h-3" />
               <span className="text-xs">Disponible</span>
             </Badge>
+          </div>
+        )}
+
+        {/* Certification badge - fixed styling */}
+        {host.certifications && host.certifications.length > 0 && (
+          <div className="absolute bottom-3 left-3">
+            <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs font-medium cursor-default">
+              Certificado
+            </div>
           </div>
         )}
       </div>
