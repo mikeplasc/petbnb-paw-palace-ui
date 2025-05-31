@@ -10,6 +10,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import Favorites from "./pages/Favorites";
 import Hosts from "./pages/Hosts";
 import Index from "./pages/Index";
+import MyAdoptions from "./pages/MyAdoptions";
 import MyBookings from "./pages/MyBookings";
 import MyPets from "./pages/MyPets";
 import MyVeterinaries from "./pages/MyVeterinaries";
@@ -90,6 +91,14 @@ const App = () => (
                     <ProtectedRoute>
                       <Navbar />
                       <AdoptionStories />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/adoption/my-requests"
+                  element={
+                    <ProtectedRoute>
+                      <MyAdoptions />
                     </ProtectedRoute>
                   }
                 />

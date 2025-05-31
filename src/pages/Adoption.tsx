@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Heart, MapPin, Calendar, Shield, AlertTriangle } from "lucide-react";
+import { Heart, MapPin, Calendar, Shield, AlertTriangle, Clock } from "lucide-react";
 import AdoptionModal from "@/components/AdoptionModal";
 import {
   getPets,
@@ -133,6 +133,13 @@ const Adoption = () => {
           </p>
         </div>
         <div className="mt-4 md:mt-0 flex gap-4">
+          <Link
+            to="/adoption/my-requests"
+            className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+          >
+            <Clock className="h-5 w-5 mr-2" />
+            Mis solicitudes
+          </Link>
           <Link
             to="/adoption/stories"
             className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
