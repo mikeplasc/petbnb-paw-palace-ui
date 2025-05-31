@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,11 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Star, Heart, MapPin, Clock, Shield } from 'lucide-react';
 import { getHosts, Host } from '@/services/hostService';
+import { useFavorites } from '@/hooks/useFavorites';
 
 const Hosts = () => {
   const [searchLocation, setSearchLocation] = useState('');
   const [petType, setPetType] = useState('all');
-  const [favorites, setFavorites] = useState<string[]>([]);
+
+  const { toggleFavorite, isFavorite } = useFavorites('host');
 
   const { data: hosts = [], isLoading, error } = useQuery({
     queryKey: ['hosts', searchLocation, petType],
@@ -24,11 +25,7 @@ const Hosts = () => {
   });
 
   const handleToggleFavorite = (hostId: string) => {
-    setFavorites(prev => 
-      prev.includes(hostId) 
-        ? prev.filter(id => id !== hostId)
-        : [...prev, hostId]
-    );
+    toggleFavorite(hostId, 'host');
   };
 
   if (isLoading) {
@@ -107,7 +104,7 @@ const Hosts = () => {
           const images = Array.isArray(host.images) ? host.images as string[] : [];
           const services = Array.isArray(host.services) ? host.services as string[] : [];
           const certifications = Array.isArray(host.certifications) ? host.certifications as string[] : [];
-          const isFavorite = favorites.includes(host.id);
+          const isCurrentlyFavorite = isFavorite(host.id, 'host');
 
           return (
             <Card key={host.id} className="group hover:shadow-lg transition-shadow">
@@ -123,7 +120,7 @@ const Hosts = () => {
                 >
                   <Heart
                     className={`h-5 w-5 ${
-                      isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'
+                      isCurrentlyFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'
                     }`}
                   />
                 </button>

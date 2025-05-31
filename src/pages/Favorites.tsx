@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Heart, MapPin, Star, Calendar, Shield, Stethoscope } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import HostCard from '@/components/HostCard';
 import { getPets } from '@/services/petService';
 import { getHosts } from '@/services/hostService';
+import { useFavorites } from '@/hooks/useFavorites';
 import type { Host as SupabaseHost } from '@/services/hostService';
 
 // Define the Component Host type to match what HostCard expects
@@ -87,9 +87,8 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
 };
 
 const Favorites = () => {
-  const [hostFavorites, setHostFavorites] = useState<string[]>([]);
-  const [veterinaryFavorites, setVeterinaryFavorites] = useState<string[]>([]);
-  const [petFavorites, setPetFavorites] = useState<string[]>([]);
+  const { toast } = useToast();
+  const { favorites: allFavorites, toggleFavorite, isFavorite } = useFavorites();
 
   // Fetch pets using React Query
   const { data: allPets = [] } = useQuery({
@@ -107,6 +106,13 @@ const Favorites = () => {
   const allHosts = supabaseHosts
     .filter(host => host.type !== 'family') // Remove family hosts
     .map(convertSupabaseHostToComponentHost);
+
+  // Filter favorites by type
+  const hostFavoriteIds = allFavorites.filter(fav => fav.item_type === 'host').map(fav => fav.item_id);
+  const petFavoriteIds = allFavorites.filter(fav => fav.item_type === 'pet').map(fav => fav.item_id);
+
+  const favoriteHosts = allHosts.filter(host => hostFavoriteIds.includes(host.id));
+  const favoritePets = allPets.filter(pet => petFavoriteIds.includes(pet.id));
 
   // Mock data for veterinaries - in real app this would come from a service
   const mockVeterinaries = [
@@ -132,98 +138,32 @@ const Favorites = () => {
     }
   ];
 
-  const loadFavorites = () => {
-    const savedHostFavorites = JSON.parse(localStorage.getItem('hostFavorites') || '[]');
-    const savedVetFavorites = JSON.parse(localStorage.getItem('veterinaryFavorites') || '[]');
-    const savedPetFavorites = JSON.parse(localStorage.getItem('petFavorites') || '[]');
-    
-    setHostFavorites(savedHostFavorites);
-    setVeterinaryFavorites(savedVetFavorites);
-    setPetFavorites(savedPetFavorites);
-  };
-
-  useEffect(() => {
-    loadFavorites();
-
-    // Listen for favorites updates from other components
-    const handleFavoritesUpdate = (event: CustomEvent) => {
-      console.log('Favorites updated:', event.detail);
-      loadFavorites();
-    };
-
-    window.addEventListener('favoritesUpdated', handleFavoritesUpdate as EventListener);
-
-    return () => {
-      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate as EventListener);
-    };
-  }, []);
-
   const toggleHostFavorite = (hostId: string) => {
-    const updatedFavorites = hostFavorites.includes(hostId)
-      ? hostFavorites.filter(id => id !== hostId)
-      : [...hostFavorites, hostId];
-    
-    setHostFavorites(updatedFavorites);
-    localStorage.setItem('hostFavorites', JSON.stringify(updatedFavorites));
-    
-    // Dispatch event to notify other components
-    window.dispatchEvent(new CustomEvent('favoritesUpdated', { 
-      detail: { type: 'host', favorites: updatedFavorites } 
-    }));
-    
-    toast({
-      title: hostFavorites.includes(hostId) ? "Eliminado de favoritos" : "Añadido a favoritos",
-      description: hostFavorites.includes(hostId) 
-        ? "El cuidador se eliminó de tus favoritos" 
-        : "El cuidador se añadió a tus favoritos",
-    });
-  };
-
-  const toggleVeterinaryFavorite = (vetId: string) => {
-    const updatedFavorites = veterinaryFavorites.includes(vetId)
-      ? veterinaryFavorites.filter(id => id !== vetId)
-      : [...veterinaryFavorites, vetId];
-    
-    setVeterinaryFavorites(updatedFavorites);
-    localStorage.setItem('veterinaryFavorites', JSON.stringify(updatedFavorites));
-    
-    // Dispatch event to notify other components
-    window.dispatchEvent(new CustomEvent('favoritesUpdated', { 
-      detail: { type: 'veterinary', favorites: updatedFavorites } 
-    }));
-    
-    toast({
-      title: veterinaryFavorites.includes(vetId) ? "Eliminado de favoritos" : "Añadido a favoritos",
-      description: veterinaryFavorites.includes(vetId) 
-        ? "La veterinaria se eliminó de tus favoritos" 
-        : "La veterinaria se añadió a tus favoritos",
-    });
+    toggleFavorite(hostId, 'host');
   };
 
   const togglePetFavorite = (petId: string) => {
-    const updatedFavorites = petFavorites.includes(petId)
-      ? petFavorites.filter(id => id !== petId)
-      : [...petFavorites, petId];
-    
-    setPetFavorites(updatedFavorites);
-    localStorage.setItem('petFavorites', JSON.stringify(updatedFavorites));
-    
-    // Dispatch event to notify other components
-    window.dispatchEvent(new CustomEvent('favoritesUpdated', { 
-      detail: { type: 'pet', favorites: updatedFavorites } 
-    }));
-    
-    toast({
-      title: petFavorites.includes(petId) ? "Eliminado de favoritos" : "Añadido a favoritos",
-      description: petFavorites.includes(petId) 
-        ? "La mascota se eliminó de tus favoritos" 
-        : "La mascota se añadió a tus favoritos",
-    });
+    toggleFavorite(petId, 'pet');
   };
 
-  const favoriteHosts = allHosts.filter(host => hostFavorites.includes(host.id));
-  const favoriteVeterinaries = mockVeterinaries.filter(vet => veterinaryFavorites.includes(vet.id));
-  const favoritePets = allPets.filter(pet => petFavorites.includes(pet.id));
+  const toggleVeterinaryFavorite = (vetId: string) => {
+    const updatedFavorites = localStorage.getItem('veterinaryFavorites');
+    const veterinaryFavorites = updatedFavorites ? JSON.parse(updatedFavorites) : [];
+    const isCurrentlyFavorite = veterinaryFavorites.includes(vetId);
+  
+    const updatedVetFavorites = isCurrentlyFavorite
+      ? veterinaryFavorites.filter((id: string) => id !== vetId)
+      : [...veterinaryFavorites, vetId];
+  
+    localStorage.setItem('veterinaryFavorites', JSON.stringify(updatedVetFavorites));
+  
+    toast({
+      title: isCurrentlyFavorite ? "Eliminado de favoritos" : "Añadido a favoritos",
+      description: isCurrentlyFavorite
+        ? "La veterinaria se eliminó de tus favoritos"
+        : "La veterinaria se añadió a tus favoritos",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -246,7 +186,7 @@ const Favorites = () => {
               Cuidadores ({favoriteHosts.length})
             </TabsTrigger>
             <TabsTrigger value="veterinaries">
-              Veterinarias ({favoriteVeterinaries.length})
+              Veterinarias ({mockVeterinaries.length})
             </TabsTrigger>
             <TabsTrigger value="pets">
               Mascotas ({favoritePets.length})
@@ -280,59 +220,65 @@ const Favorites = () => {
           </TabsContent>
 
           <TabsContent value="veterinaries" className="mt-6">
-            {favoriteVeterinaries.length > 0 ? (
+            {mockVeterinaries.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {favoriteVeterinaries.map((vet) => (
-                  <Card key={vet.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="relative">
-                      <img
-                        src={vet.image}
-                        alt={vet.name}
-                        className="w-full h-48 object-cover"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleVeterinaryFavorite(vet.id)}
-                        className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                      >
-                        <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-                      </Button>
-                    </div>
+                {mockVeterinaries.map((vet) => {
+                  const updatedFavorites = localStorage.getItem('veterinaryFavorites');
+                  const veterinaryFavorites = updatedFavorites ? JSON.parse(updatedFavorites) : [];
+                  const isCurrentlyFavorite = veterinaryFavorites.includes(vet.id);
 
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold">{vet.name}</h3>
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">{vet.rating}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center text-sm text-gray-600 mb-3">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {vet.location}
-                      </div>
-
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {vet.services.slice(0, 2).map((service, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {service}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <span className="text-xl font-bold text-green-600">
-                          €{vet.pricePerNight}/consulta
-                        </span>
-                        <Button size="sm">
-                          Ver detalles
+                  return (
+                    <Card key={vet.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="relative">
+                        <img
+                          src={vet.image}
+                          alt={vet.name}
+                          className="w-full h-48 object-cover"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleVeterinaryFavorite(vet.id)}
+                          className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                        >
+                          <Heart className={`w-4 h-4 ${isCurrentlyFavorite ? 'fill-red-500 text-red-500' : ''}`} />
                         </Button>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-lg font-semibold">{vet.name}</h3>
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium">{vet.rating}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center text-sm text-gray-600 mb-3">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {vet.location}
+                        </div>
+
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {vet.services.slice(0, 2).map((service, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {service}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          <span className="text-xl font-bold text-green-600">
+                            €{vet.pricePerNight}/consulta
+                          </span>
+                          <Button size="sm">
+                            Ver detalles
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
