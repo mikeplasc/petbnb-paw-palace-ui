@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Dialog,
@@ -42,6 +41,11 @@ const VeterinaryProfileModal = ({
         : [...currentFavorites, veterinary.id];
       
       localStorage.setItem('veterinaryFavorites', JSON.stringify(updatedFavorites));
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('favoritesUpdated', { 
+        detail: { type: 'veterinary', favorites: updatedFavorites } 
+      }));
       
       toast({
         title: currentFavorites.includes(veterinary.id) ? "Eliminado de favoritos" : "Añadido a favoritos",

@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -44,6 +43,14 @@ const Navbar = () => {
             }`}
           >
             Buscar
+          </Link>
+          <Link
+            to="/hosts"
+            className={`text-sm font-medium transition-colors hover:text-primary-600 ${
+              isActive('/hosts') ? 'text-primary-600' : 'text-gray-600'
+            }`}
+          >
+            Cuidadores
           </Link>
           <Link
             to="/become-host"
@@ -151,7 +158,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation (could be expanded in the future) */}
+      {/* Mobile Navigation */}
       <div className="md:hidden border-t border-gray-200 bg-white">
         <div className="container mx-auto px-4 py-2 flex space-x-4 overflow-x-auto">
           <Link
@@ -161,6 +168,14 @@ const Navbar = () => {
             }`}
           >
             Buscar
+          </Link>
+          <Link
+            to="/hosts"
+            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
+              isActive('/hosts') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
+            }`}
+          >
+            Cuidadores
           </Link>
           <Link
             to="/become-host"

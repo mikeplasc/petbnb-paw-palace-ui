@@ -8,6 +8,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import Navbar from "@/components/Navbar";
 import Index from "./pages/Index";
 import BecomeHost from "./pages/BecomeHost";
+import Hosts from "./pages/Hosts";
 import Veterinaries from "./pages/Veterinaries";
 import Adoption from "./pages/Adoption";
 import SearchResults from "./pages/SearchResults";
@@ -32,6 +33,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/become-host" element={<BecomeHost />} />
+              <Route path="/hosts" element={<Hosts />} />
               <Route path="/veterinaries" element={<Veterinaries />} />
               <Route path="/adoption" element={<Adoption />} />
               <Route path="/search" element={<SearchResults />} />
