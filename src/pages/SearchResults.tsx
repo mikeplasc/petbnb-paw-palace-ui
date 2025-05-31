@@ -82,7 +82,7 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
     ? supabaseHost.specialties as string[]
     : [];
 
-  // Map database type values to expected ComponentHost type values, excluding family
+  // Map database type values to expected ComponentHost type values
   const mapHostType = (dbType: string): "veterinary" | "individual" => {
     switch (dbType) {
       case 'veterinary':
@@ -126,7 +126,7 @@ const convertComponentHostToModalHost = (componentHost: ComponentHost): ModalHos
 };
 
 const SearchResults = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
@@ -147,23 +147,48 @@ const SearchResults = () => {
   const startDateParam = searchParams.get('startDate') || '';
   const endDateParam = searchParams.get('endDate') || '';
 
+  console.log('Search params:', { locationParam, petTypeParam, startDateParam, endDateParam });
+
+  // Build filters for the database query
+  const dbFilters: { location?: string; petType?: string; type?: string } = {};
+  
+  if (locationParam) {
+    dbFilters.location = locationParam;
+  }
+  
+  if (petTypeParam) {
+    dbFilters.petType = petTypeParam;
+  }
+
   // Fetch hosts from Supabase
   const { data: supabaseHosts = [], isLoading, error } = useQuery({
     queryKey: ['hosts', locationParam, petTypeParam],
-    queryFn: () => getHosts({
-      location: locationParam,
-      petType: petTypeParam
-    }),
+    queryFn: () => {
+      console.log('Fetching hosts with filters:', dbFilters);
+      return getHosts(dbFilters);
+    },
   });
+
+  console.log('Fetched hosts:', supabaseHosts);
 
   // Convert Supabase hosts to ComponentHost format and filter out family hosts
   const hosts = supabaseHosts
     .filter(host => host.type !== 'family') // Remove family hosts
     .map(convertSupabaseHostToComponentHost);
 
+  console.log('Converted hosts:', hosts);
+
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);
-    // Here you would update the search results based on new filters
+    
+    // Update URL parameters
+    const newParams = new URLSearchParams();
+    if (filters.location) newParams.set('location', filters.location);
+    if (filters.petType) newParams.set('petType', filters.petType);
+    if (filters.startDate) newParams.set('startDate', filters.startDate.toISOString());
+    if (filters.endDate) newParams.set('endDate', filters.endDate.toISOString());
+    
+    setSearchParams(newParams);
   };
 
   const handleToggleFavorite = (hostId: string) => {
@@ -191,23 +216,12 @@ const SearchResults = () => {
   // Filter and sort hosts
   const filteredAndSortedHosts = hosts
     .filter(host => {
-      // Location filter
-      if (locationParam && host.city && !host.city.toLowerCase().includes(locationParam.toLowerCase())) {
-        return false;
-      }
-      
-      // Pet type filter
-      if (petTypeParam && host.acceptedPets && Array.isArray(host.acceptedPets) && 
-          !host.acceptedPets.some(pet => 
-            pet.toLowerCase().includes(petTypeParam.toLowerCase())
-          )) {
-        return false;
-      }
-
       // Pet types filter
       if (selectedPetTypes.length > 0 && host.acceptedPets && Array.isArray(host.acceptedPets) &&
           !selectedPetTypes.some(petType =>
-            host.acceptedPets.includes(petType)
+            host.acceptedPets.some(acceptedPet => 
+              acceptedPet.toLowerCase().includes(petType.toLowerCase())
+            )
           )) {
         return false;
       }
@@ -215,7 +229,9 @@ const SearchResults = () => {
       // Services filter
       if (selectedServices.length > 0 && host.services && Array.isArray(host.services) &&
           !selectedServices.some(service =>
-            host.services.includes(service)
+            host.services.some(hostService =>
+              hostService.toLowerCase().includes(service.toLowerCase())
+            )
           )) {
         return false;
       }
