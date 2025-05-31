@@ -1,8 +1,7 @@
+import { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 
-import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
-
-export type Host = Tables<'hosts'>;
+export type Host = Tables<"hosts">;
 
 export const getHosts = async (filters?: {
   location?: string;
@@ -11,34 +10,34 @@ export const getHosts = async (filters?: {
   services?: string[];
   certifiedOnly?: boolean;
 }) => {
-  let query = supabase.from('hosts').select('*');
+  let query = supabase.from("hosts").select("*");
 
   if (filters?.location) {
-    query = query.ilike('location', `%${filters.location}%`);
+    query = query.ilike("city", `%${filters.location}%`);
   }
 
-  if (filters?.type && filters.type !== 'Todos') {
-    query = query.eq('type', filters.type);
+  if (filters?.type && filters.type !== "Todos") {
+    query = query.contains("accepted_pets", [filters.type]);
   }
 
   if (filters?.priceRange) {
     query = query
-      .gte('price_per_night', filters.priceRange[0])
-      .lte('price_per_night', filters.priceRange[1]);
+      .gte("price_per_night", filters.priceRange[0])
+      .lte("price_per_night", filters.priceRange[1]);
   }
 
   if (filters?.services && filters.services.length > 0) {
-    query = query.overlaps('services', filters.services);
+    query = query.overlaps("services", filters.services);
   }
 
   if (filters?.certifiedOnly) {
-    query = query.not('certifications', 'is', null).gt('certifications', '{}');
+    query = query.not("certifications", "is", null).gt("certifications", "{}");
   }
 
-  const { data, error } = await query.order('rating', { ascending: false });
+  const { data, error } = await query.order("rating", { ascending: false });
 
   if (error) {
-    console.error('Error fetching hosts:', error);
+    console.error("Error fetching hosts:", error);
     throw error;
   }
 
@@ -46,16 +45,16 @@ export const getHosts = async (filters?: {
 };
 
 export const getVeterinaries = async (location?: string) => {
-  let query = supabase.from('hosts').select('*').eq('type', 'veterinary');
+  let query = supabase.from("hosts").select("*").eq("type", "veterinary");
 
   if (location) {
-    query = query.ilike('location', `%${location}%`);
+    query = query.ilike("location", `%${location}%`);
   }
 
-  const { data, error } = await query.order('rating', { ascending: false });
+  const { data, error } = await query.order("rating", { ascending: false });
 
   if (error) {
-    console.error('Error fetching veterinaries:', error);
+    console.error("Error fetching veterinaries:", error);
     throw error;
   }
 
@@ -64,13 +63,13 @@ export const getVeterinaries = async (location?: string) => {
 
 export const getHostById = async (id: string) => {
   const { data, error } = await supabase
-    .from('hosts')
-    .select('*')
-    .eq('id', id)
+    .from("hosts")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) {
-    console.error('Error fetching host:', error);
+    console.error("Error fetching host:", error);
     throw error;
   }
 
