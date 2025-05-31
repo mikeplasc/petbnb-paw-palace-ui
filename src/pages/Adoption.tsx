@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { Link } from 'react-router-dom';
 
 const Adoption = () => {
   const [searchLocation, setSearchLocation] = useState("");
@@ -120,14 +121,28 @@ const Adoption = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Heart className="h-8 w-8 text-pink-600" />
-        <h1 className="text-3xl font-bold text-gray-900">
-          Adopción de Mascotas
-        </h1>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Adopta una mascota
+          </h1>
+          <p className="text-gray-600">
+            Dale un hogar a una mascota que lo necesita
+          </p>
+        </div>
+        <div className="mt-4 md:mt-0 flex gap-4">
+          <Link
+            to="/adoption/stories"
+            className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+          >
+            <Heart className="h-5 w-5 mr-2" />
+            Historias de adopción
+          </Link>
+        </div>
       </div>
 
-      {/* Filtros */}
+      {/* Filters Section */}
       <div className="bg-white p-6 rounded-lg shadow-sm border mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
