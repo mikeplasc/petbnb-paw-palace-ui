@@ -1,295 +1,437 @@
+
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, MapPin, Search, Calendar, Shield } from 'lucide-react';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Heart, MapPin, Calendar, Shield, Star, Search, Filter } from 'lucide-react';
+import { getPets, Pet, createAdoptionRequest } from '@/services/adoptionService';
+import { toast } from '@/hooks/use-toast';
 import AdoptionModal from '@/components/AdoptionModal';
 import AdoptionConfirmModal from '@/components/AdoptionConfirmModal';
-import { mockPets } from '@/data/mockPets';
-import { Pet } from '@/types/adoption';
-import { toast } from '@/hooks/use-toast';
+
+const PETS_PER_PAGE = 12;
 
 const Adoption = () => {
   const [pets, setPets] = useState<Pet[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSpecies, setSelectedSpecies] = useState<string>('all');
-  const [selectedAge, setSelectedAge] = useState<string>('all');
-  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [filteredPets, setFilteredPets] = useState<Pet[]>([]);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  
-  // Add favorites state
-  const [petFavorites, setPetFavorites] = useState<string[]>([]);
-
-  useEffect(() => {
-    setPets(mockPets);
-  }, []);
-
-  // Add useEffect to load favorites from localStorage
-  useEffect(() => {
-    const savedPetFavorites = JSON.parse(localStorage.getItem('petFavorites') || '[]');
-    setPetFavorites(savedPetFavorites);
-  }, []);
-
-  // Add function to toggle pet favorites
-  const togglePetFavorite = (petId: string) => {
-    const updatedFavorites = petFavorites.includes(petId)
-      ? petFavorites.filter(id => id !== petId)
-      : [...petFavorites, petId];
-    
-    setPetFavorites(updatedFavorites);
-    localStorage.setItem('petFavorites', JSON.stringify(updatedFavorites));
-    
-    toast({
-      title: petFavorites.includes(petId) ? "Eliminado de favoritos" : "Añadido a favoritos",
-      description: petFavorites.includes(petId) 
-        ? "La mascota se eliminó de tus favoritos" 
-        : "La mascota se añadió a tus favoritos",
-    });
-  };
-
-  // Filter pets based on search criteria
-  const filteredPets = pets.filter(pet => {
-    const matchesSearch = pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecies = selectedSpecies === 'all' || pet.type.toLowerCase() === selectedSpecies;
-    const matchesAge = selectedAge === 'all' || pet.age === selectedAge;
-    const matchesCity = selectedCity === 'all' || pet.location.includes(selectedCity);
-    
-    return matchesSearch && matchesSpecies && matchesAge && matchesCity;
+  const [petToAdopt, setPetToAdopt] = useState<Pet | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({
+    type: '',
+    size: '',
+    location: '',
+    urgent: false
   });
+  const [showFilters, setShowFilters] = useState(false);
 
-  const handleAdoptClick = (pet: Pet) => {
-    setSelectedPet(pet);
-    setIsModalOpen(true);
+  // Mock user data - in real app this would come from authentication
+  const currentUser = {
+    name: 'Juan Pérez',
+    email: 'juan.perez@email.com',
+    phone: '+34 612 345 678'
   };
 
-  const handleAdoptConfirm = (petId: string, userInfo: any) => {
-    setIsModalOpen(false);
-    setIsConfirmModalOpen(true);
+  useEffect(() => {
+    const allPets = getPets();
+    setPets(allPets);
+    setFilteredPets(allPets);
+  }, []);
+
+  useEffect(() => {
+    let filtered = [...pets];
+
+    // Apply search term filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(pet => 
+        pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pet.breed.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply type filter
+    if (filters.type && filters.type !== '') {
+      filtered = filtered.filter(pet => pet.type === filters.type);
+    }
+
+    // Apply size filter
+    if (filters.size && filters.size !== '') {
+      filtered = filtered.filter(pet => pet.size === filters.size);
+    }
+
+    // Apply location filter
+    if (filters.location && filters.location.trim() !== '') {
+      filtered = filtered.filter(pet => 
+        pet.location.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+
+    // Apply urgent filter
+    if (filters.urgent) {
+      filtered = filtered.filter(pet => pet.urgent === true);
+    }
+
+    console.log('Applying filters:', { searchTerm, filters });
+    console.log('Filtered pets count:', filtered.length);
+    
+    setFilteredPets(filtered);
+    setCurrentPage(1);
+  }, [pets, filters, searchTerm]);
+
+  const toggleFavorite = (petId: string) => {
+    setFavorites(prev => 
+      prev.includes(petId) 
+        ? prev.filter(id => id !== petId)
+        : [...prev, petId]
+    );
+    
     toast({
-      title: "¡Solicitud enviada!",
-      description: "Tu solicitud de adopción ha sido enviada al refugio.",
+      title: favorites.includes(petId) ? "Eliminado de favoritos" : "Añadido a favoritos",
+      description: favorites.includes(petId) 
+        ? "La mascota se eliminó de tu lista de favoritos" 
+        : "La mascota se añadió a tu lista de favoritos",
     });
   };
 
-  const cities = [...new Set(pets.map(pet => pet.location.split(',')[0].trim()))];
-  const species = [...new Set(pets.map(pet => pet.type))];
+  const handleQuickAdopt = (pet: Pet) => {
+    setPetToAdopt(pet);
+    setIsConfirmModalOpen(true);
+  };
 
-  // Mock current user data
-  const currentUser = {
-    name: "Usuario Demo",
-    email: "usuario@ejemplo.com", 
-    phone: "+34 123 456 789"
+  const handleConfirmAdoption = () => {
+    if (petToAdopt) {
+      try {
+        createAdoptionRequest(petToAdopt.id, {
+          name: currentUser.name,
+          email: currentUser.email,
+          phone: currentUser.phone,
+          message: `Solicitud rápida de adopción para ${petToAdopt.name}`
+        });
+        
+        toast({
+          title: "¡Solicitud enviada!",
+          description: "Tu solicitud de adopción ha sido enviada al refugio. Te contactarán pronto.",
+        });
+        
+        setIsConfirmModalOpen(false);
+        setPetToAdopt(null);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo enviar la solicitud. Intenta nuevamente.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleAdoptionRequest = (petId: string, userInfo: any) => {
+    try {
+      createAdoptionRequest(petId, userInfo);
+      toast({
+        title: "¡Solicitud enviada!",
+        description: "Tu solicitud de adopción ha sido enviada al refugio. Te contactarán pronto.",
+      });
+      setIsModalOpen(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo enviar la solicitud. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      type: '',
+      size: '',
+      location: '',
+      urgent: false
+    });
+    setSearchTerm('');
+  };
+
+  // Paginación
+  const totalPages = Math.ceil(filteredPets.length / PETS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PETS_PER_PAGE;
+  const endIndex = startIndex + PETS_PER_PAGE;
+  const currentPets = filteredPets.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 bg-gradient-to-br from-warm-100 to-sage-100">
-        <div className="container mx-auto text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Encuentra tu nuevo mejor amigo
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            Adopta una Mascota
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Miles de mascotas esperan encontrar un hogar lleno de amor. 
-            Descubre tu compañero perfecto hoy mismo.
+          <p className="text-xl md:text-2xl mb-8 opacity-90">
+            Dale una segunda oportunidad a un amigo que te necesita
           </p>
-          <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
-            <div className="flex items-center space-x-2">
-              <Shield className="w-5 h-5 text-green-500" />
-              <span>Mascotas verificadas</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Heart className="w-5 h-5 text-red-500" />
-              <span>Proceso seguro</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Calendar className="w-5 h-5 text-blue-500" />
-              <span>Seguimiento post-adopción</span>
+          <div className="max-w-2xl mx-auto">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  placeholder="Buscar por nombre o raza..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-12 text-gray-900"
+                />
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => setShowFilters(!showFilters)}
+                className="h-12 px-6"
+              >
+                <Filter className="w-5 h-5 mr-2" />
+                Filtros
+              </Button>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Search and Filters */}
-      <section className="py-8 px-4 bg-white border-b border-gray-200">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                placeholder="Buscar por nombre o raza..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={selectedSpecies} onValueChange={setSelectedSpecies}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas las especies" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las especies</SelectItem>
-                {species.map((type) => (
-                  <SelectItem key={type} value={type.toLowerCase()}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="container mx-auto px-4 py-8">
+        {/* Filters */}
+        {showFilters && (
+          <Card className="mb-8">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tipo de mascota" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="Perro">Perros</SelectItem>
+                    <SelectItem value="Gato">Gatos</SelectItem>
+                    <SelectItem value="Ave">Aves</SelectItem>
+                    <SelectItem value="Conejo">Conejos</SelectItem>
+                    <SelectItem value="Hámster">Hámsters</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            <Select value={selectedAge} onValueChange={setSelectedAge}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas las edades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las edades</SelectItem>
-                <SelectItem value="1 año">Cachorro</SelectItem>
-                <SelectItem value="2 años">Joven</SelectItem>
-                <SelectItem value="3 años">Adulto</SelectItem>
-              </SelectContent>
-            </Select>
+                <Select value={filters.size} onValueChange={(value) => setFilters(prev => ({ ...prev, size: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tamaño" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="Pequeño">Pequeño</SelectItem>
+                    <SelectItem value="Mediano">Mediano</SelectItem>
+                    <SelectItem value="Grande">Grande</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            <Select value={selectedCity} onValueChange={setSelectedCity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas las ciudades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las ciudades</SelectItem>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <Input
+                  placeholder="Ubicación"
+                  value={filters.location}
+                  onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
+                />
 
-            <Button className="bg-petbnb-500 hover:bg-petbnb-600">
-              Buscar mascotas
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Results Section */}
-      <section className="py-12 px-4">
-        <div className="container mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Mascotas disponibles ({filteredPets.length})
-            </h2>
-            <Select defaultValue="newest">
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Más recientes</SelectItem>
-                <SelectItem value="oldest">Más antiguos</SelectItem>
-                <SelectItem value="youngest">Más jóvenes</SelectItem>
-                <SelectItem value="name">Por nombre</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredPets.map((pet) => (
-              <Card key={pet.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
-                <div className="relative">
-                  <img
-                    src={pet.image}
-                    alt={pet.name}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="urgent"
+                    checked={filters.urgent}
+                    onChange={(e) => setFilters(prev => ({ ...prev, urgent: e.target.checked }))}
+                    className="rounded"
                   />
-                  <button
-                    onClick={() => togglePetFavorite(pet.id)}
-                    className="absolute top-2 right-2 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
-                  >
-                    <Heart
-                      className={`w-4 h-4 transition-colors ${
-                        petFavorites.includes(pet.id) ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
-                      }`}
-                    />
-                  </button>
-                  <Badge className="absolute top-2 left-2 bg-blue-500/90 text-white">
-                    {pet.age}
+                  <label htmlFor="urgent" className="text-sm font-medium">Solo urgentes</label>
+                </div>
+              </div>
+              
+              <Button onClick={resetFilters} variant="outline" size="sm">
+                Limpiar filtros
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Results Counter */}
+        <div className="mb-6 flex justify-between items-center">
+          <p className="text-gray-600">
+            Mostrando {startIndex + 1}-{Math.min(endIndex, filteredPets.length)} de {filteredPets.length} mascotas
+          </p>
+          <p className="text-sm text-gray-500">
+            Página {currentPage} de {totalPages}
+          </p>
+        </div>
+
+        {/* Pets Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {currentPets.map((pet) => (
+            <Card key={pet.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="relative">
+                <img
+                  src={pet.image}
+                  alt={pet.name}
+                  className="w-full h-48 object-cover"
+                />
+                {pet.urgent && (
+                  <Badge className="absolute top-2 left-2 bg-red-500 text-white">
+                    URGENTE
                   </Badge>
-                  {pet.urgent && (
-                    <Badge className="absolute top-10 left-2 bg-red-500/90 text-white">
-                      Urgente
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleFavorite(pet.id)}
+                  className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                >
+                  <Heart className={`w-4 h-4 ${
+                    favorites.includes(pet.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                  }`} />
+                </Button>
+              </div>
+
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold">{pet.name}</h3>
+                  <Badge variant="outline">{pet.type}</Badge>
+                </div>
+
+                <p className="text-sm text-gray-600 mb-2">{pet.breed} • {pet.age}</p>
+                
+                <div className="flex items-center text-sm text-gray-500 mb-2">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  {pet.location}
+                </div>
+
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {pet.vaccinated && (
+                    <Badge variant="secondary" className="text-xs">
+                      <Shield className="w-3 h-3 mr-1" />
+                      Vacunado
+                    </Badge>
+                  )}
+                  {pet.sterilized && (
+                    <Badge variant="secondary" className="text-xs">
+                      Esterilizado
                     </Badge>
                   )}
                 </div>
 
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{pet.name}</h3>
-                    <Badge variant="secondary" className="text-xs">
-                      {pet.gender}
-                    </Badge>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-2">{pet.breed}</p>
-                  <div className="flex items-center text-gray-500 text-sm mb-3">
-                    <MapPin className="w-3 h-3 mr-1" />
-                    {pet.location}
-                  </div>
-                  <p className="text-gray-700 text-sm line-clamp-2">
-                    {pet.description}
-                  </p>
-                </CardContent>
+                <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                  {pet.description}
+                </p>
 
-                <CardFooter className="p-4 pt-0">
-                  <Button 
-                    onClick={() => handleAdoptClick(pet)}
-                    className="w-full bg-warm-500 hover:bg-warm-600 text-white"
+                <div className="text-lg font-bold text-green-600 mb-3">
+                  €{pet.adoptionFee} cuota de adopción
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+                    onClick={() => handleQuickAdopt(pet)}
                   >
-                    Conocer más
+                    Adoptar
                   </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedPet(pet);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    Ver detalles
+                  </Button>
+                </div>
 
-          {filteredPets.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">🐾</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No se encontraron mascotas
-              </h3>
-              <p className="text-gray-600">
-                Intenta ajustar tus filtros de búsqueda
-              </p>
-            </div>
-          )}
+                <div className="mt-2 text-xs text-gray-500">
+                  Por {pet.shelterName}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </section>
 
-      {/* Modals */}
-      <AdoptionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        pet={selectedPet}
-        onSubmitAdoption={handleAdoptConfirm}
-        onToggleFavorite={() => selectedPet && togglePetFavorite(selectedPet.id)}
-        isFavorite={selectedPet ? petFavorites.includes(selectedPet.id) : false}
-        currentUser={currentUser}
-      />
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => handlePageChange(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
+        {filteredPets.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              No se encontraron mascotas con los filtros seleccionados.
+            </p>
+            <Button onClick={resetFilters} className="mt-4">
+              Limpiar filtros
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Details Modal */}
+      {selectedPet && (
+        <AdoptionModal
+          pet={selectedPet}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedPet(null);
+          }}
+          onSubmitAdoption={handleAdoptionRequest}
+          isFavorite={favorites.includes(selectedPet.id)}
+          onToggleFavorite={() => toggleFavorite(selectedPet.id)}
+          currentUser={currentUser}
+        />
+      )}
+
+      {/* Confirmation Modal */}
       <AdoptionConfirmModal
+        pet={petToAdopt}
         isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-        pet={selectedPet}
-        onConfirm={() => {
+        onClose={() => {
           setIsConfirmModalOpen(false);
-          toast({
-            title: "¡Solicitud enviada!",
-            description: "Tu solicitud de adopción ha sido enviada al refugio.",
-          });
+          setPetToAdopt(null);
         }}
+        onConfirm={handleConfirmAdoption}
       />
     </div>
   );

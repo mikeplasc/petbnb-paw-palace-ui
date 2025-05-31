@@ -1,59 +1,82 @@
-
-import HeroSection from "@/components/sections/HeroSection";
-import CategoriesSection from "@/components/sections/CategoriesSection";
-import FeaturedHostsSection from "@/components/sections/FeaturedHostsSection";
-import TestimonialsSection from "@/components/sections/TestimonialsSection";
-import CTASection from "@/components/sections/CTASection";
-import Footer from "@/components/sections/Footer";
-import { useState, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from '@/components/Header';
+import HeroSection from '@/components/sections/HeroSection';
+import CategoriesSection from '@/components/sections/CategoriesSection';
+import FeaturedHostsSection from '@/components/sections/FeaturedHostsSection';
+import TestimonialsSection from '@/components/sections/TestimonialsSection';
+import CTASection from '@/components/sections/CTASection';
+import Footer from '@/components/sections/Footer';
+import { SearchFilters } from '@/components/SearchBar';
 
 const Index = () => {
-  // Add favorites state
-  const [hostFavorites, setHostFavorites] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState('home');
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const navigate = useNavigate();
 
-  // Add useEffect to load favorites from localStorage
-  useEffect(() => {
-    const savedHostFavorites = JSON.parse(localStorage.getItem('hostFavorites') || '[]');
-    setHostFavorites(savedHostFavorites);
-  }, []);
-
-  // Add function to toggle host favorites
-  const toggleHostFavorite = (hostId: string) => {
-    const updatedFavorites = hostFavorites.includes(hostId)
-      ? hostFavorites.filter(id => id !== hostId)
-      : [...hostFavorites, hostId];
+  const handleSearch = (filters: SearchFilters) => {
+    console.log('Búsqueda realizada:', filters);
     
-    setHostFavorites(updatedFavorites);
-    localStorage.setItem('hostFavorites', JSON.stringify(updatedFavorites));
+    // Create query string from filters
+    const params = new URLSearchParams();
+    if (filters.location) params.set('location', filters.location);
+    if (filters.petType) params.set('petType', filters.petType);
+    if (filters.startDate) params.set('startDate', filters.startDate.toISOString());
+    if (filters.endDate) params.set('endDate', filters.endDate.toISOString());
     
-    toast({
-      title: hostFavorites.includes(hostId) ? "Eliminado de favoritos" : "Añadido a favoritos",
-      description: hostFavorites.includes(hostId) 
-        ? "El cuidador se eliminó de tus favoritos" 
-        : "El cuidador se añadió a tus favoritos",
-    });
+    navigate(`/search?${params.toString()}`);
   };
 
-  const handleSearch = () => {
-    console.log('Buscar cuidadores');
+  const handleNavigation = (page: string) => {
+    switch (page) {
+      case 'become-host':
+        navigate('/become-host');
+        break;
+      case 'veterinaries':
+        navigate('/veterinaries');
+        break;
+      case 'search-results':
+        navigate('/search');
+        break;
+      default:
+        setCurrentPage(page);
+    }
+  };
+
+  const handleToggleFavorite = (hostId: string) => {
+    setFavorites(prev => 
+      prev.includes(hostId) 
+        ? prev.filter(id => id !== hostId)
+        : [...prev, hostId]
+    );
+  };
+
+  const handleViewDetails = (hostId: string) => {
+    console.log('Ver detalles del host:', hostId);
+    setCurrentPage('host-details');
+  };
+
+  const handleViewAllHosts = () => {
+    handleNavigation('search-results');
   };
 
   const handleStartSearch = () => {
-    console.log('Comenzar búsqueda');
+    handleNavigation('search-results');
   };
 
   const handleBecomeHost = () => {
-    console.log('Convertirse en cuidador');
+    handleNavigation('become-host');
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="bg-gradient-to-br from-petbnb-50 via-white to-warm-50">
       <HeroSection onSearch={handleSearch} />
       <CategoriesSection />
       <FeaturedHostsSection 
-        hostFavorites={hostFavorites}
-        onToggleFavorite={toggleHostFavorite}
+        favorites={favorites}
+        onViewDetails={handleViewDetails}
+        onToggleFavorite={handleToggleFavorite}
+        onViewAllHosts={handleViewAllHosts}
       />
       <TestimonialsSection />
       <CTASection 

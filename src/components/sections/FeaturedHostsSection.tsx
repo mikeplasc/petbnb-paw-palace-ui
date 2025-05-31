@@ -1,43 +1,54 @@
 
+import { Button } from '@/components/ui/button';
 import HostCard from '@/components/HostCard';
 import { mockHosts } from '@/data/mockData';
 
 interface FeaturedHostsSectionProps {
-  hostFavorites: string[];
+  favorites: string[];
+  onViewDetails: (hostId: string) => void;
   onToggleFavorite: (hostId: string) => void;
+  onViewAllHosts: () => void;
 }
 
-const FeaturedHostsSection = ({ hostFavorites, onToggleFavorite }: FeaturedHostsSectionProps) => {
-  const featuredHosts = mockHosts.slice(0, 4);
-
+const FeaturedHostsSection = ({ 
+  favorites, 
+  onViewDetails, 
+  onToggleFavorite, 
+  onViewAllHosts 
+}: FeaturedHostsSectionProps) => {
   return (
-    <section className="py-16 px-4 bg-white">
+    <section className="py-16 px-4 bg-gray-50">
       <div className="container mx-auto">
-        <div className="text-center mb-8">
+        <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Cuidadores destacados
           </h2>
-          <p className="text-gray-600 text-lg">
-            Los mejores cuidadores de mascotas, seleccionados especialmente para ti
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Conoce a algunos de nuestros cuidadores mejor calificados
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {featuredHosts.map((host) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {mockHosts.slice(0, 3).map((host) => (
             <HostCard
               key={host.id}
               host={host}
-              isFavorite={hostFavorites.includes(host.id)}
+              onViewDetails={onViewDetails}
               onToggleFavorite={onToggleFavorite}
-              onViewDetails={() => console.log('Ver detalles:', host.id)}
+              isFavorite={favorites.includes(host.id)}
             />
           ))}
         </div>
 
-        <div className="text-center mt-8">
-          <button className="bg-petbnb-500 hover:bg-petbnb-700 text-white font-bold py-3 px-8 rounded-full transition-colors">
+        <div className="text-center mt-12">
+          <Button 
+            size="lg"
+            variant="outline"
+            onClick={onViewAllHosts}
+            className="border-petbnb-300 text-petbnb-700 hover:bg-petbnb-50 px-8"
+          >
             Ver todos los cuidadores
-          </button>
+          </Button>
         </div>
       </div>
     </section>
