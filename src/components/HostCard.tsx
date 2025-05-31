@@ -1,4 +1,3 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { Heart, Star, MapPin, Clock, CheckCircle } from 'lucide-react';
 interface Host {
   id: string;
   name: string;
-  type: "veterinary" | "individual";
+  type: "veterinary" | "individual" | "host";
   location: string;
   city: string;
   rating: number;
@@ -35,8 +34,8 @@ interface HostCardProps {
 const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }: HostCardProps) => {
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'individual':
-        return 'Cuidador'; // Changed from 'Cuidador individual'
+      case 'host':
+        return 'Cuidador';
       case 'veterinary':
         return 'Veterinaria';
       default:

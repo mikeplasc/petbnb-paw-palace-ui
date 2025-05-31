@@ -39,8 +39,7 @@ const BecomeHost = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const hostTypes = [
-    { value: 'family', label: 'Familia' },
-    { value: 'individual', label: 'Cuidador individual' },
+    { value: 'host', label: 'Cuidador' },
     { value: 'veterinary', label: 'Veterinaria/Clínica' }
   ];
 

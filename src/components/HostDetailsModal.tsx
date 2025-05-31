@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +21,7 @@ interface Host {
   image: string;
   acceptedPets: string[];
   services: string[];
-  type: 'family' | 'individual' | 'veterinary';
+  type: 'host' | 'veterinary';
   description?: string;
   experience?: string;
   availability?: string;
@@ -59,8 +58,7 @@ const HostDetailsModal = ({
 
   const getHostTypeLabel = (type: string) => {
     switch (type) {
-      case 'family': return 'Familia';
-      case 'individual': return 'Cuidador individual';
+      case 'host': return 'Cuidador';
       case 'veterinary': return 'Veterinaria';
       default: return type;
     }
