@@ -3,50 +3,36 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 
 export type Host = Tables<'hosts'>;
-export type Review = Tables<'reviews'>;
 
 export const getHosts = async (filters?: {
   location?: string;
-  petType?: string;
   type?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  minRating?: number;
-  certified?: boolean;
+  priceRange?: [number, number];
+  services?: string[];
+  certifiedOnly?: boolean;
 }) => {
-  let query = supabase
-    .from('hosts')
-    .select('*')
-    .eq('availability', true);
+  let query = supabase.from('hosts').select('*');
 
   if (filters?.location) {
-    query = query.ilike('city', `%${filters.location}%`);
+    query = query.ilike('location', `%${filters.location}%`);
   }
 
-  if (filters?.type) {
+  if (filters?.type && filters.type !== 'Todos') {
     query = query.eq('type', filters.type);
   }
 
-  if (filters?.petType) {
-    // Use @> operator to check if the petType is contained in the accepted_pets array
-    query = query.contains('accepted_pets', [filters.petType]);
+  if (filters?.priceRange) {
+    query = query
+      .gte('price_per_night', filters.priceRange[0])
+      .lte('price_per_night', filters.priceRange[1]);
   }
 
-  if (filters?.minPrice !== undefined && filters.minPrice > 0) {
-    query = query.gte('price_per_night', filters.minPrice);
+  if (filters?.services && filters.services.length > 0) {
+    query = query.overlaps('services', filters.services);
   }
 
-  if (filters?.maxPrice !== undefined && filters.maxPrice < 2000) {
-    query = query.lte('price_per_night', filters.maxPrice);
-  }
-
-  if (filters?.minRating !== undefined && filters.minRating > 0) {
-    query = query.gte('rating', filters.minRating);
-  }
-
-  if (filters?.certified) {
-    // Filter hosts that have certifications (non-empty array)
-    query = query.not('certifications', 'is', null).neq('certifications', '{}');
+  if (filters?.certifiedOnly) {
+    query = query.not('certifications', 'is', null).gt('certifications', '{}');
   }
 
   const { data, error } = await query.order('rating', { ascending: false });
@@ -56,8 +42,23 @@ export const getHosts = async (filters?: {
     throw error;
   }
 
-  console.log('Database query result:', data);
-  console.log('Applied filters:', filters);
+  return data || [];
+};
+
+export const getVeterinaries = async (location?: string) => {
+  let query = supabase.from('hosts').select('*').eq('type', 'veterinary');
+
+  if (location) {
+    query = query.ilike('location', `%${location}%`);
+  }
+
+  const { data, error } = await query.order('rating', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching veterinaries:', error);
+    throw error;
+  }
+
   return data || [];
 };
 
@@ -74,40 +75,4 @@ export const getHostById = async (id: string) => {
   }
 
   return data;
-};
-
-export const getHostReviews = async (hostId: string) => {
-  const { data, error } = await supabase
-    .from('reviews')
-    .select('*')
-    .eq('host_id', hostId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching reviews:', error);
-    throw error;
-  }
-
-  return data || [];
-};
-
-export const getVeterinaries = async (location?: string) => {
-  let query = supabase
-    .from('hosts')
-    .select('*')
-    .eq('type', 'veterinary')
-    .eq('availability', true);
-
-  if (location) {
-    query = query.ilike('city', `%${location}%`);
-  }
-
-  const { data, error } = await query.order('rating', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching veterinaries:', error);
-    throw error;
-  }
-
-  return data || [];
 };

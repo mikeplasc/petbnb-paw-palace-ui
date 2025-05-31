@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,7 +65,8 @@ const MyAdoptions = () => {
   const rejectedRequests = adoptionRequests.filter(request => request.status?.toLowerCase() === 'rejected');
 
   const renderRequest = (request: AdoptionRequest) => {
-    const userInfo = request.user_info as UserInfo;
+    // Safely cast the user_info with type checking
+    const userInfo = request.user_info as unknown as UserInfo;
 
     return (
       <Card key={request.id} className="overflow-hidden hover:shadow-md transition-shadow">
@@ -109,20 +111,20 @@ const MyAdoptions = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">Nombre:</span>{' '}
-                    <span className="text-gray-900">{userInfo.name}</span>
+                    <span className="text-gray-900">{userInfo?.name || 'No disponible'}</span>
                   </div>
                   <div>
                     <span className="text-gray-600">Email:</span>{' '}
-                    <span className="text-gray-900">{userInfo.email}</span>
+                    <span className="text-gray-900">{userInfo?.email || 'No disponible'}</span>
                   </div>
                   <div>
                     <span className="text-gray-600">Teléfono:</span>{' '}
-                    <span className="text-gray-900">{userInfo.phone}</span>
+                    <span className="text-gray-900">{userInfo?.phone || 'No disponible'}</span>
                   </div>
                 </div>
               </div>
 
-              {userInfo.message && (
+              {userInfo?.message && (
                 <div>
                   <h4 className="font-medium text-gray-900 mb-2">Mensaje</h4>
                   <p className="text-gray-600">{userInfo.message}</p>
@@ -276,4 +278,4 @@ const MyAdoptions = () => {
   );
 };
 
-export default MyAdoptions; 
+export default MyAdoptions;
