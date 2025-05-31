@@ -44,7 +44,7 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
       <div className="relative">
         <div className="aspect-[4/3] overflow-hidden">
           <img
-            src={host.images[0]}
+            src={host.images?.[0] || '/placeholder.svg'}
             alt={host.name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
@@ -103,7 +103,7 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
 
           {/* Services preview */}
           <div className="flex flex-wrap gap-1">
-            {host.services.slice(0, 2).map((service, index) => (
+            {host.services?.slice(0, 2).map((service, index) => (
               <Badge
                 key={index}
                 variant="secondary"
@@ -112,7 +112,7 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
                 {service}
               </Badge>
             ))}
-            {host.services.length > 2 && (
+            {host.services && host.services.length > 2 && (
               <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
                 +{host.services.length - 2} más
               </Badge>
@@ -122,7 +122,7 @@ const HostCard = ({ host, onViewDetails, onToggleFavorite, isFavorite = false }:
           {/* Accepted pets */}
           <div className="flex items-center text-sm text-gray-600">
             <span className="mr-2">🐾</span>
-            <span>{host.acceptedPets.join(', ')}</span>
+            <span>{host.acceptedPets?.join(', ') || 'No especificado'}</span>
           </div>
 
           {/* Experience and response time */}
