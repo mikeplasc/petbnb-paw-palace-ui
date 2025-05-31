@@ -1,9 +1,10 @@
+
 import HeroSection from "@/components/sections/HeroSection";
 import CategoriesSection from "@/components/sections/CategoriesSection";
 import FeaturedHostsSection from "@/components/sections/FeaturedHostsSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import CTASection from "@/components/sections/CTASection";
-import Footer from "@/components/Footer";
+import Footer from "@/components/sections/Footer";
 import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 
@@ -34,16 +35,31 @@ const Index = () => {
     });
   };
 
+  const handleSearch = () => {
+    console.log('Buscar cuidadores');
+  };
+
+  const handleStartSearch = () => {
+    console.log('Comenzar búsqueda');
+  };
+
+  const handleBecomeHost = () => {
+    console.log('Convertirse en cuidador');
+  };
+
   return (
     <div className="min-h-screen">
-      <HeroSection />
+      <HeroSection onSearch={handleSearch} />
       <CategoriesSection />
       <FeaturedHostsSection 
         hostFavorites={hostFavorites}
         onToggleFavorite={toggleHostFavorite}
       />
       <TestimonialsSection />
-      <CTASection />
+      <CTASection 
+        onStartSearch={handleStartSearch}
+        onBecomeHost={handleBecomeHost}
+      />
       <Footer />
     </div>
   );

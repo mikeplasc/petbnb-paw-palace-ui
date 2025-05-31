@@ -1,26 +1,21 @@
+
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Star, MapPin, Clock, Shield, Stethoscope, Search } from 'lucide-react';
-import { mockHosts, cities } from '@/data/mockData';
-import VeterinaryProfileModal from '@/components/VeterinaryProfileModal';
-import VeterinaryBookingModal from '@/components/VeterinaryBookingModal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, MapPin, Star, Clock, Phone, Heart } from 'lucide-react';
+import { VeterinaryProfileModal } from '@/components/VeterinaryProfileModal';
+import { VeterinaryBookingModal } from '@/components/VeterinaryBookingModal';
+import { mockHosts } from '@/data/mockData';
 import { toast } from '@/hooks/use-toast';
 
 const Veterinaries = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCity, setSelectedCity] = useState('all');
-  const [sortBy, setSortBy] = useState('rating');
-  const [selectedVeterinary, setSelectedVeterinary] = useState(null);
+  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('rating');
+  const [selectedVeterinary, setSelectedVeterinary] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   
@@ -53,11 +48,15 @@ const Veterinaries = () => {
     });
   };
 
+  // Get unique cities for filter
+  const cities = [...new Set(veterinaries.map(vet => vet.location.split(',')[0].trim()))];
+
+  // Filter and sort veterinaries
   const filteredVeterinaries = veterinaries
     .filter(vet => {
       const matchesSearch = vet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           vet.location.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCity = selectedCity === 'all' || vet.city === selectedCity;
+                          vet.location.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCity = selectedCity === 'all' || vet.location.includes(selectedCity);
       return matchesSearch && matchesCity;
     })
     .sort((a, b) => {
@@ -73,16 +72,9 @@ const Veterinaries = () => {
       }
     });
 
-  const handleViewDetails = (vet: any) => {
-    console.log('Ver detalles de veterinaria:', vet.id);
+  const handleViewProfile = (vet: any) => {
     setSelectedVeterinary(vet);
     setIsProfileModalOpen(true);
-  };
-
-  const handleBooking = (vet: any) => {
-    console.log('Reservar en veterinaria:', vet.id);
-    setSelectedVeterinary(vet);
-    setIsBookingModalOpen(true);
   };
 
   const handleBookingFromProfile = () => {
@@ -90,34 +82,34 @@ const Veterinaries = () => {
     setIsBookingModalOpen(true);
   };
 
+  const handleDirectBooking = (vet: any) => {
+    setSelectedVeterinary(vet);
+    setIsBookingModalOpen(true);
+  };
+
   return (
     <div className="bg-gradient-to-br from-petbnb-50 to-warm-50">
       {/* Hero Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-petbnb-600 to-primary-600">
-        <div className="container mx-auto text-center text-white">
-          <div className="max-w-3xl mx-auto">
-            <Stethoscope className="w-16 h-16 mx-auto mb-6" />
-            <h1 className="text-5xl font-bold mb-6">
-              Veterinarias certificadas
-            </h1>
-            <p className="text-xl mb-8 text-petbnb-100">
-              Cuidado médico profesional 24/7 para tu mascota cuando más lo necesita
-            </p>
-            
-            {/* Quick stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">{veterinaries.length}+</div>
-                <div className="text-petbnb-100">Clínicas certificadas</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">24/7</div>
-                <div className="text-petbnb-100">Atención de emergencia</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur rounded-lg p-4">
-                <div className="text-2xl font-bold">100%</div>
-                <div className="text-petbnb-100">Personal certificado</div>
-              </div>
+      <section className="relative py-20 px-4 overflow-hidden">
+        <div className="container mx-auto text-center">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            Veterinarias certificadas
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Encuentra la mejor atención médica para tu mascota con nuestras veterinarias verificadas
+          </p>
+          <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>Disponibles 24/7</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span>Profesionales certificados</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span>Emergencias atendidas</span>
             </div>
           </div>
         </div>
@@ -168,13 +160,10 @@ const Veterinaries = () => {
       {/* Results */}
       <section className="py-12 px-4">
         <div className="container mx-auto">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {filteredVeterinaries.length} veterinarias encontradas
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Veterinarias disponibles ({filteredVeterinaries.length})
             </h2>
-            <p className="text-gray-600">
-              Clínicas y hospitales veterinarios certificados para el cuidado de tu mascota
-            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -199,92 +188,75 @@ const Veterinaries = () => {
                     </button>
                   </div>
                   
-                  <div className="md:w-2/3">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg font-bold text-gray-900 mb-1">
-                            {vet.name}
-                          </CardTitle>
-                          <div className="flex items-center text-gray-600 text-sm mb-2">
-                            <MapPin className="w-4 h-4 mr-1" />
-                            {vet.location}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center mb-1">
-                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
-                            <span className="font-semibold">{vet.rating}</span>
-                            <span className="text-gray-500 text-sm ml-1">
-                              ({vet.reviewCount})
-                            </span>
-                          </div>
-                          <div className="text-2xl font-bold text-petbnb-600">
-                            ${vet.pricePerNight}
-                            <span className="text-sm font-normal text-gray-500">/noche</span>
-                          </div>
-                        </div>
+                  <CardContent className="md:w-2/3 p-6">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-semibold text-gray-900">{vet.name}</h3>
+                      <Badge className="bg-green-100 text-green-800">
+                        24/7 Disponible
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center mb-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i < Math.floor(vet.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                        <span className="ml-2 text-sm text-gray-600">
+                          {vet.rating} ({vet.reviewCount} reseñas)
+                        </span>
                       </div>
-                    </CardHeader>
+                    </div>
 
-                    <CardContent className="pt-0">
-                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-                        {vet.description}
-                      </p>
+                    <div className="flex items-center text-gray-500 text-sm mb-3">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {vet.location}
+                    </div>
 
-                      {/* Services */}
-                      <div className="mb-3">
-                        <div className="flex flex-wrap gap-1">
-                          {vet.services.slice(0, 3).map((service, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {service}
-                            </Badge>
-                          ))}
-                          {vet.services.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{vet.services.length - 3} más
-                            </Badge>
-                          )}
-                        </div>
+                    <p className="text-gray-700 text-sm mb-4 line-clamp-2">
+                      {vet.description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                      <div className="flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        <span>Tiempo de respuesta: 2-4 horas</span>
                       </div>
-
-                      {/* Certifications */}
-                      {vet.certifications && (
-                        <div className="mb-3">
-                          <div className="flex items-center text-green-600 text-sm">
-                            <Shield className="w-4 h-4 mr-1" />
-                            <span className="font-medium">Certificaciones:</span>
-                            <span className="ml-1">{vet.certifications.join(', ')}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Footer info */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center text-gray-600 text-sm">
-                          <Clock className="w-4 h-4 mr-1" />
-                          <span>Responde en {vet.responseTime}</span>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewDetails(vet)}
-                          >
-                            Ver perfil
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleBooking(vet)}
-                            className="bg-petbnb-600 hover:bg-petbnb-700"
-                          >
-                            Reservar
-                          </Button>
-                        </div>
+                      <div className="flex items-center">
+                        <Phone className="w-4 h-4 mr-1" />
+                        <span>Emergencias</span>
                       </div>
-                    </CardContent>
-                  </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-2xl font-bold text-petbnb-600">
+                          ${vet.pricePerNight}
+                        </span>
+                        <span className="text-gray-500 text-sm ml-1">por consulta</span>
+                      </div>
+                      <div className="space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewProfile(vet)}
+                        >
+                          Ver perfil
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleDirectBooking(vet)}
+                          className="bg-petbnb-500 hover:bg-petbnb-600"
+                        >
+                          Agendar cita
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
                 </div>
               </Card>
             ))}
@@ -292,11 +264,11 @@ const Veterinaries = () => {
 
           {filteredVeterinaries.length === 0 && (
             <div className="text-center py-12">
-              <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              <div className="text-gray-400 text-6xl mb-4">🏥</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 No se encontraron veterinarias
               </h3>
-              <p className="text-gray-500">
+              <p className="text-gray-600">
                 Intenta ajustar tus filtros de búsqueda
               </p>
             </div>
@@ -304,54 +276,46 @@ const Veterinaries = () => {
         </div>
       </section>
 
-      {/* Why Choose Certified Vets Section */}
+      {/* Why Choose Our Veterinaries */}
       <section className="py-16 px-4 bg-white">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              ¿Por qué elegir veterinarias certificadas?
+              ¿Por qué elegir nuestras veterinarias?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Nuestras clínicas veterinarias ofrecen el más alto nivel de cuidado médico
+              Todas nuestras veterinarias están certificadas y ofrecen servicios de calidad
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Personal certificado</h3>
-                <p className="text-gray-600 text-sm">
-                  Todos nuestros veterinarios cuentan con cédulas profesionales y certificaciones vigentes
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Atención 24/7</h3>
-                <p className="text-gray-600 text-sm">
-                  Servicio de emergencia disponible las 24 horas, los 7 días de la semana
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Stethoscope className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Equipamiento moderno</h3>
-                <p className="text-gray-600 text-sm">
-                  Instalaciones con tecnología de vanguardia para diagnóstico y tratamiento
-                </p>
-              </CardContent>
-            </Card>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-2xl">🩺</div>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Profesionales certificados</h3>
+              <p className="text-gray-600">
+                Médicos veterinarios con experiencia y certificaciones actualizadas
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-2xl">⏰</div>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Disponibilidad 24/7</h3>
+              <p className="text-gray-600">
+                Atención de emergencias las 24 horas del día, los 7 días de la semana
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-2xl">📱</div>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Fácil agendamiento</h3>
+              <p className="text-gray-600">
+                Sistema simple para agendar citas y consultas médicas
+              </p>
+            </div>
           </div>
         </div>
       </section>

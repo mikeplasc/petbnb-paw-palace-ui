@@ -1,4 +1,5 @@
-import { HostCard } from '@/components/HostCard';
+
+import HostCard from '@/components/HostCard';
 import { mockHosts } from '@/data/mockData';
 
 interface FeaturedHostsSectionProps {

@@ -1,81 +1,33 @@
+
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Calendar } from "lucide-react"
-import { Calendar as CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { DateRange } from "react-day-picker"
-import { CalendarDateRangePicker } from "@/components/ui/calendar"
-import { Heart, MapPin, Clock, Shield, Stethoscope, Search, LucideIcon } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Heart, MapPin, Search, Calendar, Shield } from 'lucide-react';
+import { AdoptionModal } from '@/components/AdoptionModal';
+import { AdoptionConfirmModal } from '@/components/AdoptionConfirmModal';
+import { mockPets } from '@/data/mockPets';
+import { Pet } from '@/types/adoption';
 import { toast } from '@/hooks/use-toast';
 
-// Mock data for adoption pets - in real app this would come from a service
-const mockPets = [
-  {
-    id: 'pet1',
-    name: 'Buddy',
-    age: '2 años',
-    breed: 'Golden Retriever',
-    location: 'Madrid, España',
-    images: ['/placeholder.svg'],
-    isUrgent: true,
-    description: 'Amigable y juguetón, ideal para familias activas.',
-  },
-  {
-    id: 'pet2',
-    name: 'Luna',
-    age: '1 año',
-    breed: 'Siamese',
-    location: 'Barcelona, España',
-    images: ['/placeholder.svg'],
-    isUrgent: false,
-    description: 'Cariñosa y tranquila, perfecta para un hogar relajado.',
-  },
-  {
-    id: 'pet3',
-    name: 'Max',
-    age: '3 años',
-    breed: 'Labrador',
-    location: 'Valencia, España',
-    images: ['/placeholder.svg'],
-    isUrgent: false,
-    description: 'Muy enérgico y leal, necesita mucho ejercicio.',
-  },
-  {
-    id: 'pet4',
-    name: 'Bella',
-    age: '6 meses',
-    breed: 'Poodle',
-    location: 'Sevilla, España',
-    images: ['/placeholder.svg'],
-    isUrgent: true,
-    description: 'Inteligente y adorable, fácil de entrenar.',
-  },
-];
-
 const Adoption = () => {
+  const [pets, setPets] = useState<Pet[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCity, setSelectedCity] = useState('all');
-  const [selectedBreed, setSelectedBreed] = useState('all');
-  const [isUrgent, setIsUrgent] = useState(false);
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [selectedSpecies, setSelectedSpecies] = useState<string>('all');
+  const [selectedAge, setSelectedAge] = useState<string>('all');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   
   // Add favorites state
   const [petFavorites, setPetFavorites] = useState<string[]>([]);
 
-  const [selectedPet, setSelectedPet] = useState(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  useEffect(() => {
+    setPets(mockPets);
+  }, []);
 
   // Add useEffect to load favorites from localStorage
   useEffect(() => {
@@ -100,83 +52,116 @@ const Adoption = () => {
     });
   };
 
-  const filteredPets = mockPets.filter(pet => {
+  // Filter pets based on search criteria
+  const filteredPets = pets.filter(pet => {
     const matchesSearch = pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          pet.breed.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          pet.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCity = selectedCity === 'all' || pet.location.toLowerCase().includes(selectedCity.toLowerCase());
-    const matchesBreed = selectedBreed === 'all' || pet.breed.toLowerCase() === selectedBreed.toLowerCase();
-    const matchesUrgent = !isUrgent || pet.isUrgent === isUrgent;
-
-    return matchesSearch && matchesCity && matchesBreed && matchesUrgent;
+                         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSpecies = selectedSpecies === 'all' || pet.species === selectedSpecies;
+    const matchesAge = selectedAge === 'all' || pet.ageCategory === selectedAge;
+    const matchesCity = selectedCity === 'all' || pet.location.includes(selectedCity);
+    
+    return matchesSearch && matchesSpecies && matchesAge && matchesCity;
   });
 
-  const handleViewDetails = (pet: any) => {
-    console.log('Ver detalles de mascota:', pet.id);
+  const handleAdoptClick = (pet: Pet) => {
     setSelectedPet(pet);
-    setIsProfileModalOpen(true);
+    setIsModalOpen(true);
   };
+
+  const handleAdoptConfirm = () => {
+    setIsModalOpen(false);
+    setIsConfirmModalOpen(true);
+  };
+
+  const cities = [...new Set(pets.map(pet => pet.location.split(',')[0].trim()))];
+  const species = [...new Set(pets.map(pet => pet.species))];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Encuentra tu compañero ideal
+      <section className="relative py-20 px-4 bg-gradient-to-br from-warm-100 to-sage-100">
+        <div className="container mx-auto text-center">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            Encuentra tu nuevo mejor amigo
           </h1>
-          <p className="text-xl md:text-2xl opacity-90">
-            Adopta una mascota y cambia una vida
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Miles de mascotas esperan encontrar un hogar lleno de amor. 
+            Descubre tu compañero perfecto hoy mismo.
           </p>
+          <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
+            <div className="flex items-center space-x-2">
+              <Shield className="w-5 h-5 text-green-500" />
+              <span>Mascotas verificadas</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Heart className="w-5 h-5 text-red-500" />
+              <span>Proceso seguro</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-5 h-5 text-blue-500" />
+              <span>Seguimiento post-adopción</span>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Filters Section */}
-      <section className="bg-white py-6 border-b border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="flex-1 relative">
+      {/* Search and Filters */}
+      <section className="py-8 px-4 bg-white border-b border-gray-200">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
-                placeholder="Buscar por nombre, raza o ubicación..."
+                placeholder="Buscar por nombre o raza..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
+            
+            <Select value={selectedSpecies} onValueChange={setSelectedSpecies}>
+              <SelectTrigger>
+                <SelectValue placeholder="Todas las especies" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las especies</SelectItem>
+                {species.map((species) => (
+                  <SelectItem key={species} value={species}>
+                    {species === 'dog' ? 'Perros' : species === 'cat' ? 'Gatos' : 'Otros'}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedAge} onValueChange={setSelectedAge}>
+              <SelectTrigger>
+                <SelectValue placeholder="Todas las edades" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las edades</SelectItem>
+                <SelectItem value="puppy">Cachorro</SelectItem>
+                <SelectItem value="young">Joven</SelectItem>
+                <SelectItem value="adult">Adulto</SelectItem>
+                <SelectItem value="senior">Senior</SelectItem>
+              </SelectContent>
+            </Select>
 
             <Select value={selectedCity} onValueChange={setSelectedCity}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger>
                 <SelectValue placeholder="Todas las ciudades" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las ciudades</SelectItem>
-                <SelectItem value="Madrid">Madrid</SelectItem>
-                <SelectItem value="Barcelona">Barcelona</SelectItem>
-                <SelectItem value="Valencia">Valencia</SelectItem>
-                <SelectItem value="Sevilla">Sevilla</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
-            <Select value={selectedBreed} onValueChange={setSelectedBreed}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Todas las razas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las razas</SelectItem>
-                <SelectItem value="Golden Retriever">Golden Retriever</SelectItem>
-                <SelectItem value="Siamese">Siamese</SelectItem>
-                <SelectItem value="Labrador">Labrador</SelectItem>
-                <SelectItem value="Poodle">Poodle</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button
-              variant="outline"
-              onClick={() => setIsUrgent(!isUrgent)}
-              className={`w-full md:w-48 justify-center ${isUrgent ? 'bg-red-500 text-white hover:bg-red-600' : ''}`}
-            >
-              {isUrgent ? 'Urgentes (Activado)' : 'Mostrar solo urgentes'}
+            <Button className="bg-petbnb-500 hover:bg-petbnb-600">
+              Buscar mascotas
             </Button>
           </div>
         </div>
@@ -185,13 +170,21 @@ const Adoption = () => {
       {/* Results Section */}
       <section className="py-12 px-4">
         <div className="container mx-auto">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {filteredPets.length} mascotas encontradas
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Mascotas disponibles ({filteredPets.length})
             </h2>
-            <p className="text-gray-600">
-              Listado de mascotas disponibles para adopción
-            </p>
+            <Select defaultValue="newest">
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Más recientes</SelectItem>
+                <SelectItem value="oldest">Más antiguos</SelectItem>
+                <SelectItem value="youngest">Más jóvenes</SelectItem>
+                <SelectItem value="name">Por nombre</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -213,44 +206,52 @@ const Adoption = () => {
                       }`}
                     />
                   </button>
+                  <Badge className="absolute top-2 left-2 bg-blue-500/90 text-white">
+                    {pet.ageInMonths < 12 ? `${pet.ageInMonths}m` : `${Math.floor(pet.ageInMonths / 12)}a`}
+                  </Badge>
                   {pet.isUrgent && (
-                    <Badge className="absolute bottom-2 left-2 bg-red-500 text-white">
+                    <Badge className="absolute top-10 left-2 bg-red-500/90 text-white">
                       Urgente
                     </Badge>
                   )}
-                  <Badge className="absolute bottom-2 right-2 bg-white text-gray-600">
-                    {pet.age}
-                  </Badge>
                 </div>
 
                 <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {pet.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-3">
-                    {pet.breed} - {pet.location}
-                  </p>
-                  <p className="text-gray-700 text-sm line-clamp-3">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900">{pet.name}</h3>
+                    <Badge variant="secondary" className="text-xs">
+                      {pet.gender === 'male' ? 'Macho' : 'Hembra'}
+                    </Badge>
+                  </div>
+                  <p className="text-gray-600 text-sm mb-2">{pet.breed}</p>
+                  <div className="flex items-center text-gray-500 text-sm mb-3">
+                    <MapPin className="w-3 h-3 mr-1" />
+                    {pet.location}
+                  </div>
+                  <p className="text-gray-700 text-sm line-clamp-2">
                     {pet.description}
                   </p>
                 </CardContent>
 
-                <div className="p-4 border-t border-gray-200">
-                  <Button onClick={() => handleViewDetails(pet)} className="w-full">
-                    Ver detalles
+                <CardFooter className="p-4 pt-0">
+                  <Button 
+                    onClick={() => handleAdoptClick(pet)}
+                    className="w-full bg-warm-500 hover:bg-warm-600 text-white"
+                  >
+                    Conocer más
                   </Button>
-                </div>
+                </CardFooter>
               </Card>
             ))}
           </div>
 
           {filteredPets.length === 0 && (
             <div className="text-center py-12">
-              <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              <div className="text-gray-400 text-6xl mb-4">🐾</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 No se encontraron mascotas
               </h3>
-              <p className="text-gray-500">
+              <p className="text-gray-600">
                 Intenta ajustar tus filtros de búsqueda
               </p>
             </div>
@@ -259,49 +260,18 @@ const Adoption = () => {
       </section>
 
       {/* Modals */}
-      <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-gray-900">
-              {selectedPet?.name}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedPet?.breed} - {selectedPet?.location}
-            </DialogDescription>
-          </DialogHeader>
+      <AdoptionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        pet={selectedPet}
+        onAdopt={handleAdoptConfirm}
+      />
 
-          <div className="space-y-6">
-            {/* Images Gallery */}
-            <div className="grid grid-cols-2 gap-4">
-              {selectedPet?.images.map((image: string, index: number) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`${selectedPet?.name} - Imagen ${index + 1}`}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-              ))}
-            </div>
-
-            {/* Basic Info */}
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center text-gray-600 mb-2">
-                  <MapPin className="w-5 h-5 mr-2" />
-                  <span>{selectedPet?.location}</span>
-                </div>
-                
-                <div className="flex items-center mb-4">
-                  <span className="font-semibold mr-2">Edad:</span>
-                  <span className="text-gray-500">{selectedPet?.age}</span>
-                </div>
-
-                <p className="text-gray-700 mb-4">{selectedPet?.description}</p>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AdoptionConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        pet={selectedPet}
+      />
     </div>
   );
 };
