@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AdoptionStory {
@@ -74,96 +75,27 @@ const mockStories: AdoptionStory[] = [
 ];
 
 export const getAdoptionStories = async (): Promise<AdoptionStory[]> => {
-  // In development, return mock data
-  if (import.meta.env.DEV) {
-    return mockStories;
-  }
-
-  const { data, error } = await supabase
-    .from('adoption_stories')
-    .select(`
-      *,
-      profiles:user_id (
-        full_name,
-        avatar_url
-      )
-    `)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching adoption stories:', error);
-    return [];
-  }
-
-  return data.map(story => ({
-    ...story,
-    user_name: story.profiles?.full_name || 'Usuario anónimo',
-    user_avatar: story.profiles?.avatar_url || null,
-  }));
+  // For now, always return mock data since the adoption_stories table doesn't exist yet
+  return mockStories;
 };
 
 export const createAdoptionStory = async (storyData: Omit<AdoptionStory, 'id' | 'created_at' | 'likes' | 'user_name' | 'user_avatar'>): Promise<AdoptionStory | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
+  // For now, just return a mock story since the table doesn't exist yet
+  console.log('Creating adoption story (mock):', storyData);
   
-  if (!user) {
-    throw new Error('User must be authenticated to create an adoption story');
-  }
-
-  const { data, error } = await supabase
-    .from('adoption_stories')
-    .insert({
-      ...storyData,
-      user_id: user.id,
-      likes: 0,
-    })
-    .select(`
-      *,
-      profiles:user_id (
-        full_name,
-        avatar_url
-      )
-    `)
-    .single();
-
-  if (error) {
-    console.error('Error creating adoption story:', error);
-    return null;
-  }
-
-  return {
-    ...data,
-    user_name: data.profiles?.full_name || 'Usuario anónimo',
-    user_avatar: data.profiles?.avatar_url || null,
+  const newStory: AdoptionStory = {
+    ...storyData,
+    id: Math.random().toString(36).substr(2, 9),
+    created_at: new Date().toISOString(),
+    likes: 0,
+    user_name: 'Usuario',
+    user_avatar: ''
   };
+  
+  return newStory;
 };
 
 export const likeAdoptionStory = async (storyId: string): Promise<void> => {
-  // In development, just log the action
-  if (import.meta.env.DEV) {
-    console.log(`Liked story ${storyId} (mock)`);
-    return;
-  }
-
-  // First get the current likes count
-  const { data: story, error: getError } = await supabase
-    .from('adoption_stories')
-    .select('likes')
-    .eq('id', storyId)
-    .single();
-
-  if (getError) {
-    console.error('Error getting adoption story:', getError);
-    throw getError;
-  }
-
-  // Then increment it
-  const { error: updateError } = await supabase
-    .from('adoption_stories')
-    .update({ likes: (story?.likes || 0) + 1 })
-    .eq('id', storyId);
-
-  if (updateError) {
-    console.error('Error liking adoption story:', updateError);
-    throw updateError;
-  }
-}; 
+  // For now, just log the action since the table doesn't exist yet
+  console.log(`Liked story ${storyId} (mock)`);
+};
