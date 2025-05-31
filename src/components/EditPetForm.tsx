@@ -307,18 +307,6 @@ const EditPetForm = ({ pet, isOpen, onClose, onUpdatePet }: EditPetFormProps) =>
                     required
                   />
                 </div>
-
-                <div>
-                  <Label htmlFor="adoptionFee">Cuota de adopción (€)</Label>
-                  <Input
-                    id="adoptionFee"
-                    type="number"
-                    value={petData.adoption_fee}
-                    onChange={(e) => setPetData(prev => ({ ...prev, adoption_fee: parseInt(e.target.value) || 0 }))}
-                    placeholder="150"
-                    min="0"
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>

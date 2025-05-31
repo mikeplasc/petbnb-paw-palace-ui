@@ -96,7 +96,7 @@ export const generatePets = (): Pet[] => {
       urgent: Math.random() > 0.8,
       shelter_name: shelter,
       shelter_contact: `contacto@${shelter.toLowerCase().replace(/\s+/g, '')}.org`,
-      adoption_fee: Math.floor(Math.random() * 200) + 50,
+      adoption_fee: 0,
       created_at: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
       updated_at: `2024-01-${Math.floor(Math.random() * 28) + 1}`,
       characteristics: petCharacteristics,
