@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Heart, User, Calendar, Settings, Menu, Stethoscope } from 'lucide-react';
+import { User, Calendar, Settings, Menu, Stethoscope } from 'lucide-react';
 import { useState } from 'react';
 
 const Navbar = () => {
@@ -83,20 +83,6 @@ const Navbar = () => {
 
         {/* User Menu */}
         <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`hidden sm:flex items-center space-x-1 transition-colors ${
-              isActive('/favorites') ? 'text-primary-600' : 'text-gray-600 hover:text-primary-600'
-            }`}
-            asChild
-          >
-            <Link to="/favorites">
-              <Heart className="w-4 h-4" />
-              <span>Favoritos</span>
-            </Link>
-          </Button>
-
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
               <Button 
@@ -134,12 +120,6 @@ const Navbar = () => {
                 <Link to="/my-veterinaries">
                   <Stethoscope className="mr-2 h-4 w-4" />
                   <span>Mis veterinarias</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer hover:bg-gray-50">
-                <Link to="/favorites">
-                  <Heart className="mr-2 h-4 w-4" />
-                  <span>Favoritos</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -217,14 +197,6 @@ const Navbar = () => {
             }`}
           >
             Adopción
-          </Link>
-          <Link
-            to="/favorites"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
-              isActive('/favorites') ? 'bg-primary-100 text-primary-600' : 'text-gray-600 hover:text-primary-600'
-            }`}
-          >
-            Favoritos
           </Link>
         </div>
       </div>
