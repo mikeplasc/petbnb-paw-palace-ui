@@ -23,6 +23,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import HostDetailsModal from "@/components/HostDetailsModal";
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -34,6 +35,9 @@ const SearchResults = () => {
   const [hostType, setHostType] = useState("all");
   const [minRating, setMinRating] = useState("all");
   const [maxPrice, setMaxPrice] = useState("");
+
+  const [selectedHost, setSelectedHost] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const debouncedSearchLocation = useDebounce(searchLocation, 1000);
   const debouncedMaxPrice = useDebounce(maxPrice, 1000);
@@ -82,6 +86,35 @@ const SearchResults = () => {
 
   const handleToggleFavorite = (hostId: string) => {
     toggleFavorite(hostId, "host");
+  };
+
+  const handleCardClick = (host: any) => {
+    // Transform host data to match HostDetailsModal interface
+    const transformedHost = {
+      id: host.id,
+      name: host.name,
+      location: host.city,
+      rating: Number(host.rating),
+      reviewCount: host.review_count,
+      pricePerNight: host.price_per_night,
+      image: Array.isArray(host.images) && host.images.length > 0 ? host.images[0] : "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400&h=300&fit=crop",
+      acceptedPets: Array.isArray(host.accepted_pets) ? host.accepted_pets : [],
+      services: Array.isArray(host.services) ? host.services : [],
+      type: host.type || 'host',
+      description: host.description,
+      experience: host.experience,
+      availability: host.availability,
+      phone: host.phone,
+      email: host.email,
+    };
+    
+    setSelectedHost(transformedHost);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedHost(null);
   };
 
   if (isLoading) {
@@ -239,7 +272,8 @@ const SearchResults = () => {
           return (
             <Card
               key={host.id}
-              className="group hover:shadow-lg transition-shadow"
+              className="group hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => handleCardClick(host)}
             >
               <div className="relative">
                 <img
@@ -257,7 +291,10 @@ const SearchResults = () => {
                   }}
                 />
                 <button
-                  onClick={() => handleToggleFavorite(host.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleFavorite(host.id);
+                  }}
                   className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50"
                 >
                   <Heart
@@ -332,7 +369,6 @@ const SearchResults = () => {
                       /noche
                     </span>
                   </div>
-                  <Button size="sm">Ver perfil</Button>
                 </div>
               </CardContent>
             </Card>
@@ -350,6 +386,15 @@ const SearchResults = () => {
           </p>
         </div>
       )}
+
+      {/* Host Details Modal */}
+      <HostDetailsModal
+        host={selectedHost}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onToggleFavorite={handleToggleFavorite}
+        isFavorite={selectedHost ? isFavorite(selectedHost.id, "host") : false}
+      />
     </div>
   );
 };
