@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SearchBar, { SearchFilters } from '@/components/SearchBar';
@@ -19,7 +20,7 @@ import type { Host as SupabaseHost } from '@/services/hostService';
 interface ComponentHost {
   id: string;
   name: string;
-  type: "veterinary" | "sitter";
+  type: "veterinary" | "family" | "individual";
   location: string;
   city: string;
   rating: number;
@@ -29,7 +30,7 @@ interface ComponentHost {
   images: string[];
   services: string[];
   acceptedPets: string[];
-  availability: string;
+  availability: boolean;
   responseTime: string;
   experience: string;
   description: string;
@@ -52,15 +53,16 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
     : [];
 
   // Map database type values to expected ComponentHost type values
-  const mapHostType = (dbType: string): "veterinary" | "sitter" => {
+  const mapHostType = (dbType: string): "veterinary" | "family" | "individual" => {
     switch (dbType) {
       case 'veterinary':
         return 'veterinary';
       case 'family':
-      case 'individual':
+        return 'family';
       case 'sitter':
+      case 'individual':
       default:
-        return 'sitter'; // Default fallback
+        return 'individual'; // Default fallback
     }
   };
 
@@ -77,7 +79,7 @@ const convertSupabaseHostToComponentHost = (supabaseHost: SupabaseHost): Compone
     images: images,
     services: services,
     acceptedPets: acceptedPets,
-    availability: supabaseHost.availability ? 'Disponible' : 'No disponible',
+    availability: supabaseHost.availability,
     responseTime: supabaseHost.response_time,
     experience: supabaseHost.experience || '',
     description: supabaseHost.description,
