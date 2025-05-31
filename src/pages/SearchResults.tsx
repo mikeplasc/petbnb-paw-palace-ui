@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SearchBar, { SearchFilters } from '@/components/SearchBar';
@@ -9,7 +10,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { mockHosts, petTypes, cities } from '@/data/mockData';
+import { useQuery } from '@tanstack/react-query';
+import { getHosts } from '@/services/hostService';
+import { petTypes, cities } from '@/data/mockData';
 import { Filter, Grid, List, MapPin, Star } from 'lucide-react';
 
 const SearchResults = () => {
@@ -34,6 +37,15 @@ const SearchResults = () => {
   const startDateParam = searchParams.get('startDate') || '';
   const endDateParam = searchParams.get('endDate') || '';
 
+  // Fetch hosts from Supabase
+  const { data: hosts = [], isLoading, error } = useQuery({
+    queryKey: ['hosts', locationParam, petTypeParam],
+    queryFn: () => getHosts({
+      location: locationParam,
+      petType: petTypeParam
+    }),
+  });
+
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);
     // Here you would update the search results based on new filters
@@ -48,7 +60,7 @@ const SearchResults = () => {
   };
 
   const handleViewDetails = (hostId: string) => {
-    const host = mockHosts.find(h => h.id === hostId);
+    const host = hosts.find(h => h.id === hostId);
     if (host) {
       setSelectedHost(host);
       setIsModalOpen(true);
@@ -61,31 +73,34 @@ const SearchResults = () => {
   };
 
   // Filter and sort hosts
-  const filteredAndSortedHosts = mockHosts
+  const filteredAndSortedHosts = hosts
     .filter(host => {
       // Location filter
-      if (locationParam && !host.location.toLowerCase().includes(locationParam.toLowerCase())) {
+      if (locationParam && host.city && !host.city.toLowerCase().includes(locationParam.toLowerCase())) {
         return false;
       }
       
       // Pet type filter
-      if (petTypeParam && !host.acceptedPets.some(pet => 
-        pet.toLowerCase().includes(petTypeParam.toLowerCase())
-      )) {
+      if (petTypeParam && host.accepted_pets && Array.isArray(host.accepted_pets) && 
+          !host.accepted_pets.some(pet => 
+            pet.toLowerCase().includes(petTypeParam.toLowerCase())
+          )) {
         return false;
       }
 
       // Pet types filter
-      if (selectedPetTypes.length > 0 && !selectedPetTypes.some(petType =>
-        host.acceptedPets.includes(petType)
-      )) {
+      if (selectedPetTypes.length > 0 && host.accepted_pets && Array.isArray(host.accepted_pets) &&
+          !selectedPetTypes.some(petType =>
+            host.accepted_pets.includes(petType)
+          )) {
         return false;
       }
 
       // Services filter
-      if (selectedServices.length > 0 && !selectedServices.some(service =>
-        host.services.includes(service)
-      )) {
+      if (selectedServices.length > 0 && host.services && Array.isArray(host.services) &&
+          !selectedServices.some(service =>
+            host.services.includes(service)
+          )) {
         return false;
       }
 
@@ -95,7 +110,7 @@ const SearchResults = () => {
       }
 
       // Price filter
-      if (host.pricePerNight < priceRange[0] || host.pricePerNight > priceRange[1]) {
+      if (host.price_per_night < priceRange[0] || host.price_per_night > priceRange[1]) {
         return false;
       }
 
@@ -109,13 +124,13 @@ const SearchResults = () => {
     .sort((a, b) => {
       switch (sortBy) {
         case 'price-low':
-          return a.pricePerNight - b.pricePerNight;
+          return a.price_per_night - b.price_per_night;
         case 'price-high':
-          return b.pricePerNight - a.pricePerNight;
+          return b.price_per_night - a.price_per_night;
         case 'rating':
           return b.rating - a.rating;
         case 'reviews':
-          return b.reviewCount - a.reviewCount;
+          return b.review_count - a.review_count;
         default:
           return 0;
       }
@@ -132,6 +147,30 @@ const SearchResults = () => {
       default: return type;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando cuidadores...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Error al cargar los cuidadores</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Intentar de nuevo
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
