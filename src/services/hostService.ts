@@ -8,6 +8,9 @@ export const getHosts = async (filters?: {
   location?: string;
   petType?: string;
   type?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
 }) => {
   let query = supabase
     .from('hosts')
@@ -27,6 +30,18 @@ export const getHosts = async (filters?: {
     query = query.contains('accepted_pets', [filters.petType]);
   }
 
+  if (filters?.minPrice !== undefined && filters.minPrice > 0) {
+    query = query.gte('price_per_night', filters.minPrice);
+  }
+
+  if (filters?.maxPrice !== undefined && filters.maxPrice < 2000) {
+    query = query.lte('price_per_night', filters.maxPrice);
+  }
+
+  if (filters?.minRating !== undefined && filters.minRating > 0) {
+    query = query.gte('rating', filters.minRating);
+  }
+
   const { data, error } = await query.order('rating', { ascending: false });
 
   if (error) {
@@ -35,6 +50,7 @@ export const getHosts = async (filters?: {
   }
 
   console.log('Database query result:', data);
+  console.log('Applied filters:', filters);
   return data || [];
 };
 

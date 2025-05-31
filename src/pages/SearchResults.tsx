@@ -130,16 +130,22 @@ const SearchResults = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('rating');
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedHost, setSelectedHost] = useState<ModalHost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Filters state
-  const [selectedPetTypes, setSelectedPetTypes] = useState<string[]>([]);
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [selectedHostTypes, setSelectedHostTypes] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([0, 2000]);
-  const [minRating, setMinRating] = useState(0);
+  // Filters state - these will be applied to the database query
+  const [appliedFilters, setAppliedFilters] = useState({
+    location: searchParams.get('location') || '',
+    petType: searchParams.get('petType') || '',
+    hostType: '',
+    minPrice: 0,
+    maxPrice: 2000,
+    minRating: 0,
+    services: [] as string[]
+  });
+
+  // Local filters state for the filter form
+  const [localFilters, setLocalFilters] = useState(appliedFilters);
 
   // Get search parameters
   const locationParam = searchParams.get('location') || '';
@@ -150,19 +156,42 @@ const SearchResults = () => {
   console.log('Search params:', { locationParam, petTypeParam, startDateParam, endDateParam });
 
   // Build filters for the database query
-  const dbFilters: { location?: string; petType?: string } = {};
+  const dbFilters: { 
+    location?: string; 
+    petType?: string; 
+    type?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    minRating?: number;
+  } = {};
   
-  if (locationParam) {
-    dbFilters.location = locationParam;
+  if (appliedFilters.location) {
+    dbFilters.location = appliedFilters.location;
   }
   
-  if (petTypeParam) {
-    dbFilters.petType = petTypeParam;
+  if (appliedFilters.petType) {
+    dbFilters.petType = appliedFilters.petType;
   }
 
-  // Fetch hosts from Supabase
-  const { data: supabaseHosts = [], isLoading, error } = useQuery({
-    queryKey: ['hosts', locationParam, petTypeParam],
+  if (appliedFilters.hostType) {
+    dbFilters.type = appliedFilters.hostType;
+  }
+
+  if (appliedFilters.minPrice > 0) {
+    dbFilters.minPrice = appliedFilters.minPrice;
+  }
+
+  if (appliedFilters.maxPrice < 2000) {
+    dbFilters.maxPrice = appliedFilters.maxPrice;
+  }
+
+  if (appliedFilters.minRating > 0) {
+    dbFilters.minRating = appliedFilters.minRating;
+  }
+
+  // Fetch hosts from Supabase with applied filters
+  const { data: supabaseHosts = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['hosts', appliedFilters],
     queryFn: () => {
       console.log('Fetching hosts with filters:', dbFilters);
       return getHosts(dbFilters);
@@ -176,6 +205,21 @@ const SearchResults = () => {
 
   console.log('Converted hosts:', hosts);
 
+  // Initialize filters from URL params on mount
+  useEffect(() => {
+    const initialFilters = {
+      location: locationParam,
+      petType: petTypeParam,
+      hostType: '',
+      minPrice: 0,
+      maxPrice: 2000,
+      minRating: 0,
+      services: [] as string[]
+    };
+    setAppliedFilters(initialFilters);
+    setLocalFilters(initialFilters);
+  }, [locationParam, petTypeParam]);
+
   const handleSearch = (filters: SearchFilters) => {
     console.log('Nueva búsqueda:', filters);
     
@@ -186,6 +230,47 @@ const SearchResults = () => {
     if (filters.startDate) newParams.set('startDate', filters.startDate.toISOString());
     if (filters.endDate) newParams.set('endDate', filters.endDate.toISOString());
     
+    setSearchParams(newParams);
+
+    // Update applied filters
+    setAppliedFilters(prev => ({
+      ...prev,
+      location: filters.location,
+      petType: filters.petType
+    }));
+
+    setLocalFilters(prev => ({
+      ...prev,
+      location: filters.location,
+      petType: filters.petType
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    setAppliedFilters(localFilters);
+    
+    // Update URL with new filters
+    const newParams = new URLSearchParams(searchParams);
+    if (localFilters.location) newParams.set('location', localFilters.location);
+    if (localFilters.petType) newParams.set('petType', localFilters.petType);
+    setSearchParams(newParams);
+  };
+
+  const handleClearFilters = () => {
+    const clearedFilters = {
+      location: '',
+      petType: '',
+      hostType: '',
+      minPrice: 0,
+      maxPrice: 2000,
+      minRating: 0,
+      services: [] as string[]
+    };
+    setLocalFilters(clearedFilters);
+    setAppliedFilters(clearedFilters);
+    
+    // Clear URL params
+    const newParams = new URLSearchParams();
     setSearchParams(newParams);
   };
 
@@ -211,67 +296,43 @@ const SearchResults = () => {
     setSelectedHost(null);
   };
 
-  // Filter and sort hosts
-  const filteredAndSortedHosts = hosts
-    .filter(host => {
-      // Pet types filter
-      if (selectedPetTypes.length > 0 && host.acceptedPets && Array.isArray(host.acceptedPets) &&
-          !selectedPetTypes.some(petType =>
-            host.acceptedPets.some(acceptedPet => 
-              acceptedPet.toLowerCase().includes(petType.toLowerCase())
-            )
-          )) {
-        return false;
-      }
+  // Filter hosts based on services (this is applied after database query)
+  const filteredHosts = hosts.filter(host => {
+    // Services filter (applied locally since it's not in database query yet)
+    if (appliedFilters.services.length > 0 && host.services && Array.isArray(host.services) &&
+        !appliedFilters.services.some(service =>
+          host.services.some(hostService =>
+            hostService.toLowerCase().includes(service.toLowerCase())
+          )
+        )) {
+      return false;
+    }
 
-      // Services filter
-      if (selectedServices.length > 0 && host.services && Array.isArray(host.services) &&
-          !selectedServices.some(service =>
-            host.services.some(hostService =>
-              hostService.toLowerCase().includes(service.toLowerCase())
-            )
-          )) {
-        return false;
-      }
+    return true;
+  });
 
-      // Host type filter
-      if (selectedHostTypes.length > 0 && !selectedHostTypes.includes(host.type)) {
-        return false;
-      }
-
-      // Price filter
-      if (host.pricePerNight < priceRange[0] || host.pricePerNight > priceRange[1]) {
-        return false;
-      }
-
-      // Rating filter
-      if (host.rating < minRating) {
-        return false;
-      }
-
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return a.pricePerNight - b.pricePerNight;
-        case 'price-high':
-          return b.pricePerNight - a.pricePerNight;
-        case 'rating':
-          return b.rating - a.rating;
-        case 'reviews':
-          return b.reviewCount - a.reviewCount;
-        default:
-          return 0;
-      }
-    });
+  // Sort hosts
+  const sortedHosts = [...filteredHosts].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-low':
+        return a.pricePerNight - b.pricePerNight;
+      case 'price-high':
+        return b.pricePerNight - a.pricePerNight;
+      case 'rating':
+        return b.rating - a.rating;
+      case 'reviews':
+        return b.reviewCount - a.reviewCount;
+      default:
+        return 0;
+    }
+  });
 
   const services = ['Paseos', 'Alimentación', 'Medicación', 'Juegos', 'Cuidado nocturno', 'Baño'];
-  const hostTypes = ['individual', 'veterinary']; // Remove 'family' from host types
+  const hostTypes = ['individual', 'veterinary'];
 
   const getHostTypeLabel = (type: string) => {
     switch (type) {
-      case 'individual': return 'Cuidadores'; // Changed from 'Cuidadores individuales'
+      case 'individual': return 'Cuidadores';
       case 'veterinary': return 'Veterinaria';
       default: return type;
     }
@@ -315,11 +376,11 @@ const SearchResults = () => {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {locationParam ? `Cuidadores en ${locationParam}` : 'Resultados de búsqueda'}
+              {appliedFilters.location ? `Cuidadores en ${appliedFilters.location}` : 'Resultados de búsqueda'}
             </h1>
             <p className="text-gray-600">
-              {filteredAndSortedHosts.length} cuidadores encontrados
-              {petTypeParam && ` para ${petTypeParam.toLowerCase()}`}
+              {sortedHosts.length} cuidadores encontrados
+              {appliedFilters.petType && ` para ${appliedFilters.petType.toLowerCase()}`}
             </p>
           </div>
 
@@ -356,175 +417,207 @@ const SearchResults = () => {
                 <SelectItem value="reviews">Más reseñas</SelectItem>
               </SelectContent>
             </Select>
-
-            {/* Filters Toggle */}
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="bg-white border-gray-300"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros
-            </Button>
           </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
-          {showFilters && (
-            <div className="lg:w-80">
-              <Card className="bg-white border border-gray-200 shadow-sm">
-                <CardContent className="p-6 space-y-6">
+          {/* Filters Sidebar - Always Visible */}
+          <div className="lg:w-80">
+            <Card className="bg-white border border-gray-200 shadow-sm">
+              <CardContent className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
+                  <Filter className="w-5 h-5 text-gray-500" />
+                </div>
 
-                  {/* Pet Types */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Tipo de mascota</h4>
-                    <div className="space-y-2">
+                {/* Location */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Ubicación</h4>
+                  <Select value={localFilters.location} onValueChange={(value) => setLocalFilters(prev => ({ ...prev, location: value }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecciona una ciudad" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                      <SelectItem value="">Todas las ubicaciones</SelectItem>
+                      {cities.map((city) => (
+                        <SelectItem key={city} value={city}>
+                          {city}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Pet Types */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Tipo de mascota</h4>
+                  <Select value={localFilters.petType} onValueChange={(value) => setLocalFilters(prev => ({ ...prev, petType: value }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecciona tipo de mascota" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                      <SelectItem value="">Todos los tipos</SelectItem>
                       {petTypes.map((petType) => (
-                        <div key={petType} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`pet-${petType}`}
-                            checked={selectedPetTypes.includes(petType)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedPetTypes([...selectedPetTypes, petType]);
-                              } else {
-                                setSelectedPetTypes(selectedPetTypes.filter(p => p !== petType));
-                              }
-                            }}
-                          />
-                          <label htmlFor={`pet-${petType}`} className="text-sm text-gray-700">
-                            {petType}
-                          </label>
-                        </div>
+                        <SelectItem key={petType} value={petType}>
+                          {petType}
+                        </SelectItem>
                       ))}
-                    </div>
-                  </div>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  {/* Services */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Servicios</h4>
-                    <div className="space-y-2">
-                      {services.map((service) => (
-                        <div key={service} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`service-${service}`}
-                            checked={selectedServices.includes(service)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedServices([...selectedServices, service]);
-                              } else {
-                                setSelectedServices(selectedServices.filter(s => s !== service));
-                              }
-                            }}
-                          />
-                          <label htmlFor={`service-${service}`} className="text-sm text-gray-700">
-                            {service}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Host Type */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Tipo de cuidador</h4>
-                    <div className="space-y-2">
+                {/* Host Type */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Tipo de cuidador</h4>
+                  <Select value={localFilters.hostType} onValueChange={(value) => setLocalFilters(prev => ({ ...prev, hostType: value }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecciona tipo de cuidador" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                      <SelectItem value="">Todos los tipos</SelectItem>
                       {hostTypes.map((hostType) => (
-                        <div key={hostType} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`host-${hostType}`}
-                            checked={selectedHostTypes.includes(hostType)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedHostTypes([...selectedHostTypes, hostType]);
-                              } else {
-                                setSelectedHostTypes(selectedHostTypes.filter(h => h !== hostType));
-                              }
-                            }}
-                          />
-                          <label htmlFor={`host-${hostType}`} className="text-sm text-gray-700">
-                            {getHostTypeLabel(hostType)}
-                          </label>
-                        </div>
+                        <SelectItem key={hostType} value={hostType}>
+                          {getHostTypeLabel(hostType)}
+                        </SelectItem>
                       ))}
-                    </div>
-                  </div>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  {/* Price Range */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Precio por noche</h4>
-                    <div className="px-2">
-                      <Slider
-                        value={priceRange}
-                        onValueChange={setPriceRange}
-                        max={2000}
-                        min={0}
-                        step={50}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-sm text-gray-600 mt-2">
-                        <span>${priceRange[0]}</span>
-                        <span>${priceRange[1]}</span>
+                {/* Services */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Servicios</h4>
+                  <div className="space-y-2">
+                    {services.map((service) => (
+                      <div key={service} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`service-${service}`}
+                          checked={localFilters.services.includes(service)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setLocalFilters(prev => ({
+                                ...prev,
+                                services: [...prev.services, service]
+                              }));
+                            } else {
+                              setLocalFilters(prev => ({
+                                ...prev,
+                                services: prev.services.filter(s => s !== service)
+                              }));
+                            }
+                          }}
+                        />
+                        <label htmlFor={`service-${service}`} className="text-sm text-gray-700">
+                          {service}
+                        </label>
                       </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Range */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Precio por noche</h4>
+                  <div className="px-2">
+                    <Slider
+                      value={[localFilters.minPrice, localFilters.maxPrice]}
+                      onValueChange={([min, max]) => setLocalFilters(prev => ({ ...prev, minPrice: min, maxPrice: max }))}
+                      max={2000}
+                      min={0}
+                      step={50}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-sm text-gray-600 mt-2">
+                      <span>${localFilters.minPrice}</span>
+                      <span>${localFilters.maxPrice}</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Rating */}
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Calificación mínima</h4>
-                    <div className="space-y-2">
-                      {[4, 3, 2, 1, 0].map((rating) => (
-                        <div key={rating} className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            id={`rating-${rating}`}
-                            name="rating"
-                            checked={minRating === rating}
-                            onChange={() => setMinRating(rating)}
-                            className="text-primary-600 focus:ring-primary-500"
-                          />
-                          <label htmlFor={`rating-${rating}`} className="flex items-center text-sm text-gray-700">
-                            <div className="flex items-center mr-2">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`w-4 h-4 ${
-                                    i < Math.max(rating, 1) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            {rating > 0 ? `${rating}+ estrellas` : 'Cualquier calificación'}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
+                {/* Rating */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Calificación mínima</h4>
+                  <div className="space-y-2">
+                    {[4, 3, 2, 1, 0].map((rating) => (
+                      <div key={rating} className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id={`rating-${rating}`}
+                          name="rating"
+                          checked={localFilters.minRating === rating}
+                          onChange={() => setLocalFilters(prev => ({ ...prev, minRating: rating }))}
+                          className="text-primary-600 focus:ring-primary-500"
+                        />
+                        <label htmlFor={`rating-${rating}`} className="flex items-center text-sm text-gray-700">
+                          <div className="flex items-center mr-2">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < Math.max(rating, 1) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          {rating > 0 ? `${rating}+ estrellas` : 'Cualquier calificación'}
+                        </label>
+                      </div>
+                    ))}
                   </div>
+                </div>
 
-                  {/* Clear Filters */}
+                {/* Filter Actions */}
+                <div className="flex flex-col space-y-2 pt-4 border-t">
+                  <Button
+                    onClick={handleApplyFilters}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    Aplicar filtros
+                  </Button>
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setSelectedPetTypes([]);
-                      setSelectedServices([]);
-                      setSelectedHostTypes([]);
-                      setPriceRange([0, 2000]);
-                      setMinRating(0);
-                    }}
+                    onClick={handleClearFilters}
                     className="w-full"
                   >
                     Limpiar filtros
                   </Button>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </div>
+
+                {/* Active Filters Display */}
+                {(appliedFilters.location || appliedFilters.petType || appliedFilters.hostType || appliedFilters.minPrice > 0 || appliedFilters.maxPrice < 2000 || appliedFilters.minRating > 0 || appliedFilters.services.length > 0) && (
+                  <div className="pt-4 border-t">
+                    <h4 className="font-medium text-gray-900 mb-2">Filtros aplicados:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {appliedFilters.location && (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                          {appliedFilters.location}
+                        </Badge>
+                      )}
+                      {appliedFilters.petType && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800">
+                          {appliedFilters.petType}
+                        </Badge>
+                      )}
+                      {appliedFilters.hostType && (
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                          {getHostTypeLabel(appliedFilters.hostType)}
+                        </Badge>
+                      )}
+                      {appliedFilters.services.map(service => (
+                        <Badge key={service} variant="secondary" className="bg-orange-100 text-orange-800">
+                          {service}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Results Grid/List */}
           <div className="flex-1">
-            {filteredAndSortedHosts.length === 0 ? (
+            {sortedHosts.length === 0 ? (
               <Card className="bg-white border border-gray-200 shadow-sm">
                 <CardContent className="p-12 text-center">
                   <div className="text-gray-400 mb-4">
@@ -538,13 +631,7 @@ const SearchResults = () => {
                   </p>
                   <Button 
                     variant="outline"
-                    onClick={() => {
-                      setSelectedPetTypes([]);
-                      setSelectedServices([]);
-                      setSelectedHostTypes([]);
-                      setPriceRange([0, 2000]);
-                      setMinRating(0);
-                    }}
+                    onClick={handleClearFilters}
                   >
                     Limpiar filtros
                   </Button>
@@ -556,7 +643,7 @@ const SearchResults = () => {
                   ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' 
                   : 'space-y-4'
                 }>
-                  {filteredAndSortedHosts.map((host) => (
+                  {sortedHosts.map((host) => (
                     <HostCard
                       key={host.id}
                       host={host}
@@ -568,7 +655,7 @@ const SearchResults = () => {
                 </div>
 
                 {/* Load More Button - Only show if there are results */}
-                {filteredAndSortedHosts.length > 0 && (
+                {sortedHosts.length > 0 && (
                   <div className="text-center mt-12">
                     <Button variant="outline" className="px-8">
                       Cargar más resultados
