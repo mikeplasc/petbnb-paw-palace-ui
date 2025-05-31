@@ -1,9 +1,76 @@
+
 import { faker } from '@faker-js/faker';
+
+// Types
+export interface Host {
+  id: string;
+  name: string;
+  type: 'sitter' | 'veterinary';
+  location: string;
+  city: string;
+  pricePerNight: number;
+  rating: number;
+  reviewCount: number;
+  images: string[];
+  description: string;
+  services: string[];
+  responseTime: string;
+  certifications: string[];
+  specialties?: string[];
+  acceptedPets?: string[];
+}
+
+export interface Review {
+  id: string;
+  userName: string;
+  userAvatar: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+// Pet types for search functionality
+export const petTypes = [
+  { id: 'dog', name: 'Perros', icon: '🐕' },
+  { id: 'cat', name: 'Gatos', icon: '🐱' },
+  { id: 'bird', name: 'Aves', icon: '🐦' },
+  { id: 'rabbit', name: 'Conejos', icon: '🐰' },
+  { id: 'fish', name: 'Peces', icon: '🐠' },
+  { id: 'hamster', name: 'Hámsters', icon: '🐹' }
+];
+
+// Mock reviews for testimonials
+export const mockReviews: Review[] = [
+  {
+    id: '1',
+    userName: 'María González',
+    userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b15c?w=60&h=60&fit=crop&crop=face',
+    rating: 5,
+    comment: 'Excelente servicio, mi perro Max estuvo muy bien cuidado.',
+    date: '2024-01-15'
+  },
+  {
+    id: '2', 
+    userName: 'Carlos Ruiz',
+    userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face',
+    rating: 5,
+    comment: 'Muy profesional y confiable. Recomiendo totalmente.',
+    date: '2024-01-12'
+  },
+  {
+    id: '3',
+    userName: 'Ana López',
+    userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face',
+    rating: 4,
+    comment: 'Buen servicio, mi gata Luna se sintió como en casa.',
+    date: '2024-01-08'
+  }
+];
 
 // Function to generate a random pet type
 const getRandomPetType = () => {
-  const petTypes = ['dog', 'cat', 'bird', 'rabbit', 'hamster', 'turtle'];
-  return petTypes[Math.floor(Math.random() * petTypes.length)];
+  const types = ['dog', 'cat', 'bird', 'rabbit', 'hamster', 'turtle'];
+  return types[Math.floor(Math.random() * types.length)];
 };
 
 // Function to generate a random service
@@ -61,6 +128,17 @@ const getRandomServices = () => {
   return randomServices;
 };
 
+// Function to generate accepted pets
+const getRandomAcceptedPets = () => {
+  const pets = ['Perros', 'Gatos', 'Aves', 'Conejos', 'Hámsters'];
+  const numberOfPets = faker.number.int({ min: 1, max: pets.length });
+  const acceptedPets = [];
+  for (let i = 0; i < numberOfPets; i++) {
+    acceptedPets.push(pets[i]);
+  }
+  return acceptedPets;
+};
+
 // Function to generate a random description
 const getRandomDescription = () => {
   return faker.lorem.paragraph();
@@ -71,7 +149,7 @@ const getRandomImage = () => {
   return faker.image.urlPicsumPhotos();
 };
 
-export const mockHosts = [
+export const mockHosts: Host[] = [
   {
     id: '1',
     name: faker.company.name(),
@@ -90,6 +168,7 @@ export const mockHosts = [
     services: getRandomServices(),
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
+    acceptedPets: getRandomAcceptedPets(),
   },
   {
     id: '2',
@@ -109,6 +188,7 @@ export const mockHosts = [
     services: getRandomServices(),
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
+    acceptedPets: getRandomAcceptedPets(),
   },
   {
     id: '3',
@@ -128,6 +208,7 @@ export const mockHosts = [
     services: getRandomServices(),
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
+    acceptedPets: getRandomAcceptedPets(),
   },
   {
     id: '4',
@@ -147,6 +228,7 @@ export const mockHosts = [
     services: getRandomServices(),
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
+    acceptedPets: getRandomAcceptedPets(),
   },
   {
     id: '5',
@@ -166,6 +248,7 @@ export const mockHosts = [
     services: getRandomServices(),
     responseTime: getRandomResponseTime(),
     certifications: getRandomCertifications(),
+    acceptedPets: getRandomAcceptedPets(),
   },
   {
     id: 'vet-1',
@@ -262,8 +345,6 @@ export const mockHosts = [
     certifications: ['SEDESA'],
     specialties: ['Medicina general', 'Salud pública']
   },
-  
-  // Adding more veterinary records with different images
   {
     id: 'vet-6',
     name: 'Hospital Veterinario San Rafael',
