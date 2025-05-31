@@ -59,8 +59,6 @@ export function AppSidebar() {
     { path: '/lost-pets', label: 'Perdidas', icon: AlertTriangle },
   ];
 
-  console.log('user', user);
-
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
@@ -109,7 +107,7 @@ export function AppSidebar() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.full_name}</span>
+                    <span className="truncate font-semibold">{user?.user_metadata?.full_name}</span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                 </SidebarMenuButton>
