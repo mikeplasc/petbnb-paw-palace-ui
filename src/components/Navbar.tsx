@@ -32,7 +32,7 @@ const Navbar = () => {
             alt="Petbnb Logo" 
             className="w-10 h-10 object-contain"
           />
-          <span className="text-2xl font-bold bg-gradient-to-r from-petbnb-600 to-primary-600 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
             Petbnb
           </span>
         </Link>
@@ -105,7 +105,7 @@ const Navbar = () => {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder-user.jpg" alt="Usuario" />
-                  <AvatarFallback className="bg-gradient-to-br from-petbnb-100 to-primary-100 text-primary-700">
+                  <AvatarFallback className="bg-gradient-to-br from-primary-100 to-accent-100 text-primary-700">
                     <User className="h-4 w-4" />
                   </AvatarFallback>
                 </Avatar>

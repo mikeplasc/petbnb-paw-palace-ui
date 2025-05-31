@@ -26,12 +26,18 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#6366f1',
+					DEFAULT: '#ff6b35',
 					foreground: '#ffffff',
-					50: '#eef2ff',
-					100: '#e0e7ff',
-					500: '#6366f1',
-					600: '#4f46e5'
+					50: '#fff4f1',
+					100: '#ffe6dd',
+					200: '#ffd1bb',
+					300: '#ffb088',
+					400: '#ff8754',
+					500: '#ff6b35',
+					600: '#f04e1a',
+					700: '#c73e16',
+					800: '#a43418',
+					900: '#872f19'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -67,30 +73,43 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Petbnb colors
+				// Petbnb colors - actualizados para coincidir con el logo
 				petbnb: {
-					50: '#f0f9ff',
-					100: '#e0f2fe',
-					200: '#bae6fd',
-					300: '#7dd3fc',
-					400: '#38bdf8',
-					500: '#0ea5e9',
-					600: '#0284c7',
-					700: '#0369a1',
-					800: '#075985',
-					900: '#0c4a6e'
+					50: '#fff8f5',
+					100: '#fff0e8',
+					200: '#ffdcc7',
+					300: '#ffc29f',
+					400: '#ff9b6b',
+					500: '#ff6b35',
+					600: '#f04e1a',
+					700: '#c73e16',
+					800: '#a43418',
+					900: '#872f19'
+				},
+				// Colores azules del logo
+				accent: {
+					50: '#f0f8ff',
+					100: '#e0f0fe',
+					200: '#bae1fd',
+					300: '#7cc8fc',
+					400: '#36adf8',
+					500: '#0c93e9',
+					600: '#0075c7',
+					700: '#015da1',
+					800: '#064f85',
+					900: '#0b426e'
 				},
 				warm: {
-					50: '#fefdf2',
-					100: '#fef7cd',
-					200: '#fef08a',
-					300: '#fde047',
-					400: '#facc15',
-					500: '#eab308',
-					600: '#ca8a04',
-					700: '#a16207',
-					800: '#854d0e',
-					900: '#713f12'
+					50: '#fff8f5',
+					100: '#fff0e8',
+					200: '#ffdcc7',
+					300: '#ffc29f',
+					400: '#ff9b6b',
+					500: '#ff6b35',
+					600: '#f04e1a',
+					700: '#c73e16',
+					800: '#a43418',
+					900: '#872f19'
 				},
 				sage: {
 					50: '#f6f7f6',
