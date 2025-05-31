@@ -15,8 +15,8 @@ const Hosts = () => {
   const [hosts] = useState(mockHosts);
   const [filteredHosts, setFilteredHosts] = useState(mockHosts);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState('all');
   const [sortBy, setSortBy] = useState('rating');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [selectedHost, setSelectedHost] = useState<any>(null);
@@ -33,8 +33,8 @@ const Hosts = () => {
     let filtered = hosts.filter(host => {
       const matchesSearch = host.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            host.location.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = selectedType === '' || host.type === selectedType;
-      const matchesLocation = selectedLocation === '' || host.location.includes(selectedLocation);
+      const matchesType = selectedType === 'all' || host.type === selectedType;
+      const matchesLocation = selectedLocation === 'all' || host.location.includes(selectedLocation);
       
       return matchesSearch && matchesType && matchesLocation;
     });
@@ -140,7 +140,7 @@ const Hosts = () => {
                     <SelectValue placeholder="Tipo de cuidador" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los tipos</SelectItem>
+                    <SelectItem value="all">Todos los tipos</SelectItem>
                     <SelectItem value="family">Familia</SelectItem>
                     <SelectItem value="individual">Cuidador individual</SelectItem>
                     <SelectItem value="veterinary">Veterinaria</SelectItem>
@@ -152,7 +152,7 @@ const Hosts = () => {
                     <SelectValue placeholder="Ubicación" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las ubicaciones</SelectItem>
+                    <SelectItem value="all">Todas las ubicaciones</SelectItem>
                     {uniqueLocations.map((location) => (
                       <SelectItem key={location} value={location}>
                         {location}
@@ -206,8 +206,8 @@ const Hosts = () => {
                 variant="outline"
                 onClick={() => {
                   setSearchTerm('');
-                  setSelectedType('');
-                  setSelectedLocation('');
+                  setSelectedType('all');
+                  setSelectedLocation('all');
                 }}
               >
                 Limpiar filtros
