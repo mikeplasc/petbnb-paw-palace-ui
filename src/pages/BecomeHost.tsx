@@ -17,6 +17,7 @@ import { Upload, Star, Shield, Heart, CheckCircle, AlertCircle } from 'lucide-re
 import { cities, petTypes } from '@/data/mockData';
 import { useToast } from '@/hooks/use-toast';
 import { submitHostApplication } from '@/services/hostApplicationService';
+import { supabase } from '@/integrations/supabase/client';
 
 const BecomeHost = () => {
   const { toast } = useToast();
@@ -37,6 +38,8 @@ const BecomeHost = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const hostTypes = [
     { value: 'family', label: 'Familia' },
@@ -193,11 +196,48 @@ const BecomeHost = () => {
     }
   };
 
+  const handleResendEmail = async () => {
+    setIsSubmitting(true);
+    setEmailError(null);
+    
+    try {
+      const emailResponse = await supabase.functions.invoke('send-host-registration-email', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          type: formData.type,
+          city: formData.city,
+        },
+      });
+
+      if (emailResponse.error) {
+        throw new Error(emailResponse.error.message);
+      }
+
+      setEmailSent(true);
+      toast({
+        title: "¡Email reenviado!",
+        description: "Hemos reenviado el correo de confirmación.",
+      });
+    } catch (error) {
+      console.error('Error resending email:', error);
+      setEmailError(error instanceof Error ? error.message : 'Error al reenviar el email');
+      toast({
+        title: "Error al reenviar el email",
+        description: "Por favor, intenta nuevamente más tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep3()) return;
 
     setIsSubmitting(true);
+    setEmailError(null);
     
     try {
       await submitHostApplication({
@@ -215,6 +255,7 @@ const BecomeHost = () => {
       });
 
       setCurrentStep(4);
+      setEmailSent(true);
       
       toast({
         title: "¡Solicitud enviada exitosamente!",
@@ -222,11 +263,22 @@ const BecomeHost = () => {
       });
     } catch (error) {
       console.error('Error submitting application:', error);
-      toast({
-        title: "Error al enviar la solicitud",
-        description: "Hubo un problema al procesar tu solicitud. Por favor, inténtalo de nuevo.",
-        variant: "destructive",
-      });
+      
+      // Check if the error is specifically from email sending
+      if (error instanceof Error && error.message.includes('email')) {
+        setEmailError(error.message);
+        toast({
+          title: "Solicitud enviada, pero hubo un problema con el email",
+          description: "Tu solicitud fue registrada, pero no pudimos enviar el email de confirmación. Puedes intentar reenviarlo.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error al enviar la solicitud",
+          description: "Hubo un problema al procesar tu solicitud. Por favor, inténtalo de nuevo.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -269,9 +321,30 @@ const BecomeHost = () => {
             <p className="text-gray-600 mb-4">
               Revisaremos tu información y te contactaremos en 24-48 horas.
             </p>
-            <p className="text-sm text-gray-500 mb-8">
-              Hemos enviado un correo electrónico a <strong>{formData.email}</strong> con información detallada sobre los próximos pasos.
-            </p>
+            {emailSent ? (
+              <p className="text-sm text-gray-500 mb-8">
+                Hemos enviado un correo electrónico a <strong>{formData.email}</strong> con información detallada sobre los próximos pasos.
+              </p>
+            ) : (
+              <div className="mb-8">
+                <p className="text-sm text-red-500 mb-4">
+                  No pudimos enviar el email de confirmación. ¿Deseas intentar nuevamente?
+                </p>
+                <Button
+                  onClick={handleResendEmail}
+                  variant="outline"
+                  disabled={isSubmitting}
+                  className="w-full mb-4"
+                >
+                  {isSubmitting ? 'Reenviando...' : 'Reenviar email de confirmación'}
+                </Button>
+                {emailError && (
+                  <p className="text-xs text-red-500">
+                    Error: {emailError}
+                  </p>
+                )}
+              </div>
+            )}
             <Button onClick={() => setCurrentStep(1)} className="w-full bg-petbnb-600 hover:bg-petbnb-700">
               Volver al inicio
             </Button>

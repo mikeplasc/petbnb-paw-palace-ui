@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import Adoption from "./pages/Adoption";
+import AdoptionStories from "./pages/AdoptionStories";
 import Auth from "./pages/Auth";
 import { AuthProvider } from "@/contexts/AuthContext";
 import BecomeHost from "./pages/BecomeHost";
@@ -80,6 +81,15 @@ const App = () => (
                     <ProtectedRoute>
                       <Navbar />
                       <Adoption />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/adoption/stories"
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                      <AdoptionStories />
                     </ProtectedRoute>
                   }
                 />
