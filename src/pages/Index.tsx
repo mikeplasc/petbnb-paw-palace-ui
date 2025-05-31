@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import SearchBar, { SearchFilters } from '@/components/SearchBar';
 import HostCard from '@/components/HostCard';
@@ -12,11 +12,35 @@ import { Star, Shield, Heart, Clock, Award } from 'lucide-react';
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   const handleSearch = (filters: SearchFilters) => {
     console.log('Búsqueda realizada:', filters);
-    // Aquí se implementaría la navegación a resultados
-    setCurrentPage('search-results');
+    
+    // Create query string from filters
+    const params = new URLSearchParams();
+    if (filters.location) params.set('location', filters.location);
+    if (filters.petType) params.set('petType', filters.petType);
+    if (filters.startDate) params.set('startDate', filters.startDate.toISOString());
+    if (filters.endDate) params.set('endDate', filters.endDate.toISOString());
+    
+    navigate(`/search?${params.toString()}`);
+  };
+
+  const handleNavigation = (page: string) => {
+    switch (page) {
+      case 'become-host':
+        navigate('/become-host');
+        break;
+      case 'veterinaries':
+        navigate('/veterinaries');
+        break;
+      case 'search-results':
+        navigate('/search');
+        break;
+      default:
+        setCurrentPage(page);
+    }
   };
 
   const handleToggleFavorite = (hostId: string) => {
@@ -60,7 +84,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-petbnb-50 via-white to-warm-50">
-      <Header currentPage={currentPage} onNavigate={setCurrentPage} />
+      <Header currentPage={currentPage} onNavigate={handleNavigation} />
       
       {/* Hero Section */}
       <section className="relative py-20 px-4 overflow-hidden">
@@ -161,7 +185,7 @@ const Index = () => {
             <Button 
               size="lg"
               variant="outline"
-              onClick={() => setCurrentPage('search-results')}
+              onClick={() => handleNavigation('search-results')}
               className="border-petbnb-300 text-petbnb-700 hover:bg-petbnb-50 px-8"
             >
               Ver todos los cuidadores
@@ -223,7 +247,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg"
-                onClick={() => setCurrentPage('search-results')}
+                onClick={() => handleNavigation('search-results')}
                 className="bg-white text-petbnb-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
               >
                 Comenzar búsqueda
@@ -231,10 +255,8 @@ const Index = () => {
               <Button 
                 size="lg"
                 variant="outline"
-                onClick={() => setCurrentPage('become-host')}
+                onClick={() => handleNavigation('become-host')}
                 className="border-white text-white hover:bg-white hover:text-petbnb-600 px-8 py-3 text-lg font-semibold"
-              >
-                Convertirse en cuidador
               </Button>
             </div>
           </div>
